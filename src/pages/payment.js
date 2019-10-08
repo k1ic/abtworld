@@ -162,19 +162,13 @@ export default function PaymentPage() {
   return (
     <Layout title="Payment">
       <Main symbol={token.symbol}>
-        <Grid container spacing={6}>
-          <Grid item xs={12} md={9} className="meta">
-            <Typography component="h3" variant="h4" color="primary">
-              {pic_to_pay[0].owner} - {pic_to_pay[0].title} - {pic_to_pay[0].worth} {pic_to_pay[0].token_sym} <br/>
-              {pic_to_pay[0].description}
-            </Typography>
-            <div className={`document ${(fValueToPay > 0) ? '' : 'picture--unlocked'}`}>
-              <Typography component="div" variant="body1" className="picture__body">
-                <img src={pic_to_show} alt={pic_to_pay[0].title} />
-              </Typography>
-            </div>
-          </Grid>
-        </Grid>
+        <div className="picture-desc">
+          {pic_to_pay[0].owner} - {pic_to_pay[0].title} - {pic_to_pay[0].worth} {pic_to_pay[0].token_sym} <br/>
+          {pic_to_pay[0].description}
+        </div>
+        <div className={`picture ${(fValueToPay > 0) ? '' : 'picture--unlocked'}`}>
+          <img src={pic_to_show} alt={pic_to_pay[0].title} />
+        </div>
       </Main>
       {open && (
         <Auth
@@ -199,50 +193,24 @@ export default function PaymentPage() {
 }
 
 const Main = styled.main`
-  margin: 80px 0;
-  display: flex;
+  margin: 10px 0;  
 
-  .avatar {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-center;
-
-    svg {
-      margin-bottom: 40px;
-    }
+  .picture-desc {
+    pointer-event:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;
+    color: #66CCCC;
+    font-size: 20px;
+    width:100%;
+    height: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    word-break: break-all;
   }
 
-  .meta {
-    display: flex;
-    flex-grow: 1;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-  }
-
-  .meta-item {
-    padding-left: 0;
-  }
-
-  .document {
-    margin-top: 30px;
+  .picture {
+    pointer-event:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;
     position: relative;
-
-    .document__body {
-      filter: blur(5px);
-      text-align: justify;
-      user-select: none;
-      pointer-event: none;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-    }
-
-    .picture__body {
-      filter: blur(30px);
-      pointer-event:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;
-    }
-
+    filter: blur(30px);
+    
     &:after {
       color: #dd2233;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans',
@@ -256,38 +224,30 @@ const Main = styled.main`
       position: absolute;
       text-transform: uppercase;
       animation: blink 800ms ease;
-      border: 0px;
+      border: 0px solid #dd2233;
+      -moz-background-size:contain|cover;
+      -webkit-background-size:contain|cover;
+      -o--background-size:contain|cover;
+      background-size:contain|cover;
       top: 0%;
       left: 0%;
-      width: 100%;
+      width:100%;
       height: 100%;
-    }
-
-    @keyframes blink {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
     }
   }
 
-  .document--unlocked {
-    .document__body {
-      filter: none;  
-    }
-
-    &:after {
-      display: none;
-    }
+  .picture img {
+    -moz-background-size:contain|cover;
+    -webkit-background-size:contain|cover;
+    -o--background-size:contain|cover;
+    background-size:contain|cover;
+    width:100%;
+    height: auto;
   }
 
   .picture--unlocked {
-    .picture__body {
-      filter: none;
-    }
-    
+    filter: none;
+
     &:after {
     }
   }

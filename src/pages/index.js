@@ -161,7 +161,7 @@ const renderPaymentPicListCard = x => (
           <img className="pic-list" src={x.blur_src} alt={x.title} />
         </Typography>
         <Typography component="p" color="primary" gutterBottom>
-          {x.owner}:{x.description}
+          {x.owner}：{x.description}
         </Typography>
       </CardContent>
     </Card>
@@ -178,7 +178,7 @@ export default function IndexPage() {
           付费资源
         </Typography>
         <Typography component="p" variant="h6" className="page-description" color="textSecondary">
-          <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>扫码支付后查看高清无码图
+          <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>扫码支付后查看高清图片
         </Typography>
         <Grid container spacing={6} className="section__body demos">
           {AssetPicList.map(x => renderPaymentPicListCard(x))}
@@ -235,18 +235,18 @@ const Main = styled.main`
   }
 
   .demo-dapp-list {
-    height: 300px;
-    width: 235px;
+    height: 320px;
+    width: 260px;
   }
 
   .payment-pic-list {
-    height: 295px;
-    width: 235px;
+    height: 320px;
+    width: 260px;
   }
 
   .qr-code {
-    heigh: 200px;
-    width: 200px;
+    heigh: 225px;
+    width: 225px;
     margin-right: 1px;
     display: flex;
     align-items: center;
@@ -254,8 +254,8 @@ const Main = styled.main`
   }
 
   .pic-list {
-    heigh: 200px;
-    width: 200px;
+    heigh: 225px;
+    width: 225px;
     margin-right: 1px;
     display: flex;
     align-items: center;
