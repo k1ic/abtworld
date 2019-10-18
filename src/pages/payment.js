@@ -15,7 +15,8 @@ import Avatar from '@arcblock/did-react/lib/Avatar';
 import Layout from '../components/layout';
 import useForUpdateSession from '../hooks/session';
 import api from '../libs/api';
-import AssetPicList from '../libs/asset_pic';
+//import AssetPicList from '../libs/asset_pic';
+import {fetchPayedPics} from '../hooks/picture';
 
 import { onAuthError } from '../libs/auth';
 import { getPaymentPendingFlag, setPaymentPendigFlag } from '../libs/auth';
@@ -23,9 +24,14 @@ import { getPaymentPendingFlag, setPaymentPendigFlag } from '../libs/auth';
 const isProduction = process.env.NODE_ENV === 'production';
 //const isProduction = 0;
 
+var pic_asset_did = "";
+
 async function fetchStatus() {
-  const [{ data: payment }, { data: session }] = await Promise.all([api.get('/api/payments'), api.get('/api/session')]);
-  return { payment, session };
+  console.log('fetchStatus strAssetDid=', pic_asset_did);
+  const [{ data: payment }, { data: session }, {data: picture}] = await Promise.all([api.get('/api/payments'), 
+    api.get('/api/session'), 
+    api.get(`/api/getpics?cmd=GetPicsForPayShow0x012bbc9ebd79c1898c6fc19cefef6d2ad7a82f44&asset_did=${pic_asset_did}`)]);
+  return { payment, session, picture};
 }
 
 const onPaymentClose = async result => {
@@ -45,7 +51,9 @@ const onPaymentSuccess = async result => {
   //payback to resources owner
 };
 
-export default function PaymentPage() {
+export default function PaymentPage(props) {
+  pic_asset_did = props.asset_did;
+  console.log('pic_asset_did=', pic_asset_did);
   const state = useAsync(fetchStatus);
   const [open, toggle] = useToggle(false);
   var memo = " ";
@@ -82,6 +90,7 @@ export default function PaymentPage() {
   const {
     payment,
     session: { user, token },
+    picture,
   } = state.value;
 
   if (window.location.search) {
@@ -95,10 +104,19 @@ export default function PaymentPage() {
     }
   }
 
-  const pic_to_pay = AssetPicList.filter(function (e) { 
+  //const pic_to_pay = AssetPicList.filter(function (e) { 
+  //  return e.asset_did === memo;
+  //});
+  if (!picture) {
+    window.location.href = '/';
+    setPaymentPendigFlag(0);
+    return null;
+  }
+  const pic_to_pay = picture.filter(function (e) { 
     return e.asset_did === memo;
   });
-  if (pic_to_pay.length === 0){
+  
+  if (!pic_to_pay || pic_to_pay.length === 0){
     window.location.href = '/';
     setPaymentPendigFlag(0);
     return null;
@@ -138,7 +156,7 @@ export default function PaymentPage() {
   }
 
   //asset owner and super admin don't need to pay in production release
-  if (isProduction && (user.did == pic_to_pay[0].owner_did || user.did == 'did:abt:z1emeg4eeh55Epfdz1bV3jhC9VxQ35H5yPb')){
+  if (isProduction && (user.did == pic_to_pay[0].owner_did || user.did == 'z1emeg4eeh55Epfdz1bV3jhC9VxQ35H5yPb')){
     fValueToPay = 0;
     strValueToPay = null;
     setPaymentPendigFlag(0);
@@ -190,6 +208,19 @@ export default function PaymentPage() {
       )}
     </Layout>
   );
+}
+
+PaymentPage.getInitialProps = async function ({pathname, query, asPath, req}) {
+    //console.log('pathname=', pathname);
+    //console.log('query=', query);
+    console.log('query.memo=', query.memo);
+    //console.log('asPath=', asPath);
+    //console.log('req=', req);
+    //console.log('req.url=', req.url);
+
+    return {
+      asset_did: query.memo,
+    }
 }
 
 const Main = styled.main`

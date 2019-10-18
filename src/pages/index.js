@@ -6,6 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import CodeBlock from '@arcblock/ux/lib/CodeBlock';
@@ -13,10 +14,10 @@ import CodeBlock from '@arcblock/ux/lib/CodeBlock';
 import Layout from '../components/layout';
 import env from '../libs/env';
 
-import AssetPicList from '../libs/asset_pic';
-import { getPaymentPendingFlag, setPaymentPendigFlag } from '../libs/auth';
+//import AssetPicList from '../libs/asset_pic';
+import usePreviewPics from '../hooks/picture';
 
-import useSession from '../hooks/session';
+import { getPaymentPendingFlag, setPaymentPendigFlag } from '../libs/auth';
 
 const graphqlDemos = [
   {
@@ -168,11 +169,70 @@ const renderPaymentPicListCard = x => (
   </Grid>
 );
 
+const renderTBAWoolListCard = x => (
+  <Grid key={x.title} item xs={6} sm={3} md={2} lg={1}>
+    <Card className="tba-wool-list">
+      <CardContent>
+        <Typography component="p" color="primary" gutterBottom>
+          {x.title}
+        </Typography>
+        <Button color="secondary" variant="contained" onClick={() => window.location.href = `${x.checkin}`}>
+          签到
+        </Button>
+      </CardContent>
+    </Card>
+  </Grid>
+);
+
 export default function IndexPage() {
   setPaymentPendigFlag(0);
+  const picture = usePreviewPics();
+
+  if (picture.loading) {
+    return (
+      <Layout title="Home">
+        <Main>
+          <CircularProgress />
+        </Main>
+      </Layout>
+    );
+  }
+
+  if (picture.error) {
+    return (
+      <Layout title="Home">
+        <Main>{picture.error.message}</Main>
+      </Layout>
+    );
+  }
+  
+  const AssetPicList = picture.value;
+  
+  //init TBA wool list
+  var TBAWoolList=new Array();
+  for(var i=0;i<12;i++) {
+    TBAWoolList[i]={};
+    TBAWoolList[i]['title'] = `羊毛${i+1}号`;
+    TBAWoolList[i]['login'] = `http://abtworld.cn:${3030+i}/?openLogin=true`;
+    //console.log("TBAWoolList[", i, "][login]=", TBAWoolList[i].login);
+    TBAWoolList[i]['checkin'] = `http://abtworld.cn:${3030+i}/checkin`;
+    //console.log("TBAWoolList[", i, "][checkin]=", TBAWoolList[i].checkin);
+  }
+
   return (
     <Layout title="Home">
       <Main>
+      <section className="section">
+        <Typography component="h3" variant="h5" className="section__header" color="textPrimary" gutterBottom>
+          薅羊毛
+        </Typography>
+        <Typography component="p" variant="h6" className="page-description" color="textSecondary">
+          羊毛党的福利，一个钱包每天可以撸300TBA
+        </Typography>
+        <Grid container spacing={6} className="section__body demos">
+          {TBAWoolList.map(x => renderTBAWoolListCard(x))}
+        </Grid>
+      </section>
       <section className="section">
         <Typography component="h3" variant="h5" className="section__header" color="textPrimary" gutterBottom>
           付费资源
@@ -181,27 +241,16 @@ export default function IndexPage() {
           <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>扫码支付后查看高清图片
         </Typography>
         <Grid container spacing={6} className="section__body demos">
-          {AssetPicList.map(x => renderPaymentPicListCard(x))}
+          {AssetPicList?AssetPicList.map(x => renderPaymentPicListCard(x)):''}
         </Grid>
       </section>
-      <section className="section">
-         <Typography component="h3" variant="h5" className="section__header" color="textPrimary" gutterBottom>
-           二维码
-         </Typography>
-         <Typography component="p" variant="h6" className="page-description" color="textSecondary">
-           扫描二维码将在链上登录和创建账户，签到代币仅用于钱包和链网测试，禁止交易!
-         </Typography>
-         <Grid container spacing={6} className="section__body demos">
-           {DemoDappList.map(x => renderDemoDappLoginListCard(x))}
-         </Grid>
-       </section>
       </Main>
     </Layout>
   );
 }
 
 const Main = styled.main`
-  margin: 80px 0 0;
+  margin: 20px 0 0;
 
   a {
     color: ${props => props.theme.colors.green};
@@ -242,6 +291,15 @@ const Main = styled.main`
   .payment-pic-list {
     height: 320px;
     width: 260px;
+  }
+
+  .tba-wool-list {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-center;
+    height: 100px;
+    width: 100px;
   }
 
   .qr-code {

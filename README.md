@@ -1,4 +1,4 @@
-![forge-next-starter](https://www.arcblock.io/.netlify/functions/badge/?text=forge-next-starter)
+![abtworld](http://abtworld.cn/static/images/logo.png)
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/e0c63e91-97b5-45df-95d1-1bad86153559/deploy-status)](https://app.netlify.com/sites/forge-next-starter/deploys)
 
@@ -8,104 +8,51 @@
 
 ![](./docs/starter-home.png)
 
-A starter project that integrates [forge](https://docs.arcblock.io/forge/latest/) [javascript sdk](https://docs.arcblock.io/forge/latest/sdk/javascript.html) with mainstream javascript application batteries:
-
-- [Next.js](https://nextjs.org/) for crafting pages and SSR
-- [Material-UI](https://material-ui.com/) for resuable react components
-- [Express.js](http://expressjs.com/) as custom web server that can serve custom api
-- [Mongoose](https://mongoosejs.com/) as database ORM layer
-
-Forge SDK libraries included in the starter project:
-
-- [@arcblock/forge-sdk](https://www.npmjs.com/package/@arcblock/forge-sdk) as communication layer between application and forge powered blockchain
-- [@arcblock/did-auth](https://www.npmjs.com/package/@arcblock/did-auth) help application do jwt based auth with ABT wallet
-- [@arcblock/did-auth-storage-mongo](https://www.npmjs.com/package/@arcblock/did-auth-storage-mongo) storage engines that powers the magic behind ABT Wallet qrcode scanning
-- [@arcblock/did-react](https://www.npmjs.com/package/@arcblock/did-react) react components that can implements basic UI elements to connect your application with ABT Wallet, such as avatar and auth dialog
-
-Other javascript project goodies:
-
-- `jwt`: token based authentication
-- `eslint`: for consistent coding style
-- `prettier`: for consistent code formatting
-- `husky`: and `lint-staged` for prepush and precommit hooks
-- `nodemon`: for auto restart server on node.js code change
-- `next.js`: supports hot reload on client code change
-- `dotenv`: to load configurations from `.env` files
-
-## Folder Structure
-
-```terminal
-.
-├── LICENSE
-├── Makefile
-├── README.md
-├── app.js                    // application entry file
-├── src                       // code for client side pages
-│   ├── babel.config.js       // custom babel configuration
-│   ├── components            // shared react components/layouts across all pages
-│   ├── hooks                 // shared react hooks
-│   ├── libs                  // shared utility code
-│   ├── next.config.js        // custom next.js configuration
-│   ├── pages                 // pages
-│   └── static                // static assets that can be loaded by browser
-├── package.json
-├── api                       // backend code
-│   ├── libs                  // shared server libs
-│   ├── models                // mongoose db models
-│   └── routes                // express routes and handlers
-├── version
-└── yarn.lock
-```
-
 ## Runtime Requirements
 
-- Mongodb v3+
-- Node.js v10+
-- That's all
+- Following ArcBlock Doc to install runtime dependency: https://docs.arcblock.io/forge/latest/install/ubuntu.html 
 
 ## Usage
 
-### Create new project with forge-cli
+### Just use this abtworld public repo
+
+> **Note: You need to config `.env` manually.**
 
 ```terminal
-npm install -g @arcblock/forge-cli forge-next-starter
-forge install
-forge start
-forge project:create hello-forge
-cd hello-forge
-npm start
-```
-
-### Just use this starter repo
-
-> **Note: You have to setup an `.env` file manually.**
-
-```terminal
-git clone https://github.com/ArcBlock/forge-dapp-starters.git
-cd forge-dapp-starters/packages/forge-next-starter
+git clone https://github.com/helloabt/abtworld-pub.git
+cd abtworld-pub
 yarn
+vim .env (config APP_SK/APP_ID/BASE_URL/APP_OWNER_ACCOUNT)
+yarn build
 yarn start
 ```
 
 ## Configuration
 
-dApp configuration file is auto generated and stored in `.env`, example configure as:
+dApp configuration file stored in `.env`, example configure as:
 
 ```text
 # server only
-MONGO_URI="mongodb://localhost/forge-next-starter"
-APP_TOKEN_SECRET="you_should_change_this"
+MONGO_URI="mongodb://127.0.0.1:27017/abtworld"
+APP_TOKEN_SECRET="48ef26ff97ca003c7863255258edcd31ccda7d7f"
 APP_TOKEN_TTL="1d"
-APP_SK="0x95d4ef0af090e1cf21b9fd0ccefe768a7bff660375b0bfdb95a34a4106a68bf7f7995a7066cd1171b4e963f2b36de17eb642c4145d58733cfa9b03a11bb5f11e"
-APP_PORT=3030
+# Wallet private key
+# forge wallet:create
+# parameter: ROLE_APPLICATION, type: {role: 'ROLE_APPLICATION',pk: 'ED25519',hash: 'SHA3',address: 'BASE58'}
+APP_SK="0x2c73992856a3000670a7c187b5cacadc0958df16ff0daa1683d00f76c8ec35984b1cc15b3d5b0c36ec2460ca03428de532df6693a40b08f82c65c8ee9fcd2bb0"
+APP_PORT="3030"
+# The wallet DID address to auto receive the fee
+APP_OWNER_ACCOUNT="z1XKKV5TykX467ZXNo3FuTURaq6eTF8tMQM"
 
-# both server and client
+# both client and server
 CHAIN_ID="zinc-2019-05-17"
 CHAIN_HOST="https://zinc.abtnetwork.io/api"
-APP_ID="zNKrVwYxwgsYAUX3mGjK42oNuePLVT3Me6ga"
-APP_NAME="Forge Next.js Starter"
-BASE_URL="http://10.113.10.82:3030"
-API_PREFIX=""
+APP_NAME="ABT World"
+APP_DESCRIPTION="DApps on ArcBlock"
+# Wallet public address(Corresponding to the wallet private key)
+APP_ID="zNKiCPNbtdHnzVN2uMrHbxumzSQuudmuzKNR"
+# The pub ip need change to your server public IP
+BASE_URL="http://<pub ip>:3030"
 ```
 
 > Caution: `.env` contains very sensitive info such as Application wallet secret key, PLEASE DO NOT COMMIT `.env` FILE
@@ -128,7 +75,7 @@ Checkout the following screenshot or just run the starter and open browser conso
 
 ## LICENSE
 
-Copyright 2018-2019 ArcBlock
+Copyright 2019 ~ ArcBlock & abtworld.cn
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
