@@ -20,7 +20,6 @@ import useSession from '../hooks/session';
 import forge from '../libs/sdk';
 import api from '../libs/api';
 import { removeToken, onAuthError } from '../libs/auth';
-import { getPaymentPendingFlag, setPaymentPendigFlag } from '../libs/auth';
 
 var CheckinPendingFlag = 0;
 
@@ -42,8 +41,6 @@ const onCheckinSuccess = async result => {
 export default function CheckinPage() {
   const session = useSession();
   const [isOpen, setOpen] = useToggle(false);
-
-  setPaymentPendigFlag(0);
 
   if (session.loading || !session.value) {
     return (

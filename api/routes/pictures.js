@@ -4,13 +4,17 @@ const { Picture } = require('../models');
 
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
-async function getPicsForPreview(){
+async function getPicsForPreview(iOffset, iNumber){
+  var temp_docs = [];
   var new_docs = [];
   var found = 0;
+  
+  console.log('getPicsForPreview iOffset=', iOffset, 'iNumber=', iNumber);
+  
   await Picture.find().byState('approved').exec(function(err, docs){
     if(docs && docs.length>0){
       console.log('Found', docs.length, 'approved docs');
-      new_docs = docs.map(function( e ) {
+      temp_docs = docs.map(function( e ) {
         var doc = {};
         doc['category'] = e.category;
         doc['owner'] = e.owner;
@@ -39,6 +43,14 @@ async function getPicsForPreview(){
   }
   
   console.log('getPicsForPreview wait counter', wait_counter);
+  //console.log(temp_docs);
+  
+  /*Get the range of the document*/
+  if(iNumber != 0){
+    new_docs = temp_docs.slice(iOffset, iOffset+iNumber);
+  }else{
+    new_docs = temp_docs;
+  }
   //console.log(new_docs);
   
   return new_docs;
@@ -161,6 +173,35 @@ async function getRejectedPics(){
   return new_docs;
 }
 
+async function getPicsNum(strState){
+  var new_docs = [];
+  var found = 0;
+  await Picture.find().byState(strState).exec(function(err, docs){
+    if(docs && docs.length>0){
+      console.log('Found', docs.length, strState, 'docs');
+      new_docs = docs;
+    }else{
+      console.log(strState, 'document not found!');
+    }
+    found = 1;
+  })
+  
+  /*wait found result*/
+  var wait_counter = 0;
+  while(!found){
+    await sleep(1);
+    wait_counter++;
+    if(wait_counter > 15000){
+      break;
+    }
+  }
+  
+  console.log('getPicsNum wait counter', wait_counter);
+  //console.log(new_docs);
+  
+  return new_docs.length;
+}
+
 module.exports = {
   init(app) {
     /*Get pictures API command list*/
@@ -169,6 +210,7 @@ module.exports = {
     /*3. GetPicsApproved0x503988fb7a78ce326b30a7d74f63c70d5574063c */
     /*4. GetPicsCommited0x4f2f39303fa1d585564cfe4aacd46ede824b3d61 */
     /*5. GetPicsRejected0x68d54c43e5f85dea0c783d94ddc5da4504642033 */
+    /*6. GetPicsNum0xcc42640466e848f263ffb669f13256dd2ad08f97 */
     app.get('/api/getpics', async (req, res) => {
       try {
         var params = req.query;
@@ -179,7 +221,15 @@ module.exports = {
             console.log('api.getpics cmd=', cmd);
             switch(cmd){
               case 'GetPicsForPreview0xbe863c4b03acb996e27b0c88875ff7c5e2c3090f':
-                var pics = await getPicsForPreview();
+                var iOffset = params.offset;
+                var iNumber = params.number;
+                if (typeof(iOffset) == "undefined") {
+                  iOffset = 0;
+                }
+                if (typeof(iNumber) == "undefined") {
+                  iNumber = 0;
+                }
+                var pics = await getPicsForPreview(iOffset, iNumber);
                 if(pics && pics.length > 0){
                   res.json(pics);
                   return;
@@ -213,6 +263,14 @@ module.exports = {
                 var pics = await getRejectedPics();
                 if(pics && pics.length > 0){
                   res.json(pics);
+                  return;
+                }
+                break;
+              case 'GetPicsNum0xcc42640466e848f263ffb669f13256dd2ad08f97':
+                var strState = params.state;
+                if (typeof(strState) != "undefined") {
+                  var picNum = await getPicsNum(strState);
+                  res.json(picNum);
                   return;
                 }
                 break;

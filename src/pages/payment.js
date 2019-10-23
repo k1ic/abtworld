@@ -19,18 +19,27 @@ import api from '../libs/api';
 import {fetchPayedPics} from '../hooks/picture';
 
 import { onAuthError } from '../libs/auth';
-import { getPaymentPendingFlag, setPaymentPendigFlag } from '../libs/auth';
 
 const isProduction = process.env.NODE_ENV === 'production';
 //const isProduction = 0;
 
-var pic_asset_did = "";
+// payment pending flag
+var PaymentPendingFlag = 0;
+function getPaymentPendingFlag() {
+  return PaymentPendingFlag;
+}
+function setPaymentPendigFlag(flag) {
+  PaymentPendingFlag = flag;
+}
+
+const dapp_module = 'picture';
+var asset_did = "";
 
 async function fetchStatus() {
-  console.log('fetchStatus strAssetDid=', pic_asset_did);
-  const [{ data: payment }, { data: session }, {data: picture}] = await Promise.all([api.get('/api/payments'), 
+  console.log('fetchStatus asset_did=', asset_did);
+  const [{ data: payment }, { data: session }, {data: picture}] = await Promise.all([api.get(`/api/payments?module=picture&asset_did=${asset_did}`), 
     api.get('/api/session'), 
-    api.get(`/api/getpics?cmd=GetPicsForPayShow0x012bbc9ebd79c1898c6fc19cefef6d2ad7a82f44&asset_did=${pic_asset_did}`)]);
+    api.get(`/api/getpics?cmd=GetPicsForPayShow0x012bbc9ebd79c1898c6fc19cefef6d2ad7a82f44&asset_did=${asset_did}`)]);
   return { payment, session, picture};
 }
 
@@ -52,11 +61,10 @@ const onPaymentSuccess = async result => {
 };
 
 export default function PaymentPage(props) {
-  pic_asset_did = props.asset_did;
-  console.log('pic_asset_did=', pic_asset_did);
+  asset_did = props.asset_did;
+  console.log('asset_did=', asset_did);
   const state = useAsync(fetchStatus);
   const [open, toggle] = useToggle(false);
-  var memo = " ";
   var fValueToPay;
   var fValuePayed;
   var strValueToPay;
@@ -93,19 +101,8 @@ export default function PaymentPage(props) {
     picture,
   } = state.value;
 
-  if (window.location.search) {
-    const params = qs.parse(window.location.search.slice(1));
-    try {
-      if (params.memo) { 
-        memo = params.memo;
-      }
-    } catch (err) {
-      // Do nothing
-    }
-  }
-
   //const pic_to_pay = AssetPicList.filter(function (e) { 
-  //  return e.asset_did === memo;
+  //  return e.asset_did === asset_did;
   //});
   if (!picture) {
     window.location.href = '/';
@@ -113,7 +110,7 @@ export default function PaymentPage(props) {
     return null;
   }
   const pic_to_pay = picture.filter(function (e) { 
-    return e.asset_did === memo;
+    return e.asset_did === asset_did;
   });
   
   if (!pic_to_pay || pic_to_pay.length === 0){
@@ -124,15 +121,7 @@ export default function PaymentPage(props) {
   fValueToPay = parseFloat(pic_to_pay[0].worth);
   
   if(state.value.payment && state.value.payment.length >= 1) {
-    const payment_filter = state.value.payment.filter(function (e) { 
-      if(e.tx.itx.data){
-          temp = e.tx.itx.data.value.replace(/\"/g, "");
-          return temp === memo;
-      }else{
-          return 0;
-      }
-    });
-    const payment_data = (payment_filter.length > 0) ? payment_filter : null;
+    const payment_data = state.value.payment;
     fValuePayed = 0;
     if (payment_data) {
       payment_data.map(function( e ) {
@@ -197,7 +186,7 @@ export default function PaymentPage(props) {
           onError={onPaymentError}
           onClose={onPaymentClose}
           onSuccess={onPaymentSuccess}
-          extraParams={ "zh", { strValueToPay,  memo } }
+          extraParams={ "zh", { strValueToPay, dapp_module, asset_did } }
           messages={{
             title: '支付需求',
             scan: `该内容需支付 ${strValueToPay} ${token.symbol}`,
@@ -213,13 +202,13 @@ export default function PaymentPage(props) {
 PaymentPage.getInitialProps = async function ({pathname, query, asPath, req}) {
     //console.log('pathname=', pathname);
     //console.log('query=', query);
-    console.log('query.memo=', query.memo);
+    console.log('query.asset_did=', query.asset_did);
     //console.log('asPath=', asPath);
     //console.log('req=', req);
     //console.log('req.url=', req.url);
 
     return {
-      asset_did: query.memo,
+      asset_did: query.asset_did,
     }
 }
 

@@ -6,25 +6,72 @@ const { fromAddress } = require('@arcblock/forge-wallet');
 const { fromSecretKey, WalletType } = require('@arcblock/forge-wallet');
 const { wallet, type } = require('../../libs/auth');
 const env = require('../../libs/env');
-const AssetPicList = require('../../../src/libs/asset_pic');
+//const AssetPicList = require('../../../src/libs/asset_pic');
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
+const { Picture } = require('../../models');
+
+async function fetchPics(strAssetDid){
+  var new_docs = [];
+  var found = 0;
+  
+  Picture.find().byAssetDid(strAssetDid).exec(function(err, docs){
+    if(docs && docs.length>0){
+      console.log('Found', docs.length, 'asset_did docs');
+      new_docs = docs;
+    }else{
+      console.log('asset_did document not found!');
+    }
+    found = 1;
+  })
+  
+  /*wait found result*/
+  var wait_counter = 0;
+  while(!found){
+    await sleep(1);
+    wait_counter++;
+    if(wait_counter > 15000){
+      break;
+    }
+  }
+  
+  console.log('fetchPics wait counter', wait_counter);
+  //console.log(new_docs);
+  
+  return new_docs;
+}
 
 module.exports = {
   action: 'payment',
   claims: {
-    signature: async ({ extraParams: { locale, strValueToPay, memo } }) => {
+    signature: async ({ extraParams: { locale, strValueToPay, dapp_module, asset_did } }) => {
       const { state } = await ForgeSDK.getForgeState(
         {},
         { ignoreFields: ['state.protocols', /\.txConfig$/, /\.gas$/] }
       );
+      var tx_memo = {};
+      var module_para = {};
       
-      //console.log('memo', memo);
-      //console.log('strValueToPay', strValueToPay);
-      memo=memo.replace(/\"/g, "");
+      console.log('module', dapp_module);
+      console.log('asset_did', asset_did);
+      console.log('strValueToPay', strValueToPay);
+      //asset_did=asset_did.replace(/\"/g, "");
+      
+      /*Init tx_memo*/
+      tx_memo['module'] = dapp_module;
+      switch(dapp_module){
+      case 'picture':
+        module_para['asset_did'] = asset_did;
+        break;
+      default:
+        break;
+      }
+      tx_memo['para'] = module_para;
+      //console.log('tx_memo=', JSON.stringify(tx_memo));
+      console.log('tx_memo=', tx_memo);
       
       const description = {
-        en: `Please pay ${strValueToPay} ${state.token.symbol} to unlock`,
-        zh: `请支付 ${strValueToPay} ${state.token.symbol} 进行解密`,
+        en: `Please pay ${strValueToPay} ${state.token.symbol}`,
+        zh: `需支付 ${strValueToPay} ${state.token.symbol}`,
       };
 
       return {
@@ -35,7 +82,7 @@ module.exports = {
             value: fromTokenToUnit(strValueToPay, state.token.decimal),
             data: {
               typeUrl: 'json',
-              value: memo,
+              value: tx_memo,
             },
           },
         },
@@ -92,66 +139,76 @@ module.exports = {
           }
           console.log('get back hash', res, 'counter', i);
           if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
-            const tx_memo = res.getTx.info.tx.itx.data.value.replace(/\"/g, "");
-            const tx_value = parseFloat(fromUnitToToken(res.getTx.info.tx.itx.value, state.token.decimal));
-            const pic_asset = AssetPicList.find(x => x.asset_did === tx_memo);
-            console.log('payback memo', tx_memo);
+            const tx_memo = JSON.parse(res.getTx.info.tx.itx.data.value);
+            console.log('payback tx_memo=', tx_memo);
+            console.log('payback tx_memo.module=', tx_memo.module);
+            if(tx_memo.module == 'picture'){
+              const tx_value = parseFloat(fromUnitToToken(res.getTx.info.tx.itx.value, state.token.decimal));
+              //const pic_asset = AssetPicList.find(x => x.asset_did === tx_memo.para.asset_did);
+              var pic_asset = null;
+              await fetchPics(tx_memo.para.asset_did).then((v)=>{
+                pic_asset = v;
+              });
 
-            if(pic_asset) {
-              //verify owner accnout
-              res = await ForgeSDK.doRawQuery(`{
-                getAccountState(address: "${pic_asset.owner_did.replace(/^did:abt:/, '')}") {
-                  code
-                  state {
-                    address
-                    balance
-                    moniker
-                    pk
+              if(pic_asset && pic_asset.length > 0) {
+                pic_asset = pic_asset[0];
+                console.log('payback pic_asset=', pic_asset);
+                
+                //verify owner accnout
+                res = await ForgeSDK.doRawQuery(`{
+                  getAccountState(address: "${pic_asset.owner_did.replace(/^did:abt:/, '')}") {
+                    code
+                    state {
+                      address
+                      balance
+                      moniker
+                      pk
+                    }
                   }
-                }
-              }`); 
-              if(res && res.getAccountState && res.getAccountState.state){
-                const payback_to_asset_owner_value = (parseFloat(pic_asset.payback_rate) < 1) ? tx_value*parseFloat(pic_asset.payback_rate) : tx_value*0.1;
-                const payback_to_app_owner_value = tx_value - payback_to_asset_owner_value;
-                console.log('payback to asset owner:', String(payback_to_asset_owner_value), 'app owner:', String(payback_to_app_owner_value));
+                }`); 
+                if(res && res.getAccountState && res.getAccountState.state){
+                  const payback_to_asset_owner_value = (parseFloat(pic_asset.payback_rate) < 1) ? tx_value*parseFloat(pic_asset.payback_rate) : tx_value*0.1;
+                  const payback_to_app_owner_value = tx_value - payback_to_asset_owner_value;
+                  console.log('payback to asset owner:', String(payback_to_asset_owner_value), 'app owner:', String(payback_to_app_owner_value));
 
-                const appWallet = fromSecretKey(process.env.APP_SK, type);
-                //console.log('APP_SK', process.env.APP_SK);
-                //console.log('APP wallet type', type);
-                //console.log('APP wallet', appWallet);
-                //payback to asset owner
-                var transferHash = await ForgeSDK.sendTransferTx({
-                  tx: {
-                    itx: {
-                      to: pic_asset.owner_did.replace(/^did:abt:/, ''),
-                      value: fromTokenToUnit(payback_to_asset_owner_value, state.token.decimal),
-                      data: {
-                        typeUrl: 'json',
-                        value: pic_asset.asset_did,
+                  const appWallet = fromSecretKey(process.env.APP_SK, type);
+                  //console.log('APP_SK', process.env.APP_SK);
+                  //console.log('APP wallet type', type);
+                  //console.log('APP wallet', appWallet);
+                  //payback to asset owner
+                  var transferHash = await ForgeSDK.sendTransferTx({
+                    tx: {
+                      itx: {
+                        to: pic_asset.owner_did.replace(/^did:abt:/, ''),
+                        value: fromTokenToUnit(payback_to_asset_owner_value, state.token.decimal),
+                        data: {
+                          typeUrl: 'json',
+                          value: tx_memo,
+                        },
                       },
                     },
-                  },
-                  wallet: appWallet,
-                });
-                console.log('payback to asset owner transferred', transferHash);
+                    wallet: appWallet,
+                  });
+                  console.log('payback to asset owner transferred', transferHash);
               
-                //remains to app owner
-                transferHash = await ForgeSDK.sendTransferTx({
-                  tx: {
-                    itx: {
-                      to: process.env.APP_OWNER_ACCOUNT,
-                      value: fromTokenToUnit(payback_to_app_owner_value, state.token.decimal),
-                      data: {
-                        typeUrl: 'json',
-                        value: pic_asset.asset_did,
+                  //remains to app owner
+                  transferHash = await ForgeSDK.sendTransferTx({
+                    tx: {
+                      itx: {
+                        to: process.env.APP_OWNER_ACCOUNT,
+                        value: fromTokenToUnit(payback_to_app_owner_value, state.token.decimal),
+                        data: {
+                          typeUrl: 'json',
+                          value: tx_memo,
+                        },
                       },
                     },
-                  },
-                  wallet: appWallet,
-                });
-                console.log('payback to app owner transferred', transferHash);
-              }else{
-                console.log('payback asset owner account not exist', pic_asset.owner_did);
+                    wallet: appWallet,
+                  });
+                  console.log('payback to app owner transferred', transferHash);
+                }else{
+                  console.log('payback asset owner account not exist', pic_asset.owner_did);
+                }
               }
             }
           }

@@ -20,7 +20,6 @@ import useSession from '../hooks/session';
 import forge from '../libs/sdk';
 import api from '../libs/api';
 import { removeToken, onAuthError } from '../libs/auth';
-import { getPaymentPendingFlag, setPaymentPendigFlag } from '../libs/auth';
 
 export default function ProfilePage() {
   const session = useSession();
@@ -40,8 +39,6 @@ export default function ProfilePage() {
     removeToken();
     window.location.href = '/';
   };
-
-  setPaymentPendigFlag(0);
 
   if (session.loading || !session.value) {
     return (

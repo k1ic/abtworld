@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-one-expression-per-line */
-import React from 'react';
+import React, { Component } from 'react';
 import styled from 'styled-components';
 
 import Typography from '@material-ui/core/Typography';
@@ -10,146 +10,17 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import CodeBlock from '@arcblock/ux/lib/CodeBlock';
+import { LocaleProvider, Pagination } from 'antd';
+import zh_CN from 'antd/lib/locale-provider/zh_CN'
+import 'antd/dist/antd.css';
 
 import Layout from '../components/layout';
 import env from '../libs/env';
 
-//import AssetPicList from '../libs/asset_pic';
-import usePreviewPics from '../hooks/picture';
+import { fetchPicsNum, fetchPreviewPics } from '../hooks/picture';
 
-import { getPaymentPendingFlag, setPaymentPendigFlag } from '../libs/auth';
-
-const graphqlDemos = [
-  {
-    title: 'Application State',
-    subtitle: 'Example 1',
-    description: 'Use GraphQLClient to get current application state on chain',
-    link: '/application',
-  },
-  {
-    title: 'Chain State',
-    subtitle: 'Example 2',
-    description: 'Use GraphQLClient to read current chain info and display it as json',
-    link: '/chain',
-  },
-  {
-    title: 'Block and Transactions',
-    subtitle: 'Example 3',
-    description: 'Query blocks and transactions from the forge powered chain',
-    link: '/blocks',
-  },
-];
-
-const walletDemos = [
-  {
-    title: '签到',
-    subtitle: 'Example 2',
-    description: 'Help user to get some free tokens on the blockchain to test our application',
-    link: '/profile',
-  },
-  {
-    title: '支付',
-    subtitle: 'Example 3',
-    description: 'Allow user to pay for an secret document with crypto token, and records payment info in database.',
-    link: '/payment',
-  },
-];
-
-const renderExampleCard = x => (
-  <Grid key={x.title} item xs={12} sm={6}>
-    <Card className="demo">
-      <CardContent>
-        <Typography href={x.link} component="a" variant="h4" className="card-title"  gutterBottom>
-          {x.title}
-        </Typography>
-      </CardContent>
-    </Card>
-  </Grid>
-);
-
-const DemoDappList = [
-  {
-    title: 'TBA',
-    link: 'https://abtwallet.io/zh/profile',
-    chain_node: 'https://zinc.abtnetwork.io/',
-    logo: '/static/images/tba.png',
-    login_code: '/static/images/tba_login.png',
-    checkin_code: '/static/images/tba_checkin.png',
-    owner: 'ArcBlock',
-  },
-  {
-    title: 'BTC测试币',
-    link: 'http://47.104.90.84:3030/profile',
-    chain_node: 'http://47.104.90.84:8210',
-    logo: '/static/images/btc.png',
-    login_code: '/static/images/btc_login.png',
-    checkin_code: '/static/images/btc_checkin.png',
-    owner: '大米蜂',
-  },
-  {
-    title: 'ETH测试币',
-    link: 'http://120.25.152.172:3030/profile',
-    chain_node: 'http://120.25.152.172:8210',
-    logo: '/static/images/eth.png',
-    login_code: '/static/images/eth_login.png',
-    checkin_code: '/static/images/eth_checkin.png',
-    owner: 'loooong',
-  },
-  {
-    title: 'LTC测试币',
-    link: 'http://120.24.5.229:3030/profile',
-    chain_node: 'http://120.24.5.229:8210',
-    logo: '/static/images/ltc.png',
-    login_code: '/static/images/ltc_login.png',
-    checkin_code: '/static/images/ltc_checkin.png',
-    owner: 'onion',
-  },
-  {
-    title: 'EOS测试币',
-    link: 'http://47.92.151.143:3030/profile',
-    chain_node: 'http://47.92.151.143:8210',
-    logo: '/static/images/eos.png',
-    login_code: '/static/images/eos_login.png',
-    checkin_code: '/static/images/eos_checkin.png',
-    owner: 'niss.W',
-  },
-];
-
-const renderDemoDappLoginListCard = x => (
-  <Grid key={x.title} item xs={12} sm={6} md={3}>
-    <Card className="demo-dapp-list">
-      <CardContent>
-        <Typography href={x.link} component="a" variant="h6" color="textPrimary" target="_blank" gutterBottom>
-          {x.title}
-        </Typography>
-        <Typography component="p" variant="h6" color="inherit" gutterBottom>
-          <img className="qr-code" src={x.login_code} alt={x.title} />
-        </Typography>
-        <Typography href={x.chain_node} component="a" variant="h6" color="textPrimary" target="_blank" gutterBottom>
-          浏览器
-        </Typography>
-      </CardContent>
-    </Card>
-  </Grid>
-);
-
-const renderDemoDappCheckinListCard = x => (
-  <Grid key={x.title} item xs={12} sm={6} md={3}>
-    <Card className="demo-dapp-list">
-      <CardContent>
-        <Typography href={x.link} component="a" variant="h6" color="textPrimary" target="_blank" gutterBottom>
-          {x.title}
-        </Typography>
-        <Typography component="p" variant="h6" color="inherit" gutterBottom>
-          <img className="qr-code" src={x.checkin_code} alt={x.title} />
-        </Typography>
-        <Typography href={x.chain_node} component="a" variant="h6" color="textPrimary" target="_blank" gutterBottom>
-          链节点
-        </Typography>
-      </CardContent>
-    </Card>
-  </Grid>
-);
+//Picture number of one page
+const pic_num_one_page=20;
 
 const renderPaymentPicListCard = x => (
   <Grid key={x.title} item xs={12} sm={6} md={3}>
@@ -184,69 +55,115 @@ const renderTBAWoolListCard = x => (
   </Grid>
 );
 
-export default function IndexPage() {
-  setPaymentPendigFlag(0);
-  const picture = usePreviewPics();
-
-  if (picture.loading) {
+class App extends Component {
+  static async getInitialProps({pathname, query, asPath, req}) {
+    console.log('getInitialProps query=', query);
+    return {};
+  }
+  
+  constructor(props) {
+    super(props);
+    
+    /*initial state*/
+    this.state = {
+      pictures: [],
+      pic_total_num: null,
+    };
+    
+    this.onPageChange = this.onPageChange.bind(this);
+  }
+  
+  /*Fetch Data*/
+  async fetchData(pageNumber){
+    try {
+      console.log('fetchData, pageNumber=', pageNumber);
+      fetchPicsNum('approved').then((v)=>{
+        this.setState({pic_total_num: v});
+      });
+      
+      fetchPreviewPics((pageNumber-1)*pic_num_one_page, pic_num_one_page).then((v)=>{
+        this.setState({pictures: v});
+      });
+    } catch (err) {
+    }
+    return {};
+  }
+  
+  /*component mount process*/
+  componentDidMount() {
+    this.fetchData(1);
+  }
+  
+  /*component unmount process*/
+  componentWillUnmount() {
+  }
+  
+  onPageChange(pageNumber) {
+    console.log('Page: ', pageNumber);
+    this.fetchData(pageNumber);
+  }
+  
+  render() {
+    const {pictures, pic_total_num} = this.state;
+    
+    if (!pictures || !pic_total_num) {
+      return (
+        <Layout title="Home">
+          <Main>
+            <CircularProgress />
+          </Main>
+        </Layout>
+      );
+    }
+    
+    console.log('pictures=', pictures);
+    console.log('pic_total_num=', pic_total_num);
+    
+    //init TBA wool list
+    var TBAWoolList=new Array();
+    for(var i=0;i<12;i++) {
+      TBAWoolList[i]={};
+      TBAWoolList[i]['title'] = `羊毛${i+1}号`;
+      TBAWoolList[i]['login'] = `http://abtworld.cn:${3030+i}/?openLogin=true`;
+      //console.log("TBAWoolList[", i, "][login]=", TBAWoolList[i].login);
+      TBAWoolList[i]['checkin'] = `http://abtworld.cn:${3030+i}/checkin`;
+      //console.log("TBAWoolList[", i, "][checkin]=", TBAWoolList[i].checkin);
+    }
+    
     return (
       <Layout title="Home">
         <Main>
-          <CircularProgress />
+          <section className="section">
+            <Typography component="h3" variant="h5" className="section__header" color="textPrimary" gutterBottom>
+              薅羊毛
+            </Typography>
+            <Typography component="p" variant="h6" className="page-description" color="textSecondary">
+              羊毛党的福利，一个钱包每天可以撸300TBA
+            </Typography>
+            <Grid container spacing={6} className="section__body demos">
+              {TBAWoolList.map(x => renderTBAWoolListCard(x))}
+            </Grid>
+          </section>
+          <section className="section">
+            <Typography component="h3" variant="h5" className="section__header" color="textPrimary" gutterBottom>
+              付费资源
+            </Typography>
+            <Typography component="p" variant="h6" className="page-description" color="textSecondary">
+              <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>扫码支付后查看高清图片
+            </Typography>
+            <Grid container spacing={6} className="section__body demos">
+              {pictures?pictures.map(x => renderPaymentPicListCard(x)):''}
+            </Grid>
+            <LocaleProvider locale={zh_CN}>
+              <div style={{ margin: 20 }}>
+                <Pagination showQuickJumper defaultCurrent={1} defaultPageSize={pic_num_one_page} total={pic_total_num} onChange={this.onPageChange} />
+              </div>
+            </LocaleProvider>
+          </section>
         </Main>
       </Layout>
     );
   }
-
-  if (picture.error) {
-    return (
-      <Layout title="Home">
-        <Main>{picture.error.message}</Main>
-      </Layout>
-    );
-  }
-  
-  const AssetPicList = picture.value;
-  
-  //init TBA wool list
-  var TBAWoolList=new Array();
-  for(var i=0;i<12;i++) {
-    TBAWoolList[i]={};
-    TBAWoolList[i]['title'] = `羊毛${i+1}号`;
-    TBAWoolList[i]['login'] = `http://abtworld.cn:${3030+i}/?openLogin=true`;
-    //console.log("TBAWoolList[", i, "][login]=", TBAWoolList[i].login);
-    TBAWoolList[i]['checkin'] = `http://abtworld.cn:${3030+i}/checkin`;
-    //console.log("TBAWoolList[", i, "][checkin]=", TBAWoolList[i].checkin);
-  }
-
-  return (
-    <Layout title="Home">
-      <Main>
-      <section className="section">
-        <Typography component="h3" variant="h5" className="section__header" color="textPrimary" gutterBottom>
-          薅羊毛
-        </Typography>
-        <Typography component="p" variant="h6" className="page-description" color="textSecondary">
-          羊毛党的福利，一个钱包每天可以撸300TBA
-        </Typography>
-        <Grid container spacing={6} className="section__body demos">
-          {TBAWoolList.map(x => renderTBAWoolListCard(x))}
-        </Grid>
-      </section>
-      <section className="section">
-        <Typography component="h3" variant="h5" className="section__header" color="textPrimary" gutterBottom>
-          付费资源
-        </Typography>
-        <Typography component="p" variant="h6" className="page-description" color="textSecondary">
-          <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>扫码支付后查看高清图片
-        </Typography>
-        <Grid container spacing={6} className="section__body demos">
-          {AssetPicList?AssetPicList.map(x => renderPaymentPicListCard(x)):''}
-        </Grid>
-      </section>
-      </Main>
-    </Layout>
-  );
 }
 
 const Main = styled.main`
@@ -321,3 +238,5 @@ const Main = styled.main`
   }
 
 `;
+
+export default App;

@@ -19,10 +19,8 @@ import Layout from '../components/layout';
 import useSession from '../hooks/session';
 import forge from '../libs/sdk';
 import api from '../libs/api';
-import { getPaymentPendingFlag, setPaymentPendigFlag } from '../libs/auth';
 
 export default function AboutPage() {
-  setPaymentPendigFlag(0);
   return (
     <Layout title="About">
       <Main>

@@ -33,13 +33,3 @@ export function onAuthError(err) {
     }, 3000);
   }
 }
-
-// payment pending flag
-export var PaymentPendingFlag = 0;
-export function getPaymentPendingFlag() {
-  return PaymentPendingFlag;
-}
-export function setPaymentPendigFlag(flag) {
-  PaymentPendingFlag = flag;
-}
-
