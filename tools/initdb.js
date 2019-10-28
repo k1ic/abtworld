@@ -70,9 +70,9 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
           payback_rate: AssetPicList[i].payback_rate,
           state: 'approved',
           createdAt: Date(),
-      });
-      await pic_new.save();
-      //console.log('create picture', pic_new);
+        });
+        await pic_new.save();
+        //console.log('create picture', pic_new);
       }
     }
     console.log('[End]Import const picture data to database');

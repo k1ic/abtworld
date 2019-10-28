@@ -24,7 +24,7 @@ class App extends Component {
   static async getInitialProps({pathname, query, asPath, req}) {
     console.log('getInitialProps query=', query);
     return {
-      asset_did: query.memo,
+      asset_did: query.asset_did,
     }
   }
   

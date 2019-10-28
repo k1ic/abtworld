@@ -20,11 +20,11 @@ const PictureSchema = new mongoose.Schema({
 });
 
 PictureSchema.query.byAssetDid = function(strAssetDid){
-  return this.find({asset_did: strAssetDid});
+  return this.find({asset_did: strAssetDid}).sort({"createdAt":-1});
 }
 
 PictureSchema.query.byState = function(strState){
-  return this.find({state: strState});
+  return this.find({state: strState}).sort({"createdAt":-1});;
 }
 
 const Picture = mongoose.model('picture', PictureSchema);

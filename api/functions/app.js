@@ -20,6 +20,7 @@ const checkinAuth = require('../routes/auth/checkin');
 const sessionRoutes = require('../routes/session');
 const paymentsRoutes = require('../routes/payments');
 const picturesRoutes = require('../routes/pictures');
+const uploadRoutes = require('../routes/upload');
 
 //const isProduction = process.env.NODE_ENV === 'production';
 const isProduction = 0;
@@ -100,6 +101,7 @@ handlers.attach(Object.assign({ app: router }, paymentAuth));
 sessionRoutes.init(router);
 paymentsRoutes.init(router);
 picturesRoutes.init(router);
+uploadRoutes.init(router);
 
 // Check for application account
 ForgeSDK.getAccountState({ address: wallet.address })

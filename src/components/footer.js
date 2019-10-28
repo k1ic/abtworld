@@ -30,6 +30,10 @@ export default function Footer() {
       title: '生态伙伴',
       items: [
         { 
+          title: '首汽共享汽车', 
+          link: 'https://www.shouqiev.com/' 
+        },
+        { 
           title: '引力波互动', 
           link: 'http://www.gravitywavegame.com/' 
         },
@@ -84,7 +88,7 @@ export default function Footer() {
       <Container>
         <Grid container spacing={4}>
           {footers.map(x => (
-            <Grid item xs={12} sm={6} md={3} key={x.title}>
+            <Grid item xs={6} sm={4} md={3} key={x.title}>
               <Typography variant="h6" color="textPrimary" gutterBottom>
                 {x.title}
               </Typography>
