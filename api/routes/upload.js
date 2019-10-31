@@ -17,6 +17,8 @@ const {
 const { HashString, HashFile } = require('../libs/crypto');
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 async function findPics(strAssetDid){
   var new_docs = [];
   var found = 0;
@@ -58,17 +60,23 @@ module.exports = {
         //console.log('api.picUpload req.body=', req.body);
 
         form.parse(req, async function (err, fields, files) {
-          if(err 
-            || typeof(fields.user) == "undefined" 
+          if(err){
+            console.log('api.picUpload err=', err);
+            res.statusCode = 404;
+            res.write('upload error');
+            res.end();
+            return ;
+          }
+          
+          if( isProduction && (
+            typeof(fields.user) == "undefined" 
             || typeof(fields.files) == "undefined" 
             || typeof(fields.token) == "undefined"
             || typeof(fields.imageUrl) == "undefined"
             || typeof(fields.pic_title) == "undefined"
             || typeof(fields.pic_description) == "undefined"
             || typeof(fields.pic_worth) == "undefined"
-            || fields.user[0] == "undefined"){
-          //if(err){
-            console.log('api.picUpload err=', err);
+            || fields.user[0] == "undefined")){
             res.statusCode = 404;
             res.write('upload error');
             res.end();
@@ -116,7 +124,7 @@ module.exports = {
             if(picDb && picDb.length > 0){
               console.log('api.picUpload upload picture already uploaded');
               /*remove uload files*/
-              ImageFileRemove(hd_file);
+              await ImageFileRemove(hd_file);
               res.statusCode = 404;
               res.write('duplicate upload');
               res.end();

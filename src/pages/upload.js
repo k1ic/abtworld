@@ -19,6 +19,8 @@ import api from '../libs/api';
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 function getBase64(img, callback) {
   const reader = new FileReader();
   reader.addEventListener('load', () => callback(reader.result));
@@ -79,7 +81,7 @@ class NumericInput extends React.Component {
           {...this.props}
           onChange={this.onChange}
           onBlur={this.onBlur}
-          placeholder="Input a number"
+          placeholder="如: 0.88"
           maxLength={10}
         />
       </Tooltip>
@@ -255,7 +257,7 @@ class App extends Component {
       );
     }
     
-    if (!session.user) {
+    if ( isProduction && !session.user) {
       console.log('render user not exist');
       window.location.href = '/?openLogin=true';
       return null;
@@ -306,7 +308,7 @@ class App extends Component {
               <TextArea
                 value={pic_title}
                 onChange={this.onTitleInputChange}
-                placeholder="请输入图片标题(9字以内)"
+                placeholder="如: 颐和园地图(9字以内)"
                 autoSize={{ minRows: 1, maxRows: 1 }}
                 maxLength={9}
               />
@@ -315,7 +317,7 @@ class App extends Component {
               <TextArea
                 value={pic_description}
                 onChange={this.onDescriptionInputChange}
-                placeholder="请输入图片描述(1000字以内)"
+                placeholder="如: 游玩时花15元人民币买的颐和园地图(1000字以内)"
                 autoSize={{ minRows: 1, maxRows: 10 }}
                 maxLength={1000}
               />

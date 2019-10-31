@@ -19,7 +19,9 @@ import api from '../libs/api';
 import {fetchPayedPics} from '../hooks/picture';
 
 import { onAuthError } from '../libs/auth';
+import env from '../libs/env';
 
+const admin_account = env.appAdminAccounts;
 const isProduction = process.env.NODE_ENV === 'production';
 //const isProduction = 0;
 
@@ -145,7 +147,7 @@ export default function PaymentPage(props) {
   }
 
   //asset owner and super admin don't need to pay in production release
-  if (isProduction && (user.did == pic_to_pay[0].owner_did || user.did == 'z1emeg4eeh55Epfdz1bV3jhC9VxQ35H5yPb')){
+  if (isProduction && (user.did == pic_to_pay[0].owner_did || -1 != admin_account.indexOf(user.did))){
     fValueToPay = 0;
     strValueToPay = null;
     setPaymentPendigFlag(0);
@@ -171,10 +173,12 @@ export default function PaymentPage(props) {
       <Main symbol={token.symbol}>
         <div className="picture-desc">
           {pic_to_pay[0].owner} - {pic_to_pay[0].title} - {pic_to_pay[0].worth} {pic_to_pay[0].token_sym} <br/>
-          {pic_to_pay[0].description}
         </div>
         <div className={`picture ${(fValueToPay > 0) ? '' : 'picture--unlocked'}`}>
           <img src={pic_to_show} alt={pic_to_pay[0].title} />
+        </div>
+        <div className="picture-desc">
+          {pic_to_pay[0].description}
         </div>
       </Main>
       {open && (

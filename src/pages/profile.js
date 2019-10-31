@@ -20,6 +20,9 @@ import useSession from '../hooks/session';
 import forge from '../libs/sdk';
 import api from '../libs/api';
 import { removeToken, onAuthError } from '../libs/auth';
+import env from '../libs/env';
+
+const admin_account = env.appAdminAccounts;
 
 export default function ProfilePage() {
   const session = useSession();
@@ -39,10 +42,18 @@ export default function ProfilePage() {
     removeToken();
     window.location.href = '/';
   };
+  
+  const onUpload = () => {
+    window.location.href = '/upload';
+  };
+  
+  const onAdmin = () => {
+    window.location.href = '/admin';
+  };
 
   if (session.loading || !session.value) {
     return (
-      <Layout title="Payment">
+      <Layout title="Profile">
         <Main>
           <CircularProgress />
         </Main>
@@ -52,7 +63,7 @@ export default function ProfilePage() {
 
   if (session.error) {
     return (
-      <Layout title="Payment">
+      <Layout title="Profile">
         <Main>{session.error.message}</Main>
       </Layout>
     );
@@ -84,6 +95,16 @@ export default function ProfilePage() {
             {balance.value && (
               <Button color="primary" variant="contained" onClick={() => setOpen()} style={{ marginTop: '30px' }}>
                 签到
+              </Button>
+            )}
+            {(-1 != admin_account.indexOf(user.did)) && (
+              <Button color="primary" variant="contained" onClick={onUpload} style={{ marginTop: '30px' }}>
+                上传
+              </Button>
+            )}
+            {(-1 != admin_account.indexOf(user.did)) && (
+              <Button color="primary" variant="contained" onClick={onAdmin} style={{ marginTop: '30px' }}>
+                管理
               </Button>
             )}
           </Grid>

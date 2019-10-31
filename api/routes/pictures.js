@@ -1,20 +1,55 @@
 /* eslint-disable no-console */
 const mongoose = require('mongoose');
 const { Picture } = require('../models');
+const multiparty = require('multiparty');
+const { 
+  ImageFileRemove
+} = require('../libs/image');
 
+const isProduction = process.env.NODE_ENV === 'production';
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
-async function getPicsForPreview(iOffset, iNumber){
-  var temp_docs = [];
+async function getPicsByFilter(params){
   var new_docs = [];
   var found = 0;
   
-  console.log('getPicsForPreview iOffset=', iOffset, 'iNumber=', iNumber);
+  console.log('getPicsByFilter params=', params);
+  
+  Picture.find().byMultiState(params.state, params.sortField, params.sortOrder).exec(function(err, docs){
+    if(docs && docs.length>0){
+      console.log('Found', docs.length, params.state, 'docs');
+      new_docs = docs;
+    }else{
+      console.log('Multi state document not found!');
+    }
+    found = 1;
+  })
+  
+  /*wait found result*/
+  var wait_counter = 0;
+  while(!found){
+    await sleep(1);
+    wait_counter++;
+    if(wait_counter > 15000){
+      break;
+    }
+  }
+  
+  console.log('getPicsByFilter wait counter', wait_counter);
+  
+  //console.log(new_docs);
+  
+  return new_docs;
+}
+
+async function getPicsForPreview(){
+  var new_docs = [];
+  var found = 0;
   
   await Picture.find().byState('approved').exec(function(err, docs){
     if(docs && docs.length>0){
       console.log('Found', docs.length, 'approved docs');
-      temp_docs = docs.map(function( e ) {
+      new_docs = docs.map(function( e ) {
         var doc = {};
         doc['category'] = e.category;
         doc['owner'] = e.owner;
@@ -44,14 +79,6 @@ async function getPicsForPreview(iOffset, iNumber){
   
   console.log('getPicsForPreview wait counter', wait_counter);
   //console.log(temp_docs);
-  
-  /*Get the range of the document*/
-  if(iNumber != 0){
-    new_docs = temp_docs.slice(iOffset, iOffset+iNumber);
-  }else{
-    new_docs = temp_docs;
-  }
-  //console.log(new_docs);
   
   return new_docs;
 }
@@ -202,15 +229,50 @@ async function getPicsNum(strState){
   return new_docs.length;
 }
 
+async function picsStateManager(action, asset_did){
+  var result = false;  
+  var picture = await Picture.findOne({ asset_did: asset_did });
+  
+  if(picture){
+    switch(action){
+      case 'approve':
+        picture.state = 'approved';
+        await picture.save();
+        break;
+      case 'reject':
+        picture.state = 'rejected';
+        await picture.save();
+        break;
+      case 'delete':
+        const hd_file = __dirname+'/../../'+'src'+picture.hd_src;
+        const thumb_file = __dirname+'/../../'+'src'+picture.blur_src;
+        console.log('picsStateManager hd_file=', hd_file);
+        console.log('picsStateManager thumb_file=', thumb_file);
+        await ImageFileRemove(hd_file);
+        await ImageFileRemove(thumb_file);
+        await picture.remove();
+        break;
+      default:
+        result = false;
+        break;
+    }
+  }else{
+    result = false;
+  }
+  
+  return result;
+}
+
 module.exports = {
   init(app) {
     /*Get pictures API command list*/
-    /*1. GetPicsForPreview0xbe863c4b03acb996e27b0c88875ff7c5e2c3090f */
-    /*2. GetPicsForPayShow0x012bbc9ebd79c1898c6fc19cefef6d2ad7a82f44 */
-    /*3. GetPicsApproved0x503988fb7a78ce326b30a7d74f63c70d5574063c */
-    /*4. GetPicsCommited0x4f2f39303fa1d585564cfe4aacd46ede824b3d61 */
-    /*5. GetPicsRejected0x68d54c43e5f85dea0c783d94ddc5da4504642033 */
-    /*6. GetPicsNum0xcc42640466e848f263ffb669f13256dd2ad08f97 */
+    /*1. GetPicsByFilter0xf22df2d8963e43920e3bfe129fff4fc21d486a86 */
+    /*2. GetPicsForPreview0xbe863c4b03acb996e27b0c88875ff7c5e2c3090f */
+    /*3. GetPicsForPayShow0x012bbc9ebd79c1898c6fc19cefef6d2ad7a82f44 */
+    /*4. GetPicsApproved0x503988fb7a78ce326b30a7d74f63c70d5574063c */
+    /*5. GetPicsCommited0x4f2f39303fa1d585564cfe4aacd46ede824b3d61 */
+    /*6. GetPicsRejected0x68d54c43e5f85dea0c783d94ddc5da4504642033 */
+    /*7. GetPicsNum0xcc42640466e848f263ffb669f13256dd2ad08f97 */
     app.get('/api/getpics', async (req, res) => {
       try {
         var params = req.query;
@@ -220,18 +282,55 @@ module.exports = {
           if (typeof(cmd) != "undefined") {
             console.log('api.getpics cmd=', cmd);
             switch(cmd){
+              case 'GetPicsByFilter0xf22df2d8963e43920e3bfe129fff4fc21d486a86':
+                var pics = await getPicsByFilter(params);
+                if(pics && pics.length > 0){
+                  console.log('GetPicsByFilter found total', pics.length, 'pics');
+                  var new_pics = [];
+                  /*Get the range of the document*/
+                  if (typeof(params.results) != "undefined" && typeof(params.page) != "undefined") {
+                    const iStart = (parseInt(params.page)-1)*parseInt(params.results);
+                    const iEnd = iStart+parseInt(params.results);
+                    console.log('GetPicsByFilter iStart=', iStart,'iEnd=', iEnd);
+                    new_pics = pics.slice(iStart, iEnd);
+                  }else{
+                    new_pics = pics;
+                  }
+                  
+                  console.log('GetPicsByFilter return total', new_pics.length, 'pics');
+                  
+                  var picsObj = {};
+                  picsObj['totalCount'] = pics.length;
+                  picsObj['results'] = new_pics;
+                  res.json(picsObj);
+                  return;
+                }else{
+                  console.log('GetPicsByFilter not found pics');
+                  var picsObj = {};
+                  picsObj['totalCount'] = 0;
+                  picsObj['results'] = [];
+                  res.json(picsObj);
+                  return;
+                }
+                break;
               case 'GetPicsForPreview0xbe863c4b03acb996e27b0c88875ff7c5e2c3090f':
                 var iOffset = params.offset;
                 var iNumber = params.number;
                 if (typeof(iOffset) == "undefined") {
-                  iOffset = 0;
+                  iOffset = '0';
                 }
                 if (typeof(iNumber) == "undefined") {
-                  iNumber = 0;
+                  iNumber = '20';
                 }
-                var pics = await getPicsForPreview(iOffset, iNumber);
+                
+                var pics = await getPicsForPreview();
                 if(pics && pics.length > 0){
-                  res.json(pics);
+                  var new_pics = [];
+                  const iStart = parseInt(iOffset);
+                  const iEnd = iStart+parseInt(iNumber);
+                  console.log('GetPicsForPreview iStart=', iStart,'iEnd=', iEnd);
+                  new_pics = pics.slice(iStart, iEnd);
+                  res.json(new_pics);
                   return;
                 }
                 break;
@@ -355,5 +454,63 @@ module.exports = {
         res.json(null);
       }
     });
+    
+    app.post('/api/managepics', async (req, res) => {
+      try {
+        var form = new multiparty.Form();
+        form.maxFieldsSize = 10485760;
+      
+        //console.log('api.managepics req', req);
+        //console.log('api.managepics req.body=', req.body);
+
+        form.parse(req, async function (err, fields, files) {
+          if(err){
+            console.log('api.managepics err=', err);
+            res.statusCode = 404;
+            res.write('manage pics error');
+            res.end();
+            return ;
+          }
+          
+          if( isProduction && (
+            typeof(fields.user) == "undefined" 
+            || typeof(fields.action) == "undefined" 
+            || typeof(fields.asset_did) == "undefined"
+            || fields.user[0] == "undefined")){
+            res.statusCode = 404;
+            res.write('manage pics error');
+            res.end();
+            return ;
+          }
+          
+          if(typeof(fields.action) != "undefined" && fields.action[0] != "undefined"){
+            /*json to object*/
+            const action = fields.action[0];
+            const asset_did = fields.asset_did[0]; 
+            
+            console.log('api.managepics action=', action);
+            console.log('api.managepics asset_did=', asset_did);
+            await picsStateManager(action, asset_did);
+            
+            res.statusCode = 200;
+            res.write('manage pics success');
+            res.end();
+          }else{
+            console.log('api.managepics invalid action');
+            res.statusCode = 404;
+            res.write('manage pics error');
+            res.end();
+          }
+        });
+      } catch (err) {
+        console.error('api.managepics.error', err);
+        res.statusCode = 404;
+        res.write('manage pics error');
+        res.end();
+        return ;
+      }
+    });
+    /*end of /api/managepics post*/
+    
   },
 };

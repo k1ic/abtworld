@@ -21,8 +21,11 @@ module.exports = withPlugins(
 
         env: {
           appName: process.env.APP_NAME,
+          appDescription: process.env.APP_DESCRIPTION,
+          baseUrl: process.env.BASE_URL,
           appId: process.env.APP_ID,
           appOwnerAccount: process.env.APP_OWNER_ACCOUNT,
+          appAdminAccounts: process.env.APP_ADMIN_ACCOUNTS,
           apiPrefix: process.env.NF_API_PREFIX || process.env.API_PREFIX || '',
           chainHost: process.env.CHAIN_HOST,
           chainId: process.env.CHAIN_ID,

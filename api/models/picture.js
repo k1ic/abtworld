@@ -24,7 +24,24 @@ PictureSchema.query.byAssetDid = function(strAssetDid){
 }
 
 PictureSchema.query.byState = function(strState){
-  return this.find({state: strState}).sort({"createdAt":-1});;
+  return this.find({state: strState}).sort({"createdAt":-1});
+}
+
+PictureSchema.query.byMultiState = function(arrStates, sortField, sortOrder){
+  console.log('picture query byMultiState arrStates=',arrStates,"sortField=",sortField,'sortOrder=',sortOrder);
+  if(sortOrder == 'ascend'){
+    if(sortField == 'createdAt'){
+      return this.find({state:{$in:arrStates}}).sort({"createdAt":1});
+    }else{
+      return this.find({state:{$in:arrStates}}).sort({"createdAt":1});
+    }
+  }else{
+    if(sortField == 'createdAt'){
+      return this.find({state:{$in:arrStates}}).sort({"createdAt":-1});
+    }else{
+      return this.find({state:{$in:arrStates}}).sort({"createdAt":-1});
+    }
+  }
 }
 
 const Picture = mongoose.model('picture', PictureSchema);

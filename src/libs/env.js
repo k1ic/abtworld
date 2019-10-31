@@ -6,14 +6,15 @@ module.exports = {
     process.env.CHAIN_HOST ||
     process.env.chainHost,
   appId: process.env.REACT_APP_APP_ID || process.env.GATSBY_APP_ID || process.env.APP_ID || process.env.appId,
-  appOwnerAccount: process.env.APP_OWNER_ACCOUNT,
+  appOwnerAccount: process.env.APP_OWNER_ACCOUNT || process.env.appOwnerAccount,
+  appAdminAccounts: process.env.APP_ADMIN_ACCOUNTS  || process.env.appAdminAccounts,
   appName: process.env.REACT_APP_APP_NAME || process.env.GATSBY_APP_NAME || process.env.APP_NAME || process.env.appName,
   appDescription:
     process.env.REACT_APP_APP_DESCRIPTION ||
     process.env.GATSBY_APP_DESCRIPTION ||
     process.env.APP_DESCRIPTION ||
     process.env.appDescription,
-  baseUrl: process.env.REACT_APP_BASE_URL || process.env.GATSBY_BASE_URL || process.env.BASE_URL || process.env.baeUrl,
+  baseUrl: process.env.REACT_APP_BASE_URL || process.env.GATSBY_BASE_URL || process.env.BASE_URL || process.env.baseUrl,
   apiPrefix:
     process.env.REACT_APP_API_PREFIX ||
     process.env.GATSBY_API_PREFIX ||
