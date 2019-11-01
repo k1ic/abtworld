@@ -50,6 +50,19 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
     for(var i=0;i<AssetPicList.length;i++){
       var picture = await Picture.findOne({ asset_did: AssetPicList[i].asset_did });
       if (picture) {
+        picture.category = AssetPicList[i].category;
+        picture.owner = AssetPicList[i].owner;
+        picture.contact = AssetPicList[i].contact;
+        picture.owner_did = AssetPicList[i].owner_did;
+        picture.blur_src = AssetPicList[i].blur_src;
+        picture.hd_src = AssetPicList[i].hd_src;
+        picture.asset_did = AssetPicList[i].asset_did;
+        picture.link = AssetPicList[i].link;
+        picture.title = AssetPicList[i].title;
+        picture.description = AssetPicList[i].description;
+        picture.worth = AssetPicList[i].worth;
+        picture.token_sym = AssetPicList[i].token_sym;
+        picture.payback_rate = AssetPicList[i].payback_rate;
         picture.updatedAt = Date();
         await picture.save();
         //console.log('update picture', picture);

@@ -44,6 +44,50 @@ PictureSchema.query.byMultiState = function(arrStates, sortField, sortOrder){
   }
 }
 
+PictureSchema.query.byOwnerDid = function(strOwnerDid, sortField, sortOrder){
+  if(sortOrder == 'ascend'){
+    if(sortField == 'createdAt'){
+       return this.find({owner_did: strOwnerDid}).sort({"createdAt":1});
+    }else{
+       return this.find({owner_did: strOwnerDid}).sort({"createdAt":1});
+    }
+  }else{
+    if(sortField == 'createdAt'){
+      return this.find({owner_did: strOwnerDid}).sort({"createdAt":-1});
+    }else{
+      return this.find({owner_did: strOwnerDid}).sort({"createdAt":-1});
+    }
+  }
+}
+
+PictureSchema.query.byOwnerDidAndMultiState = function(strOwnerDid, arrStates, sortField, sortOrder){
+  if(sortOrder == 'ascend'){
+    if(sortField == 'createdAt'){
+       return this.find({$and: [
+           {owner_did: strOwnerDid},
+           {state:{$in:arrStates}}
+         ]}).sort({"createdAt":1});
+    }else{
+       return this.find({$and: [
+           {owner_did: strOwnerDid},
+           {state:{$in:arrStates}}
+         ]}).sort({"createdAt":1});
+    }
+  }else{
+    if(sortField == 'createdAt'){
+       return this.find({$and: [
+           {owner_did: strOwnerDid},
+           {state:{$in:arrStates}}
+         ]}).sort({"createdAt":-1});
+    }else{
+       return this.find({$and: [
+           {owner_did: strOwnerDid},
+           {state:{$in:arrStates}}
+         ]}).sort({"createdAt":-1});
+    }
+  }
+}
+
 const Picture = mongoose.model('picture', PictureSchema);
 
 module.exports = Picture;

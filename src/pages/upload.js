@@ -5,7 +5,18 @@ import useAsyncFn from 'react-use/lib/useAsyncFn';
 import useToggle from 'react-use/lib/useToggle';
 import { fromUnitToToken } from '@arcblock/forge-util';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { LocaleProvider, Upload, Icon, Modal, Button, message, Typography, Input, Tooltip } from "antd";
+import {
+  LocaleProvider, 
+  Upload, 
+  Icon, 
+  Modal, 
+  Button, 
+  message, 
+  Typography, 
+  Input, 
+  Tooltip,
+  Select
+} from "antd";
 import zh_CN from 'antd/lib/locale-provider/zh_CN'
 import reqwest from 'reqwest';
 import 'antd/dist/antd.css';
@@ -18,6 +29,7 @@ import api from '../libs/api';
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
+const { Option } = Select;
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -101,6 +113,7 @@ class App extends Component {
     /*initial state*/
     this.state = {
       session: null,
+      asset_type: 'entertainment',
       pic_title: '',
       pic_description: '',
       pic_worth: '',
@@ -173,7 +186,7 @@ class App extends Component {
   
   /*Upload handler*/
   handleUpload = () => {
-    const { session, fileList, imageUrl, pic_title, pic_description, pic_worth} = this.state;
+    const { session, fileList, imageUrl, asset_type, pic_title, pic_description, pic_worth} = this.state;
     const { user, token } = session;
     const formData = new FormData();
     fileList.forEach((file) => {
@@ -185,6 +198,7 @@ class App extends Component {
     formData.append('user', JSON.stringify(user));
     formData.append('token', JSON.stringify(token));
     formData.append('imageUrl', JSON.stringify(imageUrl));
+    formData.append('asset_type', asset_type);
     formData.append('pic_title', pic_title);
     formData.append('pic_description', pic_description);
     formData.append('pic_worth', pic_worth);
@@ -241,6 +255,11 @@ class App extends Component {
   onPicWorthChange = value => {
     this.setState({ pic_worth: value });
   };
+  
+  handleAssetTypeChange = value => {
+    console.log('handleAssetTypeChange value=', value);
+    this.setState({ asset_type: value });
+  }
   
   render() {
     const session = this.state.session;
@@ -304,6 +323,12 @@ class App extends Component {
             <div className="clearfix">
               <Title level={4}>付费资源上传</Title>
               <div style={{ margin: '24px 0' }} />
+              <Text>资源类型</Text> <br />
+              <Select defaultValue="entertainment" style={{ width: 120 }} onChange={this.handleAssetTypeChange}>
+                <Option value="entertainment">娱乐</Option>
+                <Option value="marriage">征婚</Option>
+              </Select>
+              <div style={{ margin: '24px 0' }} />
               <Text>图片标题</Text>
               <TextArea
                 value={pic_title}
@@ -322,12 +347,14 @@ class App extends Component {
                 maxLength={1000}
               />
               <div style={{ margin: '24px 0' }} />
-              <Text>定价({token.symbol})</Text>
+              <Text>定价({token.symbol})</Text> <br />
+              <Text type="warning">上传者收益分成比例：60%</Text>
               <div>
                 <NumericInput style={{ width: 200 }} value={pic_worth} onChange={this.onPicWorthChange} />
               </div>
               <div style={{ margin: '24px 0' }} />
-              <Text>图片(jpg/png 5M以内)</Text>
+              <Text>图片(jpg/png 5M以内)</Text> <br />
+              <Text type="danger">禁：黄赌毒</Text>
               <Upload{...props}           
               >
                 {fileList.length >= 1 ? null : uploadButton}

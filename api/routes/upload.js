@@ -69,7 +69,8 @@ module.exports = {
           }
           
           if( isProduction && (
-            typeof(fields.user) == "undefined" 
+            typeof(fields.user) == "undefined"
+            || typeof(fields.asset_type) == "undefined"  
             || typeof(fields.files) == "undefined" 
             || typeof(fields.token) == "undefined"
             || typeof(fields.imageUrl) == "undefined"
@@ -89,12 +90,14 @@ module.exports = {
           //console.log('fields.originFileObj[0]=', fields.originFileObj[0]);
           //console.log('fields.token[0]=', fields.token[0]);
           //console.log('fields.imageUrl[0]=', fields.imageUrl[0]);
+          const asset_type = fields.asset_type[0];
           const upload_file = JSON.parse(fields.files[0]);
           const token = JSON.parse(fields.token[0]);
           const imageUrl = JSON.parse(fields.imageUrl[0]);
           const pic_title = fields.pic_title[0];
           const pic_description = fields.pic_description[0];
           const pic_worth = fields.pic_worth[0];
+          console.log('asset type=', asset_type);
           console.log('pic tile=', pic_title);
           console.log('pic description=', pic_description);
           console.log('pic worth=', pic_worth, token.symbol);
@@ -137,7 +140,7 @@ module.exports = {
 
             /*save upload to db*/
             var pic_new = new Picture({
-              category: 'human',
+              category: asset_type,
               owner: user.name,
               contact: user.email,
               owner_did: user.did,

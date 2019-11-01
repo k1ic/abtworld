@@ -4,7 +4,7 @@
 //hd_src: date |sha1sum
 module.exports = [
   {
-    category: 'human',
+    category: 'entertainment',
     owner: '露露',
     contact: 'wx:haozi15090918250',
     owner_did: 'did:abt:z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo',
@@ -19,7 +19,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: '陈影',
     contact: 'wx:haozi15090918250',
     owner_did: 'did:abt:z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo',
@@ -34,7 +34,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: '婷婷',
     contact: 'wx:haozi15090918250',
     owner_did: 'did:abt:z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo',
@@ -49,7 +49,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: '影',
     contact: 'wx:wzwlovelf',
     owner_did: 'did:abt:z1RjHvJ39YbJHbQBs32CZPQFiJ5dtaHp1Wa',
@@ -64,7 +64,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: '影',
     contact: 'wx:wzwlovelf',
     owner_did: 'did:abt:z1RjHvJ39YbJHbQBs32CZPQFiJ5dtaHp1Wa',
@@ -79,7 +79,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: '平平',
     contact: 'wx:haozi15090918250',
     owner_did: 'did:abt:z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo',
@@ -94,7 +94,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: '菠萝',
     contact: 'wx:haozi15090918250',
     owner_did: 'did:abt:z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo',
@@ -109,7 +109,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: '静静',
     contact: 'wx:haozi15090918250',
     owner_did: 'did:abt:z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo',
@@ -124,7 +124,7 @@ module.exports = [
     payback_rate: '0.6',
   }, 
   {
-    category: 'human',
+    category: 'entertainment',
     owner: '七七',
     contact: 'wx:haozi15090918250',
     owner_did: 'did:abt:z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo',
@@ -139,7 +139,7 @@ module.exports = [
     payback_rate: '0.6',
   }, 
   {
-    category: 'landscape',
+    category: 'entertainment',
     owner: '在路上的羊',
     contact: 'wx:fk75j21',
     owner_did: 'did:abt:z1Y6mnr1GkDs6Secz1bBrgucJRTK3idpQcG',
@@ -154,7 +154,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'landscape',
+    category: 'entertainment',
     owner: 'yudao',
     contact: 'wx:haozi15090918250',
     owner_did: 'did:abt:z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo',
@@ -169,7 +169,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'landscape',
+    category: 'entertainment',
     owner: 'yudao',
     contact: 'wx:haozi15090918250',
     owner_did: 'did:abt:z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo',
@@ -184,7 +184,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: 'changer',
     contact: 'wx:wlf417202602',
     owner_did: 'did:abt:z1abYoHBoBBKDZLv3SB8ss88znFsREk4b7k',
@@ -199,7 +199,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: 'changer',
     contact: 'wx:wlf417202602',
     owner_did: 'did:abt:z1abYoHBoBBKDZLv3SB8ss88znFsREk4b7k',
@@ -214,7 +214,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: 'ArcBlock',
     contact: 'wx:mave99a',
     owner_did: 'did:abt:z1XKKV5TykX467ZXNo3FuTURaq6eTF8tMQM',
@@ -229,7 +229,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'animal',
+    category: 'entertainment',
     owner: 'Robert',
     contact: 'wx:mave99a',
     owner_did: 'did:abt:z1XKKV5TykX467ZXNo3FuTURaq6eTF8tMQM',
@@ -244,7 +244,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: 'ArcBlock',
     contact: 'wx:mave99a',
     owner_did: 'did:abt:z1XKKV5TykX467ZXNo3FuTURaq6eTF8tMQM',
@@ -259,7 +259,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: 'ArcBlock',
     contact: 'wx:mave99a',
     owner_did: 'did:abt:z1XKKV5TykX467ZXNo3FuTURaq6eTF8tMQM',
@@ -274,7 +274,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: 'Robert',
     contact: 'wx:mave99a',
     owner_did: 'did:abt:z1XKKV5TykX467ZXNo3FuTURaq6eTF8tMQM',
@@ -289,7 +289,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: 'ArcBlock',
     contact: 'wx:mave99a',
     owner_did: 'did:abt:z1XKKV5TykX467ZXNo3FuTURaq6eTF8tMQM',
@@ -304,7 +304,7 @@ module.exports = [
     payback_rate: '0.6',
   },
   {
-    category: 'human',
+    category: 'entertainment',
     owner: 'ArcBlock',
     contact: 'wx:mave99a',
     owner_did: 'did:abt:z1XKKV5TykX467ZXNo3FuTURaq6eTF8tMQM',

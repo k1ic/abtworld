@@ -47,26 +47,50 @@ module.exports = {
                 if (tx && tx.length >= 1) {
                   //console.log('api.payments.ok - tx', tx);
                   console.log('api.payments.ok - tx.length', tx.length);
-           
-                  const filter_tx = tx.filter(function (e) { 
-                    if(e.tx.itx.data){
-                      var memo = null;
-                      try {
-                        memo = JSON.parse(e.tx.itx.data.value);
-                      } catch (err) {
-                      }
-                      if(memo){
-                        return (memo.module === dapp_module && memo.para.asset_did === asset_did);
+                  
+                  if (typeof(asset_did) != "undefined") {
+                    const filter_tx = tx.filter(function (e) { 
+                      if(e.tx.itx.data){
+                        var memo = null;
+                        try {
+                          memo = JSON.parse(e.tx.itx.data.value);
+                        } catch (err) {
+                        }
+                        if(memo){
+                          return (memo.module === dapp_module && memo.para.asset_did === asset_did);
+                        }else{
+                          return 0;
+                        }
                       }else{
                         return 0;
                       }
-                    }else{
-                      return 0;
-                    }
-                  });
-                  tx = filter_tx;
-                  //console.log('api.payments.ok - filter tx', tx);
-                  console.log('api.payments.ok -  filter tx.length', tx.length);
+                    });
+                    tx = filter_tx;
+                    
+                    //console.log('api.payments.ok - module and asset_did filter tx', tx);
+                    console.log('api.payments.ok - module and asset_did filter tx.length', tx.length);
+                  } else {
+                    const filter_tx = tx.filter(function (e) { 
+                      if(e.tx.itx.data){
+                        var memo = null;
+                        try {
+                          memo = JSON.parse(e.tx.itx.data.value);
+                        } catch (err) {
+                        }
+                        if(memo){
+                          return (memo.module === dapp_module);
+                        }else{
+                          return 0;
+                        }
+                      }else{
+                        return 0;
+                      }
+                    });
+                    tx = filter_tx;
+                    
+                    //console.log('api.payments.ok - module filter tx', tx);
+                    console.log('api.payments.ok - module filter tx.length', tx.length);
+                  }
                   
                   res.json(tx);
                   return;

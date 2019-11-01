@@ -5,6 +5,10 @@ const multiparty = require('multiparty');
 const { 
   ImageFileRemove
 } = require('../libs/image');
+const { 
+  fetchForgeTransactions,
+  getAssetPayDataFromTx
+} = require('../libs/transactions');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
@@ -38,6 +42,96 @@ async function getPicsByFilter(params){
   console.log('getPicsByFilter wait counter', wait_counter);
   
   //console.log(new_docs);
+  
+  return new_docs;
+}
+
+async function getOwnerPicsByFilter(params){
+  var new_docs = [];
+  var found = 0;
+  
+  console.log('getOwnerPicsByFilter params=', params);
+  
+  Picture.find().byOwnerDidAndMultiState(params.owner_did, params.state, params.sortField, params.sortOrder).exec(function(err, docs){
+    if(docs && docs.length>0){
+      console.log('Found', docs.length, params.owner_did, 'docs');
+      new_docs = docs;
+    }else{
+      console.log('Owner document not found!');
+    }
+    found = 1;
+  })
+  
+  /*wait found result*/
+  var wait_counter = 0;
+  while(!found){
+    await sleep(1);
+    wait_counter++;
+    if(wait_counter > 15000){
+      break;
+    }
+  }
+  
+  console.log('getOwnerPicsByFilter wait counter', wait_counter);
+  
+  //console.log(new_docs);
+  
+  return new_docs;
+}
+
+
+async function getMyPayedPics(req){
+  var new_docs = [];
+  var found = 0;
+  var wait_counter = 0;
+  
+  if(!req || !req.query){
+    console.log('getMyPayedPics invalid request');
+    return [];
+  }
+  
+  const user = req.user;
+  const params = req.query;
+  
+  console.log('getMyPayedPics params=', params);
+  
+  if (typeof(params.module) == "undefined" || typeof(params.user_did) == "undefined") {
+    console.log('getMyPayedPics invalid parameters');
+    return [];
+  }
+  const module = params.module;
+  const user_did = params.user_did;
+  const tx = await fetchForgeTransactions(module, user_did, null);
+  console.log('getMyPayedPics user payed tx.length=', tx.length);
+  const myPayedData = await getAssetPayDataFromTx(tx);
+  console.log('getMyPayedPics myPayedData=', myPayedData);
+  
+  for(var i=0; i<myPayedData.length; i++){
+    found = 0;
+    Picture.find().byAssetDid(myPayedData[i].asset_did).exec(function(err, docs){
+      if(docs && docs.length > 0 && parseFloat(myPayedData[i].payed) >= parseFloat(docs[0].worth)){
+        console.log('Found', docs.length, 'asset_did docs');
+        new_docs.push(docs[0]);
+      }else{
+        console.log('asset_did document not found!');
+      }
+      found = 1;
+    })
+    
+    /*wait found result*/
+    wait_counter = 0;
+    while(!found){
+      await sleep(1);
+      wait_counter++;
+      if(wait_counter > 15000){
+        break;
+      }
+    }
+    //console.log('getMyPayedPics wait counter', wait_counter);
+  }
+  
+  //console.log('getMyPayedPics new_docs=', new_docs);
+  console.log('getMyPayedPics new_docs.length=', new_docs.length);
   
   return new_docs;
 }
@@ -267,12 +361,14 @@ module.exports = {
   init(app) {
     /*Get pictures API command list*/
     /*1. GetPicsByFilter0xf22df2d8963e43920e3bfe129fff4fc21d486a86 */
-    /*2. GetPicsForPreview0xbe863c4b03acb996e27b0c88875ff7c5e2c3090f */
-    /*3. GetPicsForPayShow0x012bbc9ebd79c1898c6fc19cefef6d2ad7a82f44 */
-    /*4. GetPicsApproved0x503988fb7a78ce326b30a7d74f63c70d5574063c */
-    /*5. GetPicsCommited0x4f2f39303fa1d585564cfe4aacd46ede824b3d61 */
-    /*6. GetPicsRejected0x68d54c43e5f85dea0c783d94ddc5da4504642033 */
-    /*7. GetPicsNum0xcc42640466e848f263ffb669f13256dd2ad08f97 */
+    /*2. GetOwnerPicsByFilter0xf66fa9a105ba0da2419c25208e79a6589af51db9 */
+    /*3. GetPicsForPreview0xbe863c4b03acb996e27b0c88875ff7c5e2c3090f */
+    /*4. GetPicsForPayShow0x012bbc9ebd79c1898c6fc19cefef6d2ad7a82f44 */
+    /*5. GetPicsApproved0x503988fb7a78ce326b30a7d74f63c70d5574063c */
+    /*6. GetPicsCommited0x4f2f39303fa1d585564cfe4aacd46ede824b3d61 */
+    /*7. GetPicsRejected0x68d54c43e5f85dea0c783d94ddc5da4504642033 */
+    /*8. GetPicsNum0xcc42640466e848f263ffb669f13256dd2ad08f97 */
+    /*9. GetMyPayedPics0x6bcf96c031676b17cf58dcdccefd439b909779fb*/
     app.get('/api/getpics', async (req, res) => {
       try {
         var params = req.query;
@@ -306,6 +402,37 @@ module.exports = {
                   return;
                 }else{
                   console.log('GetPicsByFilter not found pics');
+                  var picsObj = {};
+                  picsObj['totalCount'] = 0;
+                  picsObj['results'] = [];
+                  res.json(picsObj);
+                  return;
+                }
+                break;
+              case 'GetOwnerPicsByFilter0xf66fa9a105ba0da2419c25208e79a6589af51db9':
+                var pics = await getOwnerPicsByFilter(params);
+                if(pics && pics.length > 0){
+                  console.log('GetOwnerPicsByFilter found total', pics.length, 'pics');
+                  var new_pics = [];
+                  /*Get the range of the document*/
+                  if (typeof(params.results) != "undefined" && typeof(params.page) != "undefined") {
+                    const iStart = (parseInt(params.page)-1)*parseInt(params.results);
+                    const iEnd = iStart+parseInt(params.results);
+                    console.log('GetOwnerPicsByFilter iStart=', iStart,'iEnd=', iEnd);
+                    new_pics = pics.slice(iStart, iEnd);
+                  }else{
+                    new_pics = pics;
+                  }
+                  
+                  console.log('GetOwnerPicsByFilter return total', new_pics.length, 'pics');
+                  
+                  var picsObj = {};
+                  picsObj['totalCount'] = pics.length;
+                  picsObj['results'] = new_pics;
+                  res.json(picsObj);
+                  return;
+                }else{
+                  console.log('GetOwnerPicsByFilter not found pics');
                   var picsObj = {};
                   picsObj['totalCount'] = 0;
                   picsObj['results'] = [];
@@ -370,6 +497,37 @@ module.exports = {
                 if (typeof(strState) != "undefined") {
                   var picNum = await getPicsNum(strState);
                   res.json(picNum);
+                  return;
+                }
+                break;
+              case 'GetMyPayedPics0x6bcf96c031676b17cf58dcdccefd439b909779fb':
+                var pics = await getMyPayedPics(req);
+                if(pics && pics.length > 0){
+                  console.log('getMyPayedPics found total', pics.length, 'pics');
+                  var new_pics = [];
+                  /*Get the range of the document*/
+                  if (typeof(params.results) != "undefined" && typeof(params.page) != "undefined") {
+                    const iStart = (parseInt(params.page)-1)*parseInt(params.results);
+                    const iEnd = iStart+parseInt(params.results);
+                    console.log('getMyPayedPics iStart=', iStart,'iEnd=', iEnd);
+                    new_pics = pics.slice(iStart, iEnd);
+                  }else{
+                    new_pics = pics;
+                  }
+                  
+                  console.log('getMyPayedPics return total', new_pics.length, 'pics');
+                  
+                  var picsObj = {};
+                  picsObj['totalCount'] = pics.length;
+                  picsObj['results'] = new_pics;
+                  res.json(picsObj);
+                  return;
+                }else{
+                  console.log('getMyPayedPics not found pics');
+                  var picsObj = {};
+                  picsObj['totalCount'] = 0;
+                  picsObj['results'] = [];
+                  res.json(picsObj);
                   return;
                 }
                 break;

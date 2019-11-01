@@ -34,17 +34,10 @@ import env from '../libs/env';
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
 
-const admin_account = env.appAdminAccounts;
 const isProduction = process.env.NODE_ENV === 'production';
 
 class App extends Component {
     columns = [
-    {
-      title: '用户',
-      dataIndex: 'owner',
-      key: 'owner',
-      width: '8%',
-    },
     {
       title: '类型',
       dataIndex: 'category',
@@ -65,38 +58,32 @@ class App extends Component {
             break;
         }
       },
-      width: '8%',
+      width: '10%',
     },
     {
       title: '标题',
       dataIndex: 'title',
       key: 'title',
-      width: '10%',
-    },
-    {
-      title: '描述',
-      dataIndex: 'description',
-      key: 'description',
       width: '15%',
     },
     {
       title: '定价',
       dataIndex: 'worth',
       key: 'worth',
-      width: '8%',
+      width: '10%',
     },
     {
       title: '提交时间',
       dataIndex: 'createdAt',
       key: 'createdAt',
       sorter: true,
-      width: '10%',
+      width: '15%',
     },
     {
       title: '图片',
       dataIndex: 'hd_src',
       key: 'hd_src',
-      width: '10%',
+      width: '20%',
       render: (hd_src) => <img src={hd_src} alt="hd" height="50" width="50" onClick={() => {this.handlePreview(hd_src)}} style={{cursor: 'pointer'}}/>
     },
     {
@@ -120,21 +107,6 @@ class App extends Component {
             break;
         }
       },
-      width: '8%',
-    },
-    {
-      title: '操作',
-      dataIndex: 'asset_did',
-      key: 'asset_did',
-      render: asset_did => (
-        <span>
-          <Button type="primary" size="small" onClick={() => {this.handleApprove(asset_did)}}>同意</Button>
-          <Divider type="vertical" />
-          <Button type="danger" size="small" onClick={() => {this.handleReject(asset_did)}}>拒绝</Button>
-          <Divider type="vertical" />
-          <Button type="danger" size="small" onClick={() => {this.handleDelete(asset_did)}}>删除</Button>
-        </span>
-      ),
     },
   ];
 
@@ -164,22 +136,30 @@ class App extends Component {
     try {
       const { status, data} = await api.get('/api/session');
       this.setState({session: data});
+      this.fetchPics();
     } catch (err) {
     }
     return {};
   }
   
-  fetchPics = (params = {}) => {    
+  fetchPics = (params = {}) => {
+    const session = this.state.session;
+    let owner_did = null;
+    
     if(Object.keys(params).length == 0){
       console.log('params is null, load defaults');
       params['results'] = 10;             /*每页10条记录*/
       params['page'] = 1;                 /*第1页*/
       params['sortField'] = 'createdAt';
-      params['sortOrder'] = 'ascend';
-      params['state'] = ['commited'];
+      params['sortOrder'] = 'descend';
+      params['state'] = ['approved'];
       console.log('params:', params);
     }else{
       console.log('params:', params);
+    }
+    
+    if(session && session.user){
+      owner_did = session.user.did;
     }
     
     this.setState({ loading: true });
@@ -187,7 +167,8 @@ class App extends Component {
       url: '/api/getpics',
       method: 'get',
       data: {
-        cmd: 'GetPicsByFilter0xf22df2d8963e43920e3bfe129fff4fc21d486a86',
+        cmd: 'GetOwnerPicsByFilter0xf66fa9a105ba0da2419c25208e79a6589af51db9',
+        owner_did: owner_did,
         results: 10,
         ...params,
       },
@@ -215,7 +196,6 @@ class App extends Component {
   /*component mount process*/
   componentDidMount() {
     this.fetchAppData();
-    this.fetchPics();
   }
   
   /*component unmount process*/
@@ -234,11 +214,11 @@ class App extends Component {
   handleTableChange = (pagination, filters, sorter) => {
     if(Object.keys(sorter).length == 0){
       sorter['field'] = 'createdAt';
-      sorter['order'] = 'ascend';
+      sorter['order'] = 'descend';
     }
     
     if(Object.keys(filters).length == 0){
-      filters['state'] = ['commited'];
+      filters['state'] = ['approved'];
     }
     
     console.log('pagination='+JSON.stringify(pagination));
@@ -327,7 +307,7 @@ class App extends Component {
     
     if (!session) {
       return (
-        <Layout title="Admin">
+        <Layout title="myUpload">
           <Main>
             <CircularProgress />
           </Main>
@@ -345,22 +325,13 @@ class App extends Component {
     //console.log('render session.user=', user);
     //console.log('render session.token=', token);
     
-    /*verify user*/
-    if ( isProduction && session.user ) {
-      if(-1 == admin_account.indexOf(user.did)){
-        console.log('render invalide user.did=', user.did);
-        window.location.href = '/';
-        return null;
-      }
-    }
-    
     
     const { previewVisible,previewView, previewImage } = this.state;
     //console.log('pagination='+JSON.stringify(this.state.pagination));
     //console.log('record='+JSON.stringify(this.state.record));
     
     return (
-      <Layout title="Admin">
+      <Layout title="myUpload">
         <Main>
           <LocaleProvider locale={zh_CN}>
             <Table
