@@ -136,7 +136,7 @@ async function getMyPayedPics(req){
   return new_docs;
 }
 
-async function getPicsForPreview(){
+async function getPicsForPreview(strCategory){
   var new_docs = [];
   var found = 0;
   
@@ -169,6 +169,12 @@ async function getPicsForPreview(){
     if(wait_counter > 15000){
       break;
     }
+  }
+  
+  if (typeof(strCategory) != "undefined") {
+    new_docs = new_docs.filter(function (e) { 
+      return e.category === strCategory;
+    });
   }
   
   console.log('getPicsForPreview wait counter', wait_counter);
@@ -294,9 +300,10 @@ async function getRejectedPics(){
   return new_docs;
 }
 
-async function getPicsNum(strState){
+async function getPicsNum(strState, strCategory){
   var new_docs = [];
   var found = 0;
+  
   await Picture.find().byState(strState).exec(function(err, docs){
     if(docs && docs.length>0){
       console.log('Found', docs.length, strState, 'docs');
@@ -315,6 +322,12 @@ async function getPicsNum(strState){
     if(wait_counter > 15000){
       break;
     }
+  }
+  
+  if (typeof(strCategory) != "undefined") {
+    new_docs = new_docs.filter(function (e) { 
+      return e.category === strCategory;
+    });
   }
   
   console.log('getPicsNum wait counter', wait_counter);
@@ -441,16 +454,20 @@ module.exports = {
                 }
                 break;
               case 'GetPicsForPreview0xbe863c4b03acb996e27b0c88875ff7c5e2c3090f':
+                var strCategory = params.category;
                 var iOffset = params.offset;
                 var iNumber = params.number;
+                if (typeof(strCategory) == "undefined") {
+                  strCategory = 'entertainment';
+                }
                 if (typeof(iOffset) == "undefined") {
                   iOffset = '0';
                 }
                 if (typeof(iNumber) == "undefined") {
-                  iNumber = '20';
+                  iNumber = '8';
                 }
                 
-                var pics = await getPicsForPreview();
+                var pics = await getPicsForPreview(strCategory);
                 if(pics && pics.length > 0){
                   var new_pics = [];
                   const iStart = parseInt(iOffset);
@@ -494,8 +511,10 @@ module.exports = {
                 break;
               case 'GetPicsNum0xcc42640466e848f263ffb669f13256dd2ad08f97':
                 var strState = params.state;
+                var strCategory = params.category;
                 if (typeof(strState) != "undefined") {
-                  var picNum = await getPicsNum(strState);
+                  var picNum = await getPicsNum(strState, strCategory);
+                  console.log('getPicsNum strCategory=', strCategory, 'picNum=', picNum);
                   res.json(picNum);
                   return;
                 }

@@ -14,6 +14,7 @@ import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Auth from '@arcblock/did-react/lib/Auth';
 import Avatar from '@arcblock/did-react/lib/Avatar';
+import 'antd/dist/antd.css';
 
 import Layout from '../components/layout';
 import useSession from '../hooks/session';
@@ -100,15 +101,15 @@ export default function ProfilePage() {
             <Button color="secondary" variant="outlined" onClick={onLogout}>
               退出
             </Button>
-            {balance.value && (
+            {/*balance.value && (
               <Button color="primary" variant="contained" onClick={() => setOpen()} style={{ marginTop: '30px' }}>
                 签到
               </Button>
-            )}
+            )*/}
             <Button color="primary" variant="contained" onClick={onMyPayed} style={{ marginTop: '30px' }}>
               已付列表
             </Button>
-            <Button color="primary" variant="contained" onClick={onMyUploads} style={{ marginTop: '30px' }}>
+            <Button color="primary" variant="outlined" onClick={onMyUploads} style={{ marginTop: '30px' }}>
               已传列表
             </Button>
             {(-1 != admin_account.indexOf(user.did)) && (
@@ -117,7 +118,7 @@ export default function ProfilePage() {
               </Button>
             )}
             {(-1 != admin_account.indexOf(user.did)) && (
-              <Button color="primary" variant="contained" onClick={onAdmin} style={{ marginTop: '30px' }}>
+              <Button color="primary" variant="outlined" onClick={onAdmin} style={{ marginTop: '30px' }}>
                 后台管理
               </Button>
             )}

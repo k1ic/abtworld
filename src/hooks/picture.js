@@ -1,9 +1,9 @@
 import useAsync from 'react-use/lib/useAsync';
 import api from '../libs/api';
 
-export async function fetchPicsNum(strState) {
+export async function fetchPicsNum(strState, strCategory) {
   try {
-    const { status, data } = await api.get(`/api/getpics?cmd=GetPicsNum0xcc42640466e848f263ffb669f13256dd2ad08f97&state=${strState}`);
+    const { status, data } = await api.get(`/api/getpics?cmd=GetPicsNum0xcc42640466e848f263ffb669f13256dd2ad08f97&state=${strState}&category=${strCategory}`);
     
     if (status === 400) {
     }
@@ -15,9 +15,9 @@ export async function fetchPicsNum(strState) {
   return {};
 }
 
-export async function fetchPreviewPics(iOffset, iNum) {
+export async function fetchPreviewPics(strCategory, iOffset, iNum) {
   try {
-    const { status, data } = await api.get(`/api/getpics?cmd=GetPicsForPreview0xbe863c4b03acb996e27b0c88875ff7c5e2c3090f&offset=${iOffset}&number=${iNum}`);
+    const { status, data } = await api.get(`/api/getpics?cmd=GetPicsForPreview0xbe863c4b03acb996e27b0c88875ff7c5e2c3090f&category=${strCategory}&offset=${iOffset}&number=${iNum}`);
     
     if (status === 400) {
     }

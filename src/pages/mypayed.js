@@ -112,7 +112,7 @@ class App extends Component {
         cmd: 'GetMyPayedPics0x6bcf96c031676b17cf58dcdccefd439b909779fb',
         user_did: user_did,
         module: 'picture',
-        results: 8,
+        results: pic_num_one_page,
         ...params,
       },
       type: 'json',

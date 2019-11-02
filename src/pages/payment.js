@@ -11,6 +11,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
 import Auth from '@arcblock/did-react/lib/Auth';
 import Avatar from '@arcblock/did-react/lib/Avatar';
+import 'antd/dist/antd.css';
 
 import Layout from '../components/layout';
 import useForUpdateSession from '../hooks/session';

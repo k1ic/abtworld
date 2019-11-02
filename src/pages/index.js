@@ -10,7 +10,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import CodeBlock from '@arcblock/ux/lib/CodeBlock';
-import { LocaleProvider, Pagination } from 'antd';
+import { LocaleProvider, Pagination, Carousel } from 'antd';
 import zh_CN from 'antd/lib/locale-provider/zh_CN'
 import 'antd/dist/antd.css';
 
@@ -20,7 +20,7 @@ import env from '../libs/env';
 import { fetchPicsNum, fetchPreviewPics } from '../hooks/picture';
 
 //Picture number of one page
-const pic_num_one_page=20;
+const pic_num_one_page=8;
 
 const renderPaymentPicListCard = x => (
   <Grid key={x.title} item xs={12} sm={6} md={3}>
@@ -66,47 +66,67 @@ class App extends Component {
     
     /*initial state*/
     this.state = {
-      pictures: [],
-      pic_total_num: null,
+      pics_ent: null,
+      pics_mar: null,
+      pics_ent_total: null,
+      pics_mar_total: null,
     };
     
-    this.onPageChange = this.onPageChange.bind(this);
+    this.onEntPicsPageChange = this.onEntPicsPageChange.bind(this);
+    this.onMarPicsPageChange = this.onMarPicsPageChange.bind(this);
   }
   
-  /*Fetch Data*/
-  async fetchData(pageNumber){
+  /*Fetch Pics*/
+  async fetchPics(strCategory, pageNumber){
     try {
-      console.log('fetchData, pageNumber=', pageNumber);
-      fetchPicsNum('approved').then((v)=>{
-        this.setState({pic_total_num: v});
+      console.log('fetchPics, strCategory=', strCategory, 'pageNumber=', pageNumber);
+      fetchPicsNum('approved', strCategory).then((v)=>{
+        if(strCategory === 'entertainment'){
+          console.log('pics_ent_total update to', v);
+          this.setState({pics_ent_total: v});
+        }else if(strCategory === 'marriage'){
+          console.log('pics_mar_total update to', v);
+          this.setState({pics_mar_total: v});
+        }
       });
       
-      fetchPreviewPics((pageNumber-1)*pic_num_one_page, pic_num_one_page).then((v)=>{
-        this.setState({pictures: v});
+      fetchPreviewPics(strCategory, (pageNumber-1)*pic_num_one_page, pic_num_one_page).then((v)=>{
+        if(strCategory === 'entertainment'){
+          this.setState({pics_ent: v});
+        }else if(strCategory === 'marriage'){
+          this.setState({pics_mar: v});
+        }
       });
     } catch (err) {
+      console.log('fetchPics err=', err);
     }
     return {};
   }
   
   /*component mount process*/
   componentDidMount() {
-    this.fetchData(1);
+    this.fetchPics('entertainment', 1);
+    this.fetchPics('marriage', 1);
   }
   
   /*component unmount process*/
   componentWillUnmount() {
   }
   
-  onPageChange(pageNumber) {
-    console.log('Page: ', pageNumber);
-    this.fetchData(pageNumber);
+  onEntPicsPageChange(pageNumber) {
+    console.log('onEntPicsPageChange Page: ', pageNumber);
+    this.fetchPics('entertainment', pageNumber);
+  }
+  
+  onMarPicsPageChange(pageNumber) {
+    console.log('onMarPicsPageChange Page: ', pageNumber);
+    this.fetchPics('marriage', pageNumber);
   }
   
   render() {
-    const {pictures, pic_total_num} = this.state;
+    const {pics_ent, pics_mar, pics_ent_total, pics_mar_total} = this.state;
     
-    if (!pictures || !pic_total_num) {
+    if (pics_ent_total === null || pics_mar_total === null) {
       return (
         <Layout title="Home">
           <Main>
@@ -116,8 +136,10 @@ class App extends Component {
       );
     }
     
-    console.log('pictures=', pictures);
-    console.log('pic_total_num=', pic_total_num);
+    //console.log('pics_ent=', pics_ent);
+    console.log('pics_ent_total=', pics_ent_total);
+    //console.log('pics_mar=', pics_mar);
+    console.log('pics_mar_total=', pics_mar_total);
     
     //init TBA wool list
     var TBAWoolList=new Array();
@@ -133,33 +155,59 @@ class App extends Component {
     return (
       <Layout title="Home">
         <Main>
+          {/*
+          <Carousel autoplay>
+            <div>
+              <h3>1</h3>
+            </div>
+            <div>
+              <h3>2</h3>
+            </div>
+            <div>
+              <h3>3</h3>
+            </div>
+            <div>
+              <h3>4</h3>
+            </div>
+          </Carousel>
+          */}
+          
+          {
           <section className="section">
-            <Typography component="h3" variant="h5" className="section__header" color="textPrimary" gutterBottom>
-              薅羊毛
+            <Typography component="h3" variant="h5" className="section__header" color="secondary" gutterBottom>
+              征婚频道
             </Typography>
             <Typography component="p" variant="h6" className="page-description" color="textSecondary">
-              羊毛党的福利，一个钱包每天可以撸300TBA
+              <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>扫码支付后查看详细资料
             </Typography>
             <Grid container spacing={6} className="section__body demos">
-              {TBAWoolList.map(x => renderTBAWoolListCard(x))}
+              {pics_mar?pics_mar.map(x => renderPaymentPicListCard(x)):''}
             </Grid>
+            <LocaleProvider locale={zh_CN}>
+              <div style={{ margin: 20 }}>
+                <Pagination showQuickJumper defaultCurrent={1} defaultPageSize={pic_num_one_page} total={pics_mar_total} onChange={this.onMarPicsPageChange} />
+              </div>
+            </LocaleProvider>
           </section>
+          }
+          {
           <section className="section">
-            <Typography component="h3" variant="h5" className="section__header" color="textPrimary" gutterBottom>
-              付费资源
+            <Typography component="h3" variant="h5" className="section__header" color="textSecondary" gutterBottom>
+              娱乐频道
             </Typography>
             <Typography component="p" variant="h6" className="page-description" color="textSecondary">
               <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>扫码支付后查看高清图片
             </Typography>
             <Grid container spacing={6} className="section__body demos">
-              {pictures?pictures.map(x => renderPaymentPicListCard(x)):''}
+              {pics_ent?pics_ent.map(x => renderPaymentPicListCard(x)):''}
             </Grid>
             <LocaleProvider locale={zh_CN}>
               <div style={{ margin: 20 }}>
-                <Pagination showQuickJumper defaultCurrent={1} defaultPageSize={pic_num_one_page} total={pic_total_num} onChange={this.onPageChange} />
+                <Pagination showQuickJumper defaultCurrent={1} defaultPageSize={pic_num_one_page} total={pics_ent_total} onChange={this.onEntPicsPageChange} />
               </div>
             </LocaleProvider>
           </section>
+          }
         </Main>
       </Layout>
     );

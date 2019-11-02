@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-one-expression-per-line */
-import React from 'react';
+import React, { Component } from 'react';
 import styled from 'styled-components';
 import useAsyncFn from 'react-use/lib/useAsyncFn';
 import useToggle from 'react-use/lib/useToggle';
@@ -14,6 +14,7 @@ import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Auth from '@arcblock/did-react/lib/Auth';
 import Avatar from '@arcblock/did-react/lib/Avatar';
+import 'antd/dist/antd.css';
 
 import Layout from '../components/layout';
 import useSession from '../hooks/session';
@@ -31,26 +32,19 @@ export default function AboutPage() {
           欢迎进入ABT世界，这里是链网世界的入口，用于收录和展示ABT生态产品。
         </Typography>
         <Typography component="h2" variant="h5" className="page-header" color="primary">
-          关于付费资源板块
+          关于付费资产
         </Typography>
         <Typography component="p" variant="h6" className="page-description" color="textSecondary">
-          每个付费资源拥有唯一的资产DID，支付数据上链保存不可篡改，支付后用户拥有该资源的永久浏览权; <br/>
-          用户付费后，资源拥有者的DID账户中将实时收到60%收益; <br/>
-          欢迎社区伙伴们按照以下格式提交高质量的私藏资源给大家分享：<br/>
-           1. 所有者，如：robert <br/>
-           2. 联系方式，如：QQ/微信/邮箱 <br/>
-           3. ABT钱包DID账号，如：did:abt:z1emeg4eeh55Epfdz1bV3abcC9VxQ35H5uRc <br/>
-           4. 图片等资源文件，如：1.jpg <br/>
-           5. 资源标题(6个字以内),如：年轻时的冒总 <br/>
-           6. 资源描述，如：猜猜这是哪里？<br/>
-           7. 资源定价，如: 18 TBA <br/>
+          每个付费资产拥有唯一的DID，支付数据上链不可篡改，支付后用户拥有该资产的永久浏览权; <br/>
+          用户付费后，资产拥有者的DID账户中将实时收到60%收益; <br/>
+          资产的所有权归属于用户，和平台无关，如发现侵权，可联系下架！<br/>
         </Typography>
         <Typography component="h2" variant="h5" className="page-header" color="primary">
           联系方式
         </Typography>
         <Typography component="p" variant="h6" className="page-description" color="textSecondary">
-           1. QQ：2439897034 <br/>
-           2. 邮箱：2439897034@qq.com
+          QQ：2439897034 <br/>
+          邮箱：2439897034@qq.com <br/>
         </Typography>
       </Main>
     </Layout>

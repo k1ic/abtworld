@@ -25,17 +25,17 @@ var CheckinPendingFlag = 0;
 
 const onCheckinError = async result => {
   CheckinPendingFlag = 0;
-  window.location.href = 'http://abtworld.cn';
+  window.location.href = 'http://abtworld.cn/wools';
 };
 
 const onCheckinClose = async result => {
   CheckinPendingFlag = 0;
-  window.location.href = 'http://abtworld.cn';
+  window.location.href = 'http://abtworld.cn/wools';
 };
 
 const onCheckinSuccess = async result => {
   CheckinPendingFlag = 0;
-  window.location.href = 'http://abtworld.cn';
+  window.location.href = 'http://abtworld.cn/wools';
 };
 
 export default function CheckinPage() {

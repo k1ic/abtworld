@@ -8,6 +8,7 @@ import Button from '@material-ui/core/Button';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import { Menu, Icon } from 'antd';
 import Auth from '@arcblock/did-react/lib/Auth';
 import UserAvatar from '@arcblock/did-react/lib/Avatar';
 
@@ -15,6 +16,17 @@ import useSession from '../hooks/session';
 import api from '../libs/api';
 import env from '../libs/env';
 import { setToken } from '../libs/auth';
+
+const { SubMenu } = Menu;
+
+var state = {
+  current: 'mail',
+};
+
+var handleMoreClick = e => {
+  state.current = e.key;
+  console.log('handleMoreClick, e.key', e.key);
+};
 
 export default function Header() {
   const session = useSession();
@@ -48,18 +60,25 @@ export default function Header() {
           <img className="logo" src="/static/images/logo.png" alt="world" />
           首页
         </Typography>
-        <Typography
-          component="a"
-          href={env.chainHost.replace('/api', '/node/explorer/txs')}
-          target="_blank"
-          variant="h6"
-          color="inherit"
-          className="text">
-          浏览器
-        </Typography>
-        <Typography href="/about" component="a" variant="h6" color="inherit" className="text">
-          关于
-        </Typography>
+        <Menu onClick={handleMoreClick} selectedKeys={[state.current]} mode="horizontal" theme="light" className="antd-menu" >
+        <SubMenu
+          title={
+            <span className="submenu-title-wrapper">
+              <Icon type="appstore" />
+              更多...
+            </span>
+          }
+        >
+          <Menu.ItemGroup title="">
+          </Menu.ItemGroup>
+          <Menu.Item key="more:1"><a href={env.chainHost.replace('/api', '/node/explorer/txs')} target="_blank">区块浏览器</a></Menu.Item>
+          <Menu.ItemGroup title="应用">
+            <Menu.Item key="more:2">充电桩</Menu.Item>
+            <Menu.Item key="more:3"><a href="/wools" target="_parent">薅羊毛</a></Menu.Item>
+          </Menu.ItemGroup>
+          <Menu.Item key="more:4"><a href="/about" target="_parent">关于我们</a></Menu.Item>
+        </SubMenu>
+       </Menu>
       </div>
       <div className="nav-right">
         {session.loading && (
@@ -107,7 +126,17 @@ const Nav = styled(Toolbar)`
     padding-left: 0;
     padding-right: 0;
   }
-
+  
+  .antd-menu{
+    background: rgba(128, 128, 128, 0);
+    font-size: 1.25rem;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-weight: 500;
+    line-height: 1.6;
+    letter-spacing: 0.0075em;
+    margin-right: 16px;
+  }
+  
   .nav-left {
     display: flex;
     align-items: center;
