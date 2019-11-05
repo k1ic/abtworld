@@ -1,7 +1,17 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 import React, { Component } from 'react';
-import styled from 'styled-components';
 
+import { makeStyles } from '@material-ui/core/styles';
+import PropTypes from 'prop-types';
+import { withStyles } from '@material-ui/styles';
+import GridList from '@material-ui/core/GridList';
+import GridListTile from '@material-ui/core/GridListTile';
+import GridListTileBar from '@material-ui/core/GridListTileBar';
+import ListSubheader from '@material-ui/core/ListSubheader';
+import IconButton from '@material-ui/core/IconButton';
+import InfoIcon from '@material-ui/icons/Info';
+
+import styled from 'styled-components';
 import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
@@ -19,6 +29,24 @@ import env from '../libs/env';
 
 import { fetchPicsNum, fetchPreviewPics } from '../hooks/picture';
 
+const styles = {
+  root: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.54)',
+  },
+  gridList: {
+    width: 800,
+    height: 200,
+  },
+  icon: {
+    color: 'rgba(255, 255, 255, 0.54)',
+  },
+};
+
+
 //Picture number of one page
 const pic_mar_num_one_page=4;
 const pic_ent_num_one_page=8;
@@ -31,7 +59,7 @@ const renderPaymentPicListCard = x => (
           {x.title} - {x.worth} {x.token_sym}
         </Typography>
         <Typography href={x.link} component="a" variant="h6" color="inherit" gutterBottom>
-          <img className="pic-list" src={x.pic_src} alt={x.title} height="225" width="225" />
+          <img className="pic-list" src={x.blur_src} alt={x.title} />
         </Typography>
         <Typography component="p" color="primary" gutterBottom>
           {x.owner}：{x.description}
@@ -133,6 +161,7 @@ class App extends Component {
   
   render() {
     const {pics_ent, pics_mar, pics_ent_total, pics_mar_total} = this.state;
+    const { classes } = this.props;
     
     if (pics_ent_total === null || pics_mar_total === null) {
       return (
@@ -179,6 +208,30 @@ class App extends Component {
             </div>
           </Carousel>
           */}
+          <Typography component="h3" variant="h5" className="section__header" color="secondary" gutterBottom>
+            征婚
+          </Typography>
+          <Typography component="p" variant="h6" className="page-description" color="textSecondary">
+            <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>扫码支付后查看详细资料
+          </Typography>
+          <div className={classes.root}>
+            <GridList cellHeight={'auto'} cols={4} spacing={20} className={classes.gridList}>
+              {!pics_mar?'':pics_mar.map(pic => (
+                <GridListTile key={pic.blur_src}>
+                  <img src={pic.blur_src} alt={pic.title} />
+                  <GridListTileBar
+                    title={pic.title}
+                    subtitle={<span>by: {pic.owner}</span>}
+                    actionIcon={
+                      <IconButton aria-label={`info about ${pic.title}`} className={classes.icon}>
+                        <InfoIcon />
+                      </IconButton>
+                    }
+                  />
+                </GridListTile>
+              ))}
+            </GridList>
+          </div>
           
           {
           <section className="section">
@@ -192,7 +245,7 @@ class App extends Component {
               {pics_mar?pics_mar.map(x => renderPaymentPicListCard(x)):''}
             </Grid>
             <LocaleProvider locale={zh_CN}>
-              <div className="pagination">
+              <div style={{ margin: 20 }}>
                 <Pagination showQuickJumper defaultCurrent={1} defaultPageSize={pic_mar_num_one_page} total={pics_mar_total} onChange={this.onMarPicsPageChange} />
               </div>
             </LocaleProvider>
@@ -210,7 +263,7 @@ class App extends Component {
               {pics_ent?pics_ent.map(x => renderPaymentPicListCard(x)):''}
             </Grid>
             <LocaleProvider locale={zh_CN}>
-              <div className="pagination">
+              <div style={{ margin: 20 }}>
                 <Pagination showQuickJumper defaultCurrent={1} defaultPageSize={pic_ent_num_one_page} total={pics_ent_total} onChange={this.onEntPicsPageChange} />
               </div>
             </LocaleProvider>
@@ -243,15 +296,9 @@ const Main = styled.main`
     .section__header {
       margin-bottom: 20px;
     }
-    .pagination {
-      margin: 20px 0 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
   }
-
-  .grid-cards {
+  
+  .grid-cards {    
     .grid-item {
       display: flex;
       align-items: center;
@@ -298,4 +345,8 @@ const Main = styled.main`
 
 `;
 
-export default App;
+App.propTypes = {
+  classes: PropTypes.object.isRequired,
+};
+
+export default withStyles(styles)(App);

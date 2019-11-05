@@ -18,13 +18,13 @@ function unique(arr) {
 async function fetchForgeTransactions(module, user_did, asset_did){
   var tx = [];
   
-  if (!module) {
+  if (typeof(module) == "undefined" || !module) {
     return [];
   }
   
   switch(module){
     case 'picture':
-      if(!user_did){
+      if(typeof(user_did) == "undefined" || !user_did){
         return [];
       }
       const transactions = await ForgeSDK.doRawQuery(`{
@@ -54,7 +54,7 @@ async function fetchForgeTransactions(module, user_did, asset_did){
         //console.log('fetchForgeTransactions - tx', tx);
         console.log('fetchForgeTransactions - tx.length', tx.length);
                   
-        if (asset_did) {
+        if (typeof(asset_did) != "undefined" && asset_did) {
           const filter_tx = tx.filter(function (e) { 
             if(e.tx.itx.data){
               var memo = null;

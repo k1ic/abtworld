@@ -32,7 +32,7 @@ function unique(arr) {
 const pic_num_one_page=8;
 
 const renderMyPayedPicsCard = x => (
-  <Grid key={x.title} item xs={12} sm={6} md={3}>
+  <Grid key={x.title} item xs={12} sm={6} md={3} className="grid-item">
     <Card className="payment-pic-list">
       <CardContent>
         <Typography component="p" color="primary" gutterBottom>
@@ -188,11 +188,11 @@ class App extends Component {
             <Typography component="h3" variant="h5" className="section__header" color="textPrimary" gutterBottom>
               已付列表
             </Typography>
-            <Grid container spacing={6} className="section__body demos">
+            <Grid container spacing={6} className="grid-cards">
               {(this.state.data && this.state.data.length>0)?this.state.data.map(x => renderMyPayedPicsCard(x)):''}
             </Grid>
             <LocaleProvider locale={zh_CN}>
-              <div style={{ margin: 50 }}>
+              <div className="pagination">
                 <Pagination showQuickJumper defaultCurrent={1} defaultPageSize={pic_num_one_page} total={this.state.pagination.total} onChange={this.onPageChange} />
               </div>
             </LocaleProvider>
@@ -224,16 +224,19 @@ const Main = styled.main`
     .section__header {
       margin-bottom: 20px;
     }
+    .pagination {
+      margin: 20px 0 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
   }
 
-  .demos {
-    .demo {
-      height: 80px;
-      .card-title {
-         display: flex;
-         align-items: center;
-         justify-content: center;
-       }
+  .grid-cards {
+    .grid-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   }
 

@@ -22,7 +22,11 @@ export default function Footer() {
         },
         {
           title: 'Github',
-          link: 'https://github.com/ArcBlock/',
+          link: 'https://github.com/ArcBlock',
+        },
+        {
+          title: 'Github-2',
+          link: 'https://github.com/wangshijun',
         },
       ],
     },
@@ -58,17 +62,21 @@ export default function Footer() {
     {
       title: '社区',
       items: [
+        { 
+          title: 'ABT世界', 
+          link: '/',
+        },
+        {
+          title: 'FTBC',
+          link: 'http://www.ftbc.cc/',
+        },
         {
           title: 'ABT共识社区',
           link: 'https://mp.weixin.qq.com/s/j173J-e_MtnquX7sZPDf7w',
         },
         { 
-          title: 'ABT世界', 
-          link: '/',
-        },
-        { 
-          title: '币乎 - 1',  
-          link: 'https://bihu.com/people/48746',
+          title: 'Github',  
+          link: 'https://github.com/helloabt',
         },
       ],
     },
@@ -84,7 +92,7 @@ export default function Footer() {
   ];
 
   return (
-    <div style={{ marginTop: '40px', paddingTop: '40px', borderTop: '1px solid #DEDEDE' }}>
+    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #DEDEDE' }}>
       <Container>
         <Grid container spacing={4}>
           {footers.map(x => (

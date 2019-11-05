@@ -57,14 +57,14 @@ export default function Header() {
     <Nav>
       <div className="nav-left">
         <Typography href="/" component="a" variant="h6" color="inherit" noWrap className="brand">
-          <img className="logo" src="/static/images/logo.png" alt="world" />
+          {/*<img className="logo" src="/static/images/logo.png" alt="world" />*/}
           首页
         </Typography>
         <Menu onClick={handleMoreClick} selectedKeys={[state.current]} mode="horizontal" theme="light" className="antd-menu" >
         <SubMenu
           title={
             <span className="submenu-title-wrapper">
-              <Icon type="appstore" />
+              {/*<Icon type="appstore" />*/}
               更多...
             </span>
           }
@@ -73,7 +73,7 @@ export default function Header() {
           </Menu.ItemGroup>
           <Menu.Item key="more:1"><a href={env.chainHost.replace('/api', '/node/explorer/txs')} target="_blank">区块浏览器</a></Menu.Item>
           <Menu.ItemGroup title="应用">
-            <Menu.Item key="more:2">充电桩</Menu.Item>
+            <Menu.Item key="more:2"><a href="http://abtworld.cn:3080/" target="_blank">充电桩</a></Menu.Item>
             <Menu.Item key="more:3"><a href="/wools" target="_parent">薅羊毛</a></Menu.Item>
           </Menu.ItemGroup>
           <Menu.Item key="more:4"><a href="/about" target="_parent">关于我们</a></Menu.Item>
@@ -128,6 +128,7 @@ const Nav = styled(Toolbar)`
   }
   
   .antd-menu{
+    width: 100px;
     background: rgba(128, 128, 128, 0);
     font-size: 1.25rem;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;

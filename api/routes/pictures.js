@@ -136,25 +136,15 @@ async function getMyPayedPics(req){
   return new_docs;
 }
 
-async function getPicsForPreview(strCategory){
+async function getPicsForPreview(strCategory, user_did, iStart, iEnd){
   var new_docs = [];
   var found = 0;
-  
+  var myPayedData = [];
+    
   await Picture.find().byState('approved').exec(function(err, docs){
     if(docs && docs.length>0){
       console.log('Found', docs.length, 'approved docs');
-      new_docs = docs.map(function( e ) {
-        var doc = {};
-        doc['category'] = e.category;
-        doc['owner'] = e.owner;
-        doc['blur_src'] = e.blur_src;
-        doc['link'] = e.link;
-        doc['title'] = e.title;
-        doc['description'] = e.description;
-        doc['worth'] = e.worth;
-        doc['token_sym'] = e.token_sym;
-        return doc;
-      });
+      new_docs = docs;
     }else{
       console.log('Approved document not found!');
     }
@@ -171,14 +161,61 @@ async function getPicsForPreview(strCategory){
     }
   }
   
-  if (typeof(strCategory) != "undefined") {
+  console.log('getPicsForPreview wait counter', wait_counter);
+  console.log('getPicsForPreview approved docs.length', new_docs.length);
+  
+  /*Category filter*/
+  if (new_docs.length > 0 && typeof(strCategory) != "undefined") {
     new_docs = new_docs.filter(function (e) { 
       return e.category === strCategory;
     });
+    console.log('getPicsForPreview', strCategory, 'docs.length=', new_docs.length);
   }
   
-  console.log('getPicsForPreview wait counter', wait_counter);
-  //console.log(temp_docs);
+  /*Pagination filter */
+  if (new_docs.length > 0) {
+    new_docs = new_docs.slice(iStart, iEnd);
+    console.log('GetPicsForPreview iStart=', iStart,'iEnd=', iEnd, 'docs.length=', new_docs.length);
+  }
+  
+  /*Get doc content */
+  if (new_docs.length > 0) {
+    if(typeof(user_did) != "undefined" && user_did){
+      console.log('getPicsForPreview user_did=', user_did);
+      const tx = await fetchForgeTransactions('picture', user_did, null);
+      console.log('getPicsForPreview user payed tx.length=', tx.length);
+      myPayedData = await getAssetPayDataFromTx(tx);
+      console.log('getPicsForPreview myPayedData=', myPayedData);
+    }
+
+    new_docs = new_docs.map(function( e ) {
+      var doc = {};
+      doc['category'] = e.category;
+      doc['owner'] = e.owner;
+      if(myPayedData && myPayedData.length > 0){          
+        const payed_data_found = myPayedData.find(function(data){
+          return (data.asset_did === e.asset_did && parseFloat(data.payed) >= parseFloat(e.worth));
+        });
+        if(typeof(payed_data_found) != "undefined" && payed_data_found){
+          doc['pic_src'] = e.hd_src;
+        }else{
+          doc['pic_src'] = e.blur_src;
+        }
+      }else{
+        doc['pic_src'] = e.blur_src;
+      }
+      doc['link'] = e.link;
+      doc['title'] = e.title;
+      doc['description'] = e.description;
+      doc['worth'] = e.worth;
+      doc['token_sym'] = e.token_sym;
+      return doc;
+    });
+    
+    console.log('getPicsForPreview remap new_docs.length=', new_docs.length);
+  }
+
+  console.log('getPicsForPreview finally new_docs.length=', new_docs.length);
   
   return new_docs;
 }
@@ -457,6 +494,7 @@ module.exports = {
                 var strCategory = params.category;
                 var iOffset = params.offset;
                 var iNumber = params.number;
+                var user_did = null;
                 if (typeof(strCategory) == "undefined") {
                   strCategory = 'entertainment';
                 }
@@ -466,15 +504,15 @@ module.exports = {
                 if (typeof(iNumber) == "undefined") {
                   iNumber = '8';
                 }
+                if(req.user){
+                  user_did = req.user.did; 
+                }
                 
-                var pics = await getPicsForPreview(strCategory);
+                const iStart = parseInt(iOffset);
+                const iEnd = iStart+parseInt(iNumber);
+                var pics = await getPicsForPreview(strCategory, user_did, iStart, iEnd);
                 if(pics && pics.length > 0){
-                  var new_pics = [];
-                  const iStart = parseInt(iOffset);
-                  const iEnd = iStart+parseInt(iNumber);
-                  console.log('GetPicsForPreview iStart=', iStart,'iEnd=', iEnd);
-                  new_pics = pics.slice(iStart, iEnd);
-                  res.json(new_pics);
+                  res.json(pics);
                   return;
                 }
                 break;

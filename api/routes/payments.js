@@ -2,114 +2,30 @@
 const ForgeSDK = require('@arcblock/forge-sdk');
 const { toAddress } = require('@arcblock/did');
 const { wallet } = require('../libs/auth');
+const { 
+  fetchForgeTransactions
+} = require('../libs/transactions');
 
 module.exports = {
   init(app) {
     app.get('/api/payments', async (req, res) => {
       try {
-        const params = req.query;
-        if(params){
-          console.log('api.getpics params=', params);
-          const dapp_module = params.module;
-          if (typeof(dapp_module) != "undefined") {
-            switch(dapp_module){
-            case 'picture':
-              const asset_did = params.asset_did;
-              if (req.user) {
-                // const { transactions } = await ForgeSDK.listTransactions({
-                //   addressFilter: { sender: toAddress(req.user.did), receiver: wallet.address },
-                //   typeFilter: { types: ['transfer'] },
-                // });
- 
-                const transactions = await ForgeSDK.doRawQuery(`{
-                  listTransactions(addressFilter: {direction: ONE_WAY, sender: "${toAddress(req.user.did)}", receiver: "${wallet.address}"}, typeFilter: {types: "transfer"}, paging: {size: 10000}, timeFilter: {startDateTime: "2019-09-24 00:00:00"}) {
-                    transactions {
-                      tx {
-                        itx {
-                          ... on TransferTx {
-                            value
-                            data {
-                              value
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }   
-                }`);
-             
-                //console.log('transactions', transactions.listTransactions.transactions);
-
-                var tx = transactions.listTransactions.transactions;
-                //console.log('tx value', tx);
-                //console.log('tx array number', tx.length);
-         
-                if (tx && tx.length >= 1) {
-                  //console.log('api.payments.ok - tx', tx);
-                  console.log('api.payments.ok - tx.length', tx.length);
-                  
-                  if (typeof(asset_did) != "undefined") {
-                    const filter_tx = tx.filter(function (e) { 
-                      if(e.tx.itx.data){
-                        var memo = null;
-                        try {
-                          memo = JSON.parse(e.tx.itx.data.value);
-                        } catch (err) {
-                        }
-                        if(memo){
-                          return (memo.module === dapp_module && memo.para.asset_did === asset_did);
-                        }else{
-                          return 0;
-                        }
-                      }else{
-                        return 0;
-                      }
-                    });
-                    tx = filter_tx;
-                    
-                    //console.log('api.payments.ok - module and asset_did filter tx', tx);
-                    console.log('api.payments.ok - module and asset_did filter tx.length', tx.length);
-                  } else {
-                    const filter_tx = tx.filter(function (e) { 
-                      if(e.tx.itx.data){
-                        var memo = null;
-                        try {
-                          memo = JSON.parse(e.tx.itx.data.value);
-                        } catch (err) {
-                        }
-                        if(memo){
-                          return (memo.module === dapp_module);
-                        }else{
-                          return 0;
-                        }
-                      }else{
-                        return 0;
-                      }
-                    });
-                    tx = filter_tx;
-                    
-                    //console.log('api.payments.ok - module filter tx', tx);
-                    console.log('api.payments.ok - module filter tx.length', tx.length);
-                  }
-                  
-                  res.json(tx);
-                  return;
-                }
-
-                // const tx = (transactions || []).filter(x => x.code === 'OK').shift();
-                // if (tx && tx.hash) {
-                //   console.log('api.payments.ok', tx);
-                //   res.json(tx);
-                //   return;
-                // }
-
-              }
-              break;
-            default:
-              break;
-            }
+        if(req.query && req.user){
+          console.log('api.payments params=', req.query);
+          const dapp_module = req.query.module;
+          const asset_did = req.query.asset_did;
+          const user_did = req.user.did;
+          
+          const tx = await fetchForgeTransactions(dapp_module, user_did, asset_did);
+          if(tx && tx.length > 0){
+            //console.log('api.payments.ok - tx', tx);
+            console.log('api.payments.ok - tx.length', tx.length);
+            res.json(tx);
+            return;
           }
         }
+        
+        console.log('api.payments.ok - empty tx');
         res.json(null);
       } catch (err) {
         console.error('api.payments.error', err);

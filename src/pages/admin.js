@@ -52,7 +52,7 @@ class App extends Component {
       render: category => {
         switch(category){
           case 'entertainment':
-            return '娱乐';
+            return '私藏';
             break;
           case 'marriage':
             return '征婚';

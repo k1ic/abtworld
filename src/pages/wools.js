@@ -23,7 +23,7 @@ import { fetchPicsNum, fetchPreviewPics } from '../hooks/picture';
 const pic_num_one_page=8;
 
 const renderTBAWoolListCard = x => (
-  <Grid key={x.title} item xs={6} sm={3} md={2} lg={1}>
+  <Grid key={x.title} item xs={6} sm={4} md={3} lg={2} className="grid-item">
     <Card className="tba-wool-list">
       <CardContent>
         <Typography component="p" color="primary" gutterBottom>
@@ -107,7 +107,7 @@ class App extends Component {
             <Typography component="p" variant="h6" className="page-description" color="textSecondary">
               羊毛党的福利，一个钱包每天可以撸300TBA
             </Typography>
-            <Grid container spacing={6} className="section__body demos">
+            <Grid container spacing={6} className="grid-cards">
               {TBAWoolList.map(x => renderTBAWoolListCard(x))}
             </Grid>
           </section>
@@ -140,14 +140,11 @@ const Main = styled.main`
     }
   }
 
-  .demos {
-    .demo {
-      height: 80px;
-      .card-title {
-         display: flex;
-         align-items: center;
-         justify-content: center;
-       }
+  .grid-cards {
+    .grid-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   }
 

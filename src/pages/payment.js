@@ -172,7 +172,7 @@ export default function PaymentPage(props) {
   return (
     <Layout title="Payment">
       <Main symbol={token.symbol}>
-        <div className="picture-desc">
+        <div className="picture-title">
           {pic_to_pay[0].owner} - {pic_to_pay[0].title} - {pic_to_pay[0].worth} {pic_to_pay[0].token_sym} <br/>
         </div>
         <div className={`picture ${(fValueToPay > 0) ? '' : 'picture--unlocked'}`}>
@@ -220,7 +220,22 @@ PaymentPage.getInitialProps = async function ({pathname, query, asPath, req}) {
 const Main = styled.main`
   margin: 10px 0;  
 
+  .picture-title {
+    margin: 20px 0 0;
+    margin-bottom: 20px;
+    pointer-event:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;
+    color: #66CCCC;
+    font-size: 20px;
+    width:100%;
+    height: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    word-break: break-all;
+  }
+  
   .picture-desc {
+    margin: 20px 0 0;
+    margin-bottom: 10px;
     pointer-event:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;
     color: #66CCCC;
     font-size: 20px;

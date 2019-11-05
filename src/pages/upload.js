@@ -325,7 +325,7 @@ class App extends Component {
               <div style={{ margin: '24px 0' }} />
               <Text>资源类型</Text> <br />
               <Select defaultValue="entertainment" style={{ width: 120 }} onChange={this.handleAssetTypeChange}>
-                <Option value="entertainment">娱乐</Option>
+                <Option value="entertainment">私藏</Option>
                 <Option value="marriage">征婚</Option>
               </Select>
               <div style={{ margin: '24px 0' }} />
