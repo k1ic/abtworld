@@ -128,7 +128,7 @@ export default function PaymentPage(props) {
     fValuePayed = 0;
     if (payment_data) {
       payment_data.map(function( e ) {
-        fValuePayed = fValuePayed + parseFloat(fromUnitToToken(e.tx.itx.value, token.decimal));
+        fValuePayed = fValuePayed + parseFloat(fromUnitToToken(e.tx.itxJson.value, token.decimal));
       });
     }
     strValuePayed = String(fValuePayed);

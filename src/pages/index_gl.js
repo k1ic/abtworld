@@ -59,7 +59,7 @@ const renderPaymentPicListCard = x => (
           {x.title} - {x.worth} {x.token_sym}
         </Typography>
         <Typography href={x.link} component="a" variant="h6" color="inherit" gutterBottom>
-          <img className="pic-list" src={x.blur_src} alt={x.title} />
+          <img className="pic-list" src={x.pic_src} alt={x.title} />
         </Typography>
         <Typography component="p" color="primary" gutterBottom>
           {x.owner}：{x.description}
@@ -217,8 +217,8 @@ class App extends Component {
           <div className={classes.root}>
             <GridList cellHeight={'auto'} cols={4} spacing={20} className={classes.gridList}>
               {!pics_mar?'':pics_mar.map(pic => (
-                <GridListTile key={pic.blur_src}>
-                  <img src={pic.blur_src} alt={pic.title} />
+                <GridListTile key={pic.pic_src}>
+                  <img src={pic.pic_src} alt={pic.title} />
                   <GridListTileBar
                     title={pic.title}
                     subtitle={<span>by: {pic.owner}</span>}

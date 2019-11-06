@@ -31,14 +31,7 @@ async function fetchForgeTransactions(module, user_did, asset_did){
         listTransactions(addressFilter: {direction: ONE_WAY, sender: "${toAddress(user_did)}", receiver: "${wallet.address}"}, typeFilter: {types: "transfer"}, paging: {size: 10000}, timeFilter: {startDateTime: "2019-09-24 00:00:00"}) {
           transactions {
             tx {
-              itx {
-                ... on TransferTx {
-                  value
-                  data {
-                    value
-                  }
-                }
-              }
+              itxJson
             }
           }
         }   
@@ -56,10 +49,10 @@ async function fetchForgeTransactions(module, user_did, asset_did){
                   
         if (typeof(asset_did) != "undefined" && asset_did) {
           const filter_tx = tx.filter(function (e) { 
-            if(e.tx.itx.data){
+            if(e.tx.itxJson.data){
               var memo = null;
               try {
-                memo = JSON.parse(e.tx.itx.data.value);
+                memo = JSON.parse(e.tx.itxJson.data.value);
               } catch (err) {
               }
               if(memo){
@@ -77,10 +70,10 @@ async function fetchForgeTransactions(module, user_did, asset_did){
           console.log('fetchForgeTransactions - module and asset_did filter tx.length', tx.length);
         } else {
           const filter_tx = tx.filter(function (e) { 
-            if(e.tx.itx.data){
+            if(e.tx.itxJson.data){
               var memo = null;
               try {
-                memo = JSON.parse(e.tx.itx.data.value);
+                memo = JSON.parse(e.tx.itxJson.data.value);
               } catch (err) {
               }
               if(memo){
@@ -125,10 +118,10 @@ async function getAssetPayDataFromTx(tx){
   
     if(tx && tx.length > 0) {
       var arrAssetDid = tx.map(function( e ) {
-        if(e.tx.itx.data){
+        if(e.tx.itxJson.data){
            var memo = null;
            try {
-             memo = JSON.parse(e.tx.itx.data.value);
+             memo = JSON.parse(e.tx.itxJson.data.value);
            } catch (err) {
            }
            if( memo && typeof(memo.para) != "undefined" && typeof(memo.para.asset_did) != "undefined") {
@@ -146,16 +139,16 @@ async function getAssetPayDataFromTx(tx){
       for(var i=0;i<arrAssetDid.length;i++){
         fValuePayed = 0;
         tx.map(function( e ) {
-          if(e.tx.itx.data && e.tx.itx.data.value) {
+          if(e.tx.itxJson.data && e.tx.itxJson.data.value) {
             var memo = null;
             try {
-              memo = JSON.parse(e.tx.itx.data.value);
+              memo = JSON.parse(e.tx.itxJson.data.value);
             } catch (err) {
               console.log('getAssetPayDataFromTx err1 = ', err);
             }
             if( memo && typeof(memo.para) != "undefined" && typeof(memo.para.asset_did) != "undefined") {
               if(memo.para.asset_did === arrAssetDid[i]){
-                fValuePayed = fValuePayed + parseFloat(fromUnitToToken(e.tx.itx.value, token.decimal));
+                fValuePayed = fValuePayed + parseFloat(fromUnitToToken(e.tx.itxJson.value, token.decimal));
               }
            }
           }
