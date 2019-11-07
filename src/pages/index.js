@@ -179,25 +179,6 @@ class App extends Component {
             </div>
           </Carousel>
           */}
-          
-          {
-          <section className="section">
-            <Typography component="h3" variant="h5" className="section__header" color="secondary" gutterBottom>
-              征婚
-            </Typography>
-            <Typography component="p" variant="h6" className="page-description" color="textSecondary">
-              <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>扫码支付后查看详细资料
-            </Typography>
-            <Grid container spacing={6} className="grid-cards">
-              {pics_mar?pics_mar.map(x => renderPaymentPicListCard(x)):''}
-            </Grid>
-            <LocaleProvider locale={zh_CN}>
-              <div className="pagination">
-                <Pagination showQuickJumper defaultCurrent={1} defaultPageSize={pic_mar_num_one_page} total={pics_mar_total} onChange={this.onMarPicsPageChange} />
-              </div>
-            </LocaleProvider>
-          </section>
-          }
           {
           <section className="section">
             <Typography component="h3" variant="h5" className="section__header" color="textSecondary" gutterBottom>
@@ -212,6 +193,24 @@ class App extends Component {
             <LocaleProvider locale={zh_CN}>
               <div className="pagination">
                 <Pagination showQuickJumper defaultCurrent={1} defaultPageSize={pic_ent_num_one_page} total={pics_ent_total} onChange={this.onEntPicsPageChange} />
+              </div>
+            </LocaleProvider>
+          </section>
+          }
+          {
+          <section className="section">
+            <Typography component="h3" variant="h5" className="section__header" color="secondary" gutterBottom>
+              征婚
+            </Typography>
+            <Typography component="p" variant="h6" className="page-description" color="textSecondary">
+              <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>扫码支付后查看详细资料
+            </Typography>
+            <Grid container spacing={6} className="grid-cards">
+              {pics_mar?pics_mar.map(x => renderPaymentPicListCard(x)):''}
+            </Grid>
+            <LocaleProvider locale={zh_CN}>
+              <div className="pagination">
+                <Pagination showQuickJumper defaultCurrent={1} defaultPageSize={pic_mar_num_one_page} total={pics_mar_total} onChange={this.onMarPicsPageChange} />
               </div>
             </LocaleProvider>
           </section>

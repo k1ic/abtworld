@@ -43,35 +43,26 @@ async function fetchPics(strAssetDid){
 module.exports = {
   action: 'payment',
   claims: {
-    signature: async ({ extraParams: { locale, strValueToPay, dapp_module, asset_did } }) => {
+    signature: async ({ extraParams: { locale, toPay, dapp, para } }) => {
       const { state } = await ForgeSDK.getForgeState(
         {},
         { ignoreFields: ['state.protocols', /\.txConfig$/, /\.gas$/] }
       );
       var tx_memo = {};
-      var module_para = {};
       
-      console.log('module', dapp_module);
-      console.log('asset_did', asset_did);
-      console.log('strValueToPay', strValueToPay);
-      //asset_did=asset_did.replace(/\"/g, "");
+      console.log('toPay=', toPay);
+      console.log('dapp=', dapp);
+      console.log('para=', para);
       
       /*Init tx_memo*/
-      tx_memo['module'] = dapp_module;
-      switch(dapp_module){
-      case 'picture':
-        module_para['asset_did'] = asset_did;
-        break;
-      default:
-        break;
-      }
-      tx_memo['para'] = module_para;
+      tx_memo['module'] = dapp;
+      tx_memo['para'] = JSON.parse(para);
       //console.log('tx_memo=', JSON.stringify(tx_memo));
       console.log('tx_memo=', tx_memo);
       
       const description = {
-        en: `Please pay ${strValueToPay} ${state.token.symbol}`,
-        zh: `需支付 ${strValueToPay} ${state.token.symbol}`,
+        en: `Please pay ${toPay} ${state.token.symbol}`,
+        zh: `需支付 ${toPay} ${state.token.symbol}`,
       };
 
       return {
@@ -79,7 +70,7 @@ module.exports = {
         txData: {
           itx: {
             to: wallet.address,
-            value: fromTokenToUnit(strValueToPay, state.token.decimal),
+            value: fromTokenToUnit(toPay, state.token.decimal),
             data: {
               typeUrl: 'json',
               value: tx_memo,
@@ -119,6 +110,7 @@ module.exports = {
                 code
                 info {
                   tx {
+                    from
                     itxJson
                   }
                 }
@@ -130,13 +122,15 @@ module.exports = {
               await sleep(1000);
             }
           }
-          console.log('get back hash', res, 'counter', i);
+          console.log('callback tx hash', res, 'counter', i);
           if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
             const tx_memo = JSON.parse(res.getTx.info.tx.itxJson.data.value);
-            console.log('payback tx_memo=', tx_memo);
-            console.log('payback tx_memo.module=', tx_memo.module);
+            const tx_value = parseFloat(fromUnitToToken(res.getTx.info.tx.itxJson.value, state.token.decimal));
+            console.log('callback tx from:', res.getTx.info.tx.from);
+            console.log('callback tx_value=', tx_value, 'tx_memo=', tx_memo);
+            console.log('callback tx_memo.module=', tx_memo.module);
             if(tx_memo.module == 'picture'){
-              const tx_value = parseFloat(fromUnitToToken(res.getTx.info.tx.itxJson.value, state.token.decimal));
+              console.log('picture tx callback');
               //const pic_asset = AssetPicList.find(x => x.asset_did === tx_memo.para.asset_did);
               var pic_asset = null;
               await fetchPics(tx_memo.para.asset_did).then((v)=>{
@@ -203,6 +197,8 @@ module.exports = {
                   console.log('payback asset owner account not exist', pic_asset.owner_did);
                 }
               }
+            }else if(tx_memo.module == 'newsflash'){
+              console.log('newsflash tx callback');
             }
           }
         } catch (err) {

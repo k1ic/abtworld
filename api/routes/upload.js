@@ -19,6 +19,14 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+/*
+*state option value:
+*1. commited
+*2. approved
+*3. rejected
+*/
+const upload_state_default = 'approved';
+
 async function findPics(strAssetDid){
   var new_docs = [];
   var found = 0;
@@ -153,7 +161,7 @@ module.exports = {
               worth: pic_worth,
               token_sym: token.symbol,
               payback_rate: '0.6',
-              state: 'commited',
+              state: upload_state_default,
               createdAt: Date(),
             });
             await pic_new.save();

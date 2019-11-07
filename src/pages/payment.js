@@ -35,7 +35,6 @@ function setPaymentPendigFlag(flag) {
   PaymentPendingFlag = flag;
 }
 
-const dapp_module = 'picture';
 var asset_did = "";
 
 async function fetchStatus() {
@@ -158,6 +157,12 @@ export default function PaymentPage(props) {
   const pic_to_preview = "/static/images/20190930094558.jpg";
   const pic_to_show = (fValueToPay > 0) ? pic_to_preview : pic_to_pay[0].hd_src;
 
+  //payment parameter
+  const toPay = strValueToPay;
+  const dapp = 'picture';
+  const para_obj = {asset_did: asset_did};
+  const para = JSON.stringify(para_obj);
+
   setTimeout(() => {
     try {
       if (fValueToPay > 0 && getPaymentPendingFlag() == 0){
@@ -191,10 +196,10 @@ export default function PaymentPage(props) {
           onError={onPaymentError}
           onClose={onPaymentClose}
           onSuccess={onPaymentSuccess}
-          extraParams={ "zh", { strValueToPay, dapp_module, asset_did } }
+          extraParams={ "zh", { toPay, dapp, para } }
           messages={{
             title: '支付需求',
-            scan: `该内容需支付 ${strValueToPay} ${token.symbol}`,
+            scan: `该内容需支付 ${toPay} ${token.symbol}`,
             confirm: '在ABT钱包中确认',
             success: '支付成功!',
           }}

@@ -9,9 +9,10 @@ if (!process.env.APP_TOKEN_SECRET) {
 
 const secret = process.env.APP_TOKEN_SECRET;
 // @link checkout https://github.com/auth0/node-jsonwebtoken#usage for ttl syntax
-const ttl = Number(process.env.APP_TOKEN_TTL) ? Number(process.env.APP_TOKEN_TTL) : '1d';
+const ttl = process.env.APP_TOKEN_TTL ? process.env.APP_TOKEN_TTL : '1d';
 
 async function login(did) {
+  console.log('login ttl=', ttl);
   const user = await User.findOne({ did });
   if (!user) {
     throw new Error(`User for did ${did} not found`);

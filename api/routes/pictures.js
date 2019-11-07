@@ -100,8 +100,8 @@ async function getMyPayedPics(req){
     return [];
   }
   const module = params.module;
-  const user_did = params.user_did;
-  const tx = await fetchForgeTransactions(module, user_did, null);
+  const module_para = {user_did: params.user_did, asset_did: ''};
+  const tx = await fetchForgeTransactions(module, module_para);
   console.log('getMyPayedPics user payed tx.length=', tx.length);
   const myPayedData = await getAssetPayDataFromTx(tx);
   console.log('getMyPayedPics myPayedData=', myPayedData);
@@ -182,7 +182,8 @@ async function getPicsForPreview(strCategory, user_did, iStart, iEnd){
   if (new_docs.length > 0) {
     if(typeof(user_did) != "undefined" && user_did){
       console.log('getPicsForPreview user_did=', user_did);
-      const tx = await fetchForgeTransactions('picture', user_did, null);
+      const module_para = {user_did: user_did, asset_did: ''};
+      const tx = await fetchForgeTransactions('picture', module_para);
       console.log('getPicsForPreview user payed tx.length=', tx.length);
       myPayedData = await getAssetPayDataFromTx(tx);
       console.log('getPicsForPreview myPayedData=', myPayedData);

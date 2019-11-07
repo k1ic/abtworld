@@ -15,19 +15,31 @@ function unique(arr) {
   });
 }
 
-async function fetchForgeTransactions(module, user_did, asset_did){
+async function fetchForgeTransactions(module, module_para){
   var tx = [];
+  var transactions = [];
   
   if (typeof(module) == "undefined" || !module) {
     return [];
   }
   
+  console.log('fetchForgeTransactions module=', module, 'para=', module_para);
+  
   switch(module){
     case 'picture':
-      if(typeof(user_did) == "undefined" || !user_did){
+      if(typeof(module_para) == "undefined" || !module_para){
         return [];
       }
-      const transactions = await ForgeSDK.doRawQuery(`{
+      const user_did = module_para.user_did;
+      if(typeof(user_did) == "undefined" || !user_did || user_did === 'undefined'){
+        return [];
+      }
+      console.log('fetchForgeTransactions user_did=', user_did);
+      
+      const asset_did = module_para.asset_did;
+      console.log('fetchForgeTransactions asset_did=', asset_did);
+      
+      transactions = await ForgeSDK.doRawQuery(`{
         listTransactions(addressFilter: {direction: ONE_WAY, sender: "${toAddress(user_did)}", receiver: "${wallet.address}"}, typeFilter: {types: "transfer"}, paging: {size: 10000}, timeFilter: {startDateTime: "2019-09-24 00:00:00"}) {
           transactions {
             tx {
@@ -47,7 +59,7 @@ async function fetchForgeTransactions(module, user_did, asset_did){
         //console.log('fetchForgeTransactions - tx', tx);
         console.log('fetchForgeTransactions - tx.length', tx.length);
                   
-        if (typeof(asset_did) != "undefined" && asset_did) {
+        if (typeof(asset_did) != "undefined" && asset_did && asset_did.length > 0 && asset_did != 'undefined') {
           const filter_tx = tx.filter(function (e) { 
             if(e.tx.itxJson.data){
               var memo = null;
@@ -90,6 +102,58 @@ async function fetchForgeTransactions(module, user_did, asset_did){
           //console.log('fetchForgeTransactions - module filter tx', tx);
           console.log('fetchForgeTransactions - module filter tx.length', tx.length);
         }
+      }
+      break;
+    case 'newsflash':
+      if(typeof(module_para) == "undefined" || !module_para){
+        return [];
+      }
+      const news_type = module_para.news_type;
+      if(typeof(news_type) == "undefined" || !news_type || news_type === 'undefined'){
+        return [];
+      }
+      console.log('fetchForgeTransactions newsflash type=', news_type);
+      
+      transactions = await ForgeSDK.doRawQuery(`{
+        listTransactions(addressFilter: {direction: ONE_WAY, receiver: "${wallet.address}"}, typeFilter: {types: "transfer"}, paging: {size: 10000}, timeFilter: {startDateTime: "2019-09-24 00:00:00"}) {
+          transactions {
+            tx {
+              itxJson
+            }
+            time
+            sender
+            hash
+          }
+        }   
+      }`);
+
+      tx = transactions.listTransactions.transactions;
+      //console.log('tx value', tx);
+      //console.log('tx array number', tx.length);
+         
+      if (tx && tx.length >= 1) {
+        console.log('fetchForgeTransactions - tx.length', tx.length);
+                  
+        const filter_tx = tx.filter(function (e) { 
+          if(e.tx.itxJson.data){
+            var memo = null;
+            try {
+              memo = JSON.parse(e.tx.itxJson.data.value);
+            } catch (err) {
+            }
+            if(memo && typeof(memo.module) != "undefined" && typeof(memo.para) != "undefined" && typeof(memo.para.type) != "undefined"){
+              return (memo.module === module && memo.para.type === news_type);
+            }else{
+              return 0;
+            }
+          }else{
+            return 0;
+          }
+        });
+        tx = filter_tx;
+                    
+        //console.log('fetchForgeTransactions -  newsflash filter tx', tx);
+        console.log('fetchForgeTransactions - newsflash filter tx.length', tx.length);
       }
       break;
     default:
@@ -167,28 +231,34 @@ async function getAssetPayDataFromTx(tx){
   return arrMyPaymentData;
 }
 
-//if (env.chainHost) {
-//  console.log('Connect to chain host', env.chainHost);
-//  ForgeSDK.connect(env.chainHost, { chainId: env.chainId, name: env.chainId, default: true });
-//  if (env.assetChainHost) {
-//    console.log('Connect to asset chain host', env.assetChainHost);
-//    ForgeSDK.connect(env.assetChainHost, { chainId: env.assetChainId, name: env.assetChainId });
-//  }
-//}else{
-//  console.log('chainHost not define');
-//  process.exit(0);
-//}
+/*
+if (env.chainHost) {
+  console.log('Connect to chain host', env.chainHost);
+  ForgeSDK.connect(env.chainHost, { chainId: env.chainId, name: env.chainId, default: true });
+  if (env.assetChainHost) {
+    console.log('Connect to asset chain host', env.assetChainHost);
+    ForgeSDK.connect(env.assetChainHost, { chainId: env.assetChainId, name: env.assetChainId });
+  }
+}else{
+  console.log('chainHost not define');
+  process.exit(0);
+}
 
-//(async () => {  
-//  const module='picture';
-//  const user_did='z1emeg4eeh55Epfdz1bV3jhC9VxQ35H5yPb';
-//  const asset_did='7903c55df26dd063a45bc7639482bd7a860d6f6a';
-//  const tx = await fetchForgeTransactions(module, user_did, null);
-//  console.log('transactions tx.length=', tx.length);
-//  const myPayedData =  await getAssetPayDataFromTx(tx);
-//  console.log('transactions myPayedData=', myPayedData);
-//  process.exit(0);
-//})();
+(async () => {  
+  //const module='picture';
+  //const module_para = {user_did: 'z1emeg4eeh55Epfdz1bV3jhC9VxQ35H5yPb', asset_did: ''};
+  //const tx = await fetchForgeTransactions(module, module_para);
+  //console.log('transactions tx.length=', tx.length);
+  const module='newsflash';
+  const module_para = {news_type: 'blockchain'};
+  const tx = await fetchForgeTransactions(module, module_para);
+  console.log('tx=', tx);
+  console.log('tx.length=', tx.length);
+  //const myPayedData =  await getAssetPayDataFromTx(tx);
+  //console.log('transactions myPayedData=', myPayedData);
+  process.exit(0);
+})();
+*/
 
 module.exports = {
   fetchForgeTransactions,
