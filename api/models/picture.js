@@ -14,6 +14,8 @@ const PictureSchema = new mongoose.Schema({
   worth: { type: String, required: true, default: '18' },
   token_sym: { type: String, required: true, default: 'TBA' },
   payback_rate: { type: String, required: true, default: '0.6' },
+  payed_counter: { type: String, required: true, default: '0' },
+  payer_list: { type: Array, required: true, default: [] },
   state: { type: String, required: true, default: 'commit' },
   createdAt: { type: Date },
   updatedAt: { type: Date },

@@ -145,7 +145,7 @@ class App extends Component {
   }
   
   onNewsToSendChange = ({ target: { value } }) => {
-    console.log('onNewsToSendChange value='+value+' length='+value.length);
+    //console.log('onNewsToSendChange value='+value+' length='+value.length);
     this.setState({ news_to_send: value });
   };
   

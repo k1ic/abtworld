@@ -10,6 +10,7 @@ pwd
 cp -f ../cmn_src/package.json ./
 yarn
 cp -f ../cmn_src/atom-one-dark.css ./node_modules/highlight.js/styles/
+cp -f ../cmn_src/checkin.js ./src/pages/
 yarn build 
 cd ../
 done

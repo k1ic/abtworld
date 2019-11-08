@@ -40,6 +40,40 @@ async function fetchPics(strAssetDid){
   return new_docs;
 }
 
+async function waitAndGetTxHash(hash){
+  var res = null;
+  var i = 0;
+  if (typeof(hash) == "undefined" || !hash || hash.length == 0) {
+    return null;
+  }
+  
+  try {
+    for(i=0;i<30;i++){
+      res = await ForgeSDK.doRawQuery(`{
+        getTx(hash: "${hash}") {
+          code
+          info {
+            tx {
+              from
+              itxJson
+            }
+          }
+        }
+      }`);
+      if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
+        break;
+      }else{
+        await sleep(1000);
+      }
+    }
+    console.log('waitAndGetTxHash counter', i);    
+  } catch (err) {
+    console.error('waitAndGetTxHash error', err);
+  }
+  
+  return res;
+}
+
 module.exports = {
   action: 'payment',
   claims: {
@@ -99,30 +133,13 @@ module.exports = {
       });
 
       console.log('pay.onAuth', hash);
-
-      //payback
+      
+      /*wait tx ready and get hash result*/
+      var res = await waitAndGetTxHash(hash);
+      
+      /*payback process*/
       (async () => {
         try {
-          var res = null;
-          for(i=0;i<30;i++){
-            res = await ForgeSDK.doRawQuery(`{
-              getTx(hash: "${hash}") {
-                code
-                info {
-                  tx {
-                    from
-                    itxJson
-                  }
-                }
-              }
-            }`);
-            if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
-              break;
-            }else{
-              await sleep(1000);
-            }
-          }
-          console.log('callback tx hash', res, 'counter', i);
           if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
             const tx_memo = JSON.parse(res.getTx.info.tx.itxJson.data.value);
             const tx_value = parseFloat(fromUnitToToken(res.getTx.info.tx.itxJson.value, state.token.decimal));
@@ -154,8 +171,10 @@ module.exports = {
                   }
                 }`); 
                 if(res && res.getAccountState && res.getAccountState.state){
-                  const payback_to_asset_owner_value = (parseFloat(pic_asset.payback_rate) < 1) ? tx_value*parseFloat(pic_asset.payback_rate) : tx_value*0.1;
-                  const payback_to_app_owner_value = tx_value - payback_to_asset_owner_value;
+                  var payback_to_asset_owner_value = (parseFloat(pic_asset.payback_rate) < 1) ? tx_value*parseFloat(pic_asset.payback_rate) : tx_value*0.1;
+                  var payback_to_app_owner_value = tx_value - payback_to_asset_owner_value;
+                  payback_to_asset_owner_value = payback_to_asset_owner_value.toFixed(6);
+                  payback_to_app_owner_value = payback_to_app_owner_value.toFixed(6);
                   console.log('payback to asset owner:', String(payback_to_asset_owner_value), 'app owner:', String(payback_to_app_owner_value));
 
                   const appWallet = fromSecretKey(process.env.APP_SK, type);

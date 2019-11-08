@@ -71,6 +71,10 @@ export default function Footer() {
           link: 'http://www.ftbc.cc/',
         },
         {
+          title: '3456io区块导航',
+          link: 'http://3456.io/',
+        },
+        {
           title: 'ABT共识社区',
           link: 'https://mp.weixin.qq.com/s/j173J-e_MtnquX7sZPDf7w',
         },
@@ -81,7 +85,7 @@ export default function Footer() {
       ],
     },
     {
-      title: '广告',
+      title: '友链',
       items: [
         {
           title: '大地云仓',

@@ -38,7 +38,8 @@ const onCheckinSuccess = async result => {
   window.location.href = 'http://abtworld.cn/wools';
 };
 
-export default function CheckinPage() {
+export default function CheckinPage(props) {
+  const wback_ts = props.wback_ts;
   const session = useSession();
   const [isOpen, setOpen] = useToggle(false);
 
@@ -50,6 +51,13 @@ export default function CheckinPage() {
         </Main>
       </Layout>
     );
+  }
+
+  if (typeof(wback_ts) != "undefined"){
+    console.log('CheckinPage wback_ts=', wback_ts);
+    CheckinPendingFlag = 0;
+    window.location.href = 'http://abtworld.cn/wools';
+    return null;
   }
 
   if (session.error) {
@@ -103,6 +111,19 @@ export default function CheckinPage() {
       )}
     </Layout>
   );
+}
+
+CheckinPage.getInitialProps = async function ({pathname, query, asPath, req}) {
+    //console.log('pathname=', pathname);
+    //console.log('query=', query);
+    console.log('query._t_=', query._t_);
+    //console.log('asPath=', asPath);
+    //console.log('req=', req);
+    //console.log('req.url=', req.url);
+
+    return {
+      wback_ts: query._t_,
+    }
 }
 
 const Main = styled.main`
