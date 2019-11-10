@@ -60,12 +60,15 @@ export default function Header() {
           {/*<img className="logo" src="/static/images/logo.png" alt="world" />*/}
           首页
         </Typography>
+        <Typography href="/newsflash" component="a" variant="h6" color="inherit" className="text">
+          哈希快讯
+        </Typography>
         <Menu onClick={handleMoreClick} selectedKeys={[state.current]} mode="horizontal" theme="light" className="antd-menu" >
         <SubMenu
           title={
             <span className="submenu-title-wrapper">
               {/*<Icon type="appstore" />*/}
-              更多...
+              更多
             </span>
           }
         >
@@ -104,7 +107,12 @@ export default function Header() {
           action="login"
           checkFn={api.get}
           onClose={() => toggle()}
-          onSuccess={onLogin}
+          onSuccess={(result) => {
+            if (result.sessionToken) {
+              setToken(result.sessionToken);
+            }
+            window.location.reload();
+          }}
           messages={{
             title: '登陆',
             scan: '使用ABT钱包扫码登陆',
@@ -128,14 +136,14 @@ const Nav = styled(Toolbar)`
   }
   
   .antd-menu{
-    width: 100px;
+    width: 80px;
     background: rgba(128, 128, 128, 0);
     font-size: 1.25rem;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-weight: 500;
     line-height: 1.6;
     letter-spacing: 0.0075em;
-    margin-right: 16px;
+    margin-right: 10px;
   }
   
   .nav-left {
@@ -144,7 +152,7 @@ const Nav = styled(Toolbar)`
     justify-content: flex-start;
 
     .brand {
-      margin-right: 16px;
+      margin-right: 10px;
       cursor: pointer;
       display: flex;
       justify-content: flex-start;
@@ -153,12 +161,12 @@ const Nav = styled(Toolbar)`
       .logo {
         width: 32px;
         heigh: 32px;
-        margin-right: 16px;
+        margin-right: 10px;
       }
     }
     
     .text {
-      margin-right: 16px;
+      margin-right: 10px;
     }
   }
 
@@ -168,7 +176,7 @@ const Nav = styled(Toolbar)`
     justify-content: flex-end;
 
     .github {
-      margin-right: 16px;
+      margin-right: 10px;
     }
   }
 `;

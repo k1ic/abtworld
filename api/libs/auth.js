@@ -20,6 +20,7 @@ if (env.chainHost) {
 }
 
 const wallet = fromSecretKey(process.env.APP_SK, type).toJSON();
+const newsflashWallet = fromSecretKey(process.env.APP_NEWSFLASH_SK, type).toJSON();
 
 const walletAuth = new WalletAuthenticator({
   wallet,
@@ -54,5 +55,6 @@ module.exports = {
   appAuth,
   appHandlers,
   wallet,
+  newsflashWallet,
   type,
 };

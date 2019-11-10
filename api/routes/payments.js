@@ -4,9 +4,12 @@ const ForgeSDK = require('@arcblock/forge-sdk');
 const { toAddress } = require('@arcblock/did');
 const { wallet } = require('../libs/auth');
 const { 
-  fetchForgeTransactions
+  fetchForgeTransactions,
+  fetchForgeTransactionsV2
 } = require('../libs/transactions');
 const env = require('../libs/env');
+const { HashString } = require('../libs/crypto');
+const { getNewsForUploadToChain } = require('./newsflash');
 
 module.exports = {
   init(app) {
@@ -29,49 +32,105 @@ module.exports = {
             default:
               break;
           }
-          
-          const tx = await fetchForgeTransactions(dapp_module, module_para);
-          if(tx && tx.length > 0){
-            //console.log('api.payments.ok - tx', tx);
-            console.log('api.payments.ok - tx.length', tx.length);
-            var new_tx = [];
-            switch(dapp_module){
-              case 'picture':
-                new_tx = tx;
-                break;
-              case 'newsflash':
-                new_tx = tx.map(function( e ) {
-                  var temp_tx = {};
-                  var memo = null;
-                  try {
-                    memo = JSON.parse(e.tx.itxJson.data.value);
-                  } catch (err) {
-                  }
-                  var local_time = moment(e.time).local().format('YY/MM/DD HH:mm:ss');
-                  //console.log('UTC=',e.time, 'local time=', local);
-                  temp_tx['time'] = local_time;
-                  temp_tx['sender'] = e.sender;
-                  temp_tx['hash'] = e.hash;
-                  temp_tx['href'] = env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash;
-                  if(memo){
-                    temp_tx['content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
-                    temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';;
-                  }else{
-                    temp_tx['content'] = '';
-                    temp_tx['uname'] = '匿名';
-                  }
-                  temp_tx['title'] = temp_tx['uname'] + "@" + temp_tx['time'];
-                  return temp_tx;
-                });
-                break;
-              default:
-                new_tx = tx;
-                break;
-            }
             
-            //console.log('api.payments.ok - new_tx', new_tx);
-            console.log('api.payments.ok - new_tx.length', new_tx.length);
-            res.json(new_tx);
+          var tx = [];
+          var final_tx = [];
+          switch(dapp_module){
+            case 'picture':
+              final_tx = await fetchForgeTransactions(dapp_module, module_para);
+              break;
+            case 'newsflash':
+              /*new style newsflash*/
+              tx = await fetchForgeTransactionsV2(dapp_module, module_para);
+              final_tx = await Promise.all(tx.map( async (e) => {
+                var temp_tx = {};
+                var memo = null;
+                var asset_did = '';
+                var author_did = '';
+                
+                try {
+                  memo = JSON.parse(e.tx.itxJson.data.value);
+                } catch (err) {
+                }
+                var local_time = moment(e.time).local().format('YY/MM/DD HH:mm:ss');
+                //console.log('UTC=',e.time, 'local time=', local);
+                if(memo && typeof(memo.para.content) != "undefined"){
+                  asset_did = HashString('sha1', memo.para.content);
+                  console.log('asset_did=',asset_did);
+                  var doc = await getNewsForUploadToChain(asset_did);
+                  if(doc && doc.state === 'chained'){
+                    author_did = doc.author_did;
+                  }
+                }
+                
+                temp_tx['time'] = local_time;
+                temp_tx['sender'] = author_did;
+                temp_tx['hash'] = e.hash;
+                temp_tx['href'] = env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash;
+                if(memo){
+                  temp_tx['content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
+                  temp_tx['asset_did'] = asset_did;
+                  temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';;
+                }else{
+                  temp_tx['content'] = '';
+                  temp_tx['uname'] = '匿名';
+                }
+                temp_tx['title'] = temp_tx['uname'] + "@" + temp_tx['time'];
+                return temp_tx;
+              }));
+              
+              //console.log('new style - final_tx=', final_tx);
+              console.log('new style - final_tx.length=', final_tx.length);
+              
+              final_tx = final_tx.filter(function (e) { 
+                return e.sender != '';
+              });
+              //console.log('new style - after filter final_tx=', final_tx);
+              console.log('new style - after filter final_tx.length=', final_tx.length);
+                
+              /*old style newsflash */
+              tx = await fetchForgeTransactions(dapp_module, module_para);
+              var old_tx = tx.map(function( e ) {
+                var temp_tx = {};
+                var memo = null;
+                try {
+                  memo = JSON.parse(e.tx.itxJson.data.value);
+                } catch (err) {
+                }
+                var local_time = moment(e.time).local().format('YY/MM/DD HH:mm:ss');
+                //console.log('UTC=',e.time, 'local time=', local);
+                temp_tx['time'] = local_time;
+                temp_tx['sender'] = e.sender;
+                temp_tx['hash'] = e.hash;
+                temp_tx['href'] = env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash;
+                if(memo){
+                  temp_tx['content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
+                  temp_tx['asset_did'] = (typeof(memo.para.content) != "undefined")?HashString('sha1', memo.para.content):'';
+                  temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';;
+                }else{
+                  temp_tx['content'] = '';
+                  temp_tx['uname'] = '匿名';
+                }
+                temp_tx['title'] = temp_tx['uname'] + "@" + temp_tx['time'];
+                return temp_tx;
+              });
+              
+              /*append old tx to final tx tail*/
+              final_tx = final_tx.concat(old_tx);
+                
+              break;
+            default:
+              final_tx = tx;
+              break;
+          }
+          
+          if(final_tx && final_tx.length > 0){
+            //console.log('api.payments.ok - final_tx', final_tx);
+            console.log('api.payments.ok - final_tx.length', final_tx.length);
+            final_tx = final_tx.slice(0, 999);
+            //console.log('api.payments.ok - final_tx after slice', final_tx);
+            console.log('api.payments.ok - final_tx.length after slice', final_tx.length);
+            res.json(final_tx);
             return;
           }
         }

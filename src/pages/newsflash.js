@@ -17,7 +17,8 @@ import {
   Input, 
   Tooltip,
   List,
-  Select
+  Select,
+  Tabs
 } from "antd";
 import zh_CN from 'antd/lib/locale-provider/zh_CN'
 import reqwest from 'reqwest';
@@ -28,31 +29,22 @@ import Layout from '../components/layout';
 import useSession from '../hooks/session';
 import forge from '../libs/sdk';
 import api from '../libs/api';
+import { HashString } from '../libs/crypto';
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
+const { TabPane } = Tabs;
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-const list_items_per_page = 5;
-const listData = [];
-for (let i = 0; i < 23; i++) {
-  listData.push({
-    href: 'http://ant.design',
-    title: `ant design part ${i}`,
-    description:
-      'Ant Design, a design language for background applications, is refined by Ant UED Team.',
-    content:
-      'We supply a series of design principles, practical patterns and high quality design resources (Sketch and Axure), to help people create their product prototypes beautifully and efficiently.',
-  });
-}
+/*direct or indirect*/
+const news_to_chain_mode = 'indirect';
+var news_content_max_length = 0;
+const list_items_per_page = 20;
 
-const IconText = ({ type, text }) => (
-  <span>
-    <Icon type={type} style={{ marginRight: 8 }} />
-    {text}
-  </span>
-);
+/*pay valye*/
+const toPayMax = 0.1;
+const dPointNumMax = 6;
 
 class App extends Component {  
   static async getInitialProps({pathname, query, asPath, req}) {
@@ -69,6 +61,8 @@ class App extends Component {
       intervalIsSet: false,
       news_type: 'chains',
       news_to_send: '',
+      toPay: 0,
+      asset_did: '',
       newsflash_list: [],
       sending: false,
       loading: false,
@@ -146,16 +140,68 @@ class App extends Component {
   
   onNewsToSendChange = ({ target: { value } }) => {
     //console.log('onNewsToSendChange value='+value+' length='+value.length);
+    const contentLength = value.length;
+    if(contentLength > 0){
+      var toPay = (toPayMax*contentLength)/news_content_max_length;
+      var dpoitNum = 0;
+      const toPaySplit = toPay.toString().split(".");
+      if(toPaySplit.length > 1){
+        dpoitNum = toPaySplit[1].length;
+      }else{
+        dpoitNum = 0;
+      }
+      
+      if(dpoitNum > dPointNumMax){
+        toPay = toPay.toFixed(dPointNumMax);
+      }
+      this.setState({ toPay: toPay });
+    }else{
+      this.setState({ toPay: 0 });
+    }
     this.setState({ news_to_send: value });
   };
   
   /*Send news handler*/
   handleSendNews = () => {
+    const { session, news_type, news_to_send } = this.state;
+    const { user, token } = session;
+    
     console.log('handleSendNews');
-    if(this.state.news_to_send.length > 0){
-      this.setState({
-        sending: true,
-      });
+    
+    if(news_to_send.length > 0){
+      const asset_did = HashString('sha1', news_to_send);
+      console.log('asset_did=', asset_did);
+      
+      if(news_to_chain_mode === 'direct'){
+        this.setState({
+          asset_did: asset_did,
+          sending: true,
+        });
+      }else{
+        const formData = new FormData();
+        
+        formData.append('user', JSON.stringify(user));
+        formData.append('cmd', 'add');
+        formData.append('asset_did', asset_did);
+        formData.append('news_type', news_type);
+        formData.append('news_content', news_to_send);
+        
+        reqwest({
+          url: '/api/newsflashset',
+          method: 'post',
+          processData: false,
+          data: formData,
+          success: () => {
+            this.setState({
+              asset_did: asset_did,
+              sending: true,
+            });
+          },
+          error: () => {
+            Modal.error({title: '发布失败'});
+          },
+        });
+      }
     }
   }
   
@@ -177,6 +223,7 @@ class App extends Component {
     console.log('onPaymentSuccess');
     this.setState({
       news_to_send: '',
+      toPay: 0,
       sending: false,
     });
     
@@ -190,8 +237,7 @@ class App extends Component {
   };
 
   render() {
-    const { session, news_type, news_to_send, sending } = this.state;
-    const toPay = '0.01';
+    const { session, news_type, news_to_send, toPay, sending } = this.state;
     //console.log('render session=', session);
     //console.log('render props=', this.props);
     
@@ -211,23 +257,36 @@ class App extends Component {
     //  return null;
     //}
     
+    if(news_to_chain_mode === 'indirect'){
+      news_content_max_length = 110;
+    }else{
+      news_content_max_length = 100;
+    }
+    
     const { user, token } = session;
     //console.log('render session.user=', user);
-    console.log('render session.token=', token);
+    //console.log('render session.token=', token);
     
     const dapp = 'newsflash';
     var para_obj = null;
-    if(user){
-       para_obj = {type: news_type, uname: user.name, content: news_to_send};
-    }else{
-       para_obj = {type: news_type, uname: '匿名', content: news_to_send};
-    }
-    const para = JSON.stringify(para_obj);
+    var para = '';
     
-    if(this.state.newsflash_list && this.state.newsflash_list.length > 0){
-      //console.log('render newsflash_list=', this.state.newsflash_list);
-      console.log('render newsflash_list.length=', this.state.newsflash_list.length);
+    if(news_to_chain_mode === 'direct'){
+      if(user){
+         para_obj = {type: news_type, uname: user.name, content: news_to_send};
+      }else{
+         para_obj = {type: news_type, uname: '匿名', content: news_to_send};
+      }
+      para = JSON.stringify(para_obj);
+    }else{
+      para_obj = {asset_did: this.state.asset_did};
+      para = JSON.stringify(para_obj);
     }
+    
+    //if(this.state.newsflash_list && this.state.newsflash_list.length > 0){
+      //console.log('render newsflash_list=', this.state.newsflash_list);
+      //console.log('render newsflash_list.length=', this.state.newsflash_list.length);
+    //}
     
     return (
       <Layout title="NewsFlash">
@@ -236,15 +295,46 @@ class App extends Component {
             哈希快讯
           </Typography>
           <Typography component="p" variant="h5" className="section-description" color="textSecondary">
-            <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>DID身份发布,快讯上链不可篡改。
+            <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>自主身份发布，快讯实时上链。
           </Typography>
           <div style={{ margin: '24px 0' }} />
-          <Text style={{ margin: '0 10px 0 0' }} className="antd-select">类型</Text>
+          {/*<Text style={{ margin: '0 10px 0 0' }} className="antd-select">类型</Text>
           <Select defaultValue="chains" style={{ width: 100 }} onChange={this.handleNewsTypeChange} className="antd-select">
             <Option value="chains">区块链</Option>
-            <Option value="soups">鸡汤</Option>
             <Option value="ads">广告</Option>
-          </Select>
+            <Option value="soups">鸡汤</Option>
+          </Select>*/}
+          <Tabs defaultActiveKey="chains" onChange={this.handleNewsTypeChange}>
+            <TabPane tab="区块链" key="chains">
+            </TabPane>
+            <TabPane tab="广告" key="ads">
+            </TabPane>
+            <TabPane tab="鸡汤" key="soups">
+            </TabPane>
+            <TabPane tab="健康" key="health">
+            </TabPane>
+          </Tabs>
+          {/*<div style={{ margin: '24px 0' }} />*/}
+          {user && (<TextArea
+            value={news_to_send}
+            onChange={this.onNewsToSendChange}
+            placeholder={"如: GoFun 出行推出 GoFun Connect 宣布与 ArcBlock 合作("+news_content_max_length+"字以内)"}
+            autoSize={{ minRows: 1, maxRows: 10 }}
+            maxLength={news_content_max_length}
+          />)}
+          {user && (<div style={{ margin: '15px 0' }} /> )}
+          {user && (<Button
+            key="submit"
+            type="primary"
+            size="large"
+            onClick={this.handleSendNews}
+            disabled={news_to_send === ''}
+            loading={sending}
+            className="antd-button-send"
+          >
+            发布 <br/>
+            {toPay}{token.symbol}
+          </Button> )}
           <div style={{ margin: '24px 0' }} />
           <LocaleProvider locale={zh_CN}>
             <List
@@ -266,34 +356,15 @@ class App extends Component {
                   className="antd-list-item"
                 >
                   <List.Item.Meta
-                    avatar={<Avatar size={50} did={item.sender} />}
+                    avatar={<Avatar size={40} did={item.sender} />}
                     title={<p className="antd-list-item-meta-title">{item.title}</p>}
-                    description={<a href={item.href} className="antd-list-item-meta-description"> 哈希查看 </a>}
+                    description={<a href={item.href} target="_blank" className="antd-list-item-meta-description"> 哈希查看 </a>}
                   />
                   {item.content}
                 </List.Item>
               )}
             />
           </LocaleProvider>
-          <div style={{ margin: '24px 0' }} />
-          {user && (<TextArea
-            value={news_to_send}
-            onChange={this.onNewsToSendChange}
-            placeholder="如: GoFun 出行推出 GoFun Connect 宣布与 ArcBlock 合作(100字以内)"
-            autoSize={{ minRows: 1, maxRows: 10 }}
-            maxLength={100}
-          />)}
-          {user && (<div style={{ margin: '15px 0' }} /> )}
-          {user && (<Button
-            key="submit"
-            type="primary"
-            size="large"
-            onClick={this.handleSendNews}
-            disabled={news_to_send === ''}
-            loading={sending}
-          >
-            发送
-          </Button> )}
         </Main>
         {sending && (
           <Auth
@@ -334,23 +405,27 @@ const Main = styled.main`
   }
   
   .antd-select{
-    font-size: 1.0rem;
+    font-size: 0.8rem;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-weight: 200;
     color: #000000;
   }
   
+  .antd-button-send{
+    height: 50px;
+  }
+  
   .antd-list-item{
-    font-size: 1.3rem;
+    font-size: 1.0rem;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    font-weight: 500;
+    font-weight: 200;
     color: #000000;
   }
   
   .antd-list-item-meta-title{
-    font-size: 1.0rem;
+    font-size: 0.8rem;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    font-weight: 200;
+    font-weight: 500;
     color: #3CB371;
   }
   

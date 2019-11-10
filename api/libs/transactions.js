@@ -2,7 +2,7 @@
 require('dotenv').config();
 const ForgeSDK = require('@arcblock/forge-sdk');
 const { toAddress } = require('@arcblock/did');
-const { wallet } = require('./auth');
+const { wallet, newsflashWallet } = require('./auth');
 const { fromTokenToUnit, fromUnitToToken } = require('@arcblock/forge-util');
 const env = require('./env');
 
@@ -115,7 +115,7 @@ async function fetchForgeTransactions(module, module_para){
       console.log('fetchForgeTransactions newsflash type=', news_type);
       
       transactions = await ForgeSDK.doRawQuery(`{
-        listTransactions(addressFilter: {direction: ONE_WAY, receiver: "${wallet.address}"}, typeFilter: {types: "transfer"}, paging: {size: 10000}, timeFilter: {startDateTime: "2019-09-24 00:00:00"}) {
+        listTransactions(addressFilter: {direction: ONE_WAY, receiver: "${wallet.address}"}, typeFilter: {types: "transfer"}, paging: {size: 1000}, timeFilter: {startDateTime: "2019-10-10 00:00:00"}) {
           transactions {
             tx {
               itxJson
@@ -162,6 +162,80 @@ async function fetchForgeTransactions(module, module_para){
   
   return tx;
 }
+
+async function fetchForgeTransactionsV2(module, module_para){
+  var tx = [];
+  var transactions = [];
+  
+  if (typeof(module) == "undefined" || !module) {
+    return [];
+  }
+  
+  console.log('fetchForgeTransactionsV2 module=', module, 'para=', module_para);
+  
+  switch(module){
+    case 'picture':
+      tx = fetchForgeTransactions(module, module_para);
+      break;
+    case 'newsflash':
+      if(typeof(module_para) == "undefined" || !module_para){
+        return [];
+      }
+      const news_type = module_para.news_type;
+      if(typeof(news_type) == "undefined" || !news_type || news_type === 'undefined'){
+        return [];
+      }
+      console.log('fetchForgeTransactionsV2 newsflash type=', news_type);
+      
+      transactions = await ForgeSDK.doRawQuery(`{
+        listTransactions(addressFilter: {direction: ONE_WAY, sender: "${wallet.address}", receiver: "${newsflashWallet.address}"}, typeFilter: {types: "transfer"}, paging: {size: 10000}, timeFilter: {startDateTime: "2019-10-10 00:00:00"}) {
+          transactions {
+            tx {
+              itxJson
+            }
+            time
+            sender
+            hash
+          }
+        }   
+      }`);
+
+      tx = transactions.listTransactions.transactions;
+      //console.log('tx value', tx);
+      //console.log('tx array number', tx.length);
+         
+      if (tx && tx.length >= 1) {
+        console.log('fetchForgeTransactionsV2 - tx.length', tx.length);
+                  
+        const filter_tx = tx.filter(function (e) { 
+          if(e.tx.itxJson.data){
+            var memo = null;
+            try {
+              memo = JSON.parse(e.tx.itxJson.data.value);
+            } catch (err) {
+            }
+            if(memo && typeof(memo.module) != "undefined" && typeof(memo.para) != "undefined" && typeof(memo.para.type) != "undefined"){
+              return (memo.module === module && memo.para.type === news_type);
+            }else{
+              return 0;
+            }
+          }else{
+            return 0;
+          }
+        });
+        tx = filter_tx;
+                    
+        //console.log('fetchForgeTransactionsV2 -  newsflash filter tx', tx);
+        console.log('fetchForgeTransactionsV2 - newsflash filter tx.length', tx.length);
+      }
+      break;
+    default:
+      break;
+  }
+  
+  return tx;
+}
+
 
 async function getAssetPayDataFromTx(tx){  
   var arrMyPaymentData = new Array();
@@ -262,5 +336,6 @@ if (env.chainHost) {
 
 module.exports = {
   fetchForgeTransactions,
+  fetchForgeTransactionsV2,
   getAssetPayDataFromTx,
 };
