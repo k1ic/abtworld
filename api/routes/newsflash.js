@@ -21,7 +21,7 @@ async function NewsflashAdd(fields){
     return false;
   }
   
-  var doc = await Newsflash.findOne({ asset_did: fields.asset_did[0] });
+  var doc = await Newsflash.findOne({ content_did: fields.asset_did[0] });
   if(doc){
     if(doc.state != 'commit'){
       console.log('NewsflashAdd asset_did=', fields.asset_did[0], 'already on chain');
@@ -29,7 +29,9 @@ async function NewsflashAdd(fields){
       /*ignore dup news*/
       return false;
     }else{
-      /*asset already in db do nothing*/
+      console.log('NewsflashAdd asset_did=', fields.asset_did[0], 'already in db');
+      
+      /*asset already in db, do nothing*/
       return true;
     }
   }
@@ -38,6 +40,7 @@ async function NewsflashAdd(fields){
   const user = JSON.parse(fields.user[0]);
   var new_doc = new Newsflash({
     asset_did: fields.asset_did[0],
+    content_did: fields.asset_did[0],
     author_did: user.did,
     author_name: user.name,
     news_hash: '',
@@ -46,6 +49,7 @@ async function NewsflashAdd(fields){
     hash_href: '',
     minner_balance: '0',
     state: 'commit',
+    minner_state: 'idle',
     givelike_counter: '0',
     forward_counter: '0',
     reply_list: [],

@@ -42,6 +42,9 @@ const news_to_chain_mode = 'indirect';
 var news_content_max_length = 0;
 const list_items_per_page = 20;
 
+/*news type default value*/
+const news_type_default = 'amas';
+
 /*pay valye*/
 const toPayMax = 0.1;
 const dPointNumMax = 6;
@@ -59,7 +62,7 @@ class App extends Component {
     this.state = {
       session: null,
       intervalIsSet: false,
-      news_type: 'chains',
+      news_type: news_type_default,
       news_to_send: '',
       toPay: 0,
       asset_did: '',
@@ -233,7 +236,7 @@ class App extends Component {
       } catch (err) {
         // Do nothing
       }
-    }, 2000);
+    }, 5000);
   };
 
   render() {
@@ -243,7 +246,7 @@ class App extends Component {
     
     if (!session) {
       return (
-        <Layout title="NewsFlash">
+        <Layout title="HashNews">
           <Main>
             <CircularProgress />
           </Main>
@@ -258,7 +261,7 @@ class App extends Component {
     //}
     
     if(news_to_chain_mode === 'indirect'){
-      news_content_max_length = 110;
+      news_content_max_length = 1000;
     }else{
       news_content_max_length = 100;
     }
@@ -289,7 +292,7 @@ class App extends Component {
     //}
     
     return (
-      <Layout title="NewsFlash">
+      <Layout title="HashNews">
         <Main>
           <Typography component="h3" variant="h5" className="section-header" color="textSecondary">
             哈希快讯
@@ -304,14 +307,14 @@ class App extends Component {
             <Option value="ads">广告</Option>
             <Option value="soups">鸡汤</Option>
           </Select>*/}
-          <Tabs defaultActiveKey="chains" onChange={this.handleNewsTypeChange}>
+          <Tabs defaultActiveKey={news_type_default} onChange={this.handleNewsTypeChange}>
             <TabPane tab="区块链" key="chains">
+            </TabPane>
+            <TabPane tab="AMA" key="amas">
             </TabPane>
             <TabPane tab="广告" key="ads">
             </TabPane>
             <TabPane tab="鸡汤" key="soups">
-            </TabPane>
-            <TabPane tab="健康" key="health">
             </TabPane>
           </Tabs>
           {/*<div style={{ margin: '24px 0' }} />*/}
@@ -358,7 +361,7 @@ class App extends Component {
                   <List.Item.Meta
                     avatar={<Avatar size={40} did={item.sender} />}
                     title={<p className="antd-list-item-meta-title">{item.title}</p>}
-                    description={<a href={item.href} target="_blank" className="antd-list-item-meta-description"> 哈希查看 </a>}
+                    description={<a href={item.href} target="_blank" className="antd-list-item-meta-description"> 哈希@{item.time} </a>}
                   />
                   {item.content}
                 </List.Item>

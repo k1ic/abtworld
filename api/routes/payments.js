@@ -5,7 +5,8 @@ const { toAddress } = require('@arcblock/did');
 const { wallet } = require('../libs/auth');
 const { 
   fetchForgeTransactions,
-  fetchForgeTransactionsV2
+  fetchForgeTransactionsV2,
+  fetchForgeTransactionsV3
 } = require('../libs/transactions');
 const env = require('../libs/env');
 const { HashString } = require('../libs/crypto');
@@ -40,9 +41,63 @@ module.exports = {
               final_tx = await fetchForgeTransactions(dapp_module, module_para);
               break;
             case 'newsflash':
-              /*new style newsflash*/
-              tx = await fetchForgeTransactionsV2(dapp_module, module_para);
+              /*on chain asset style v3 newsflash*/
+              tx = await fetchForgeTransactionsV3(dapp_module, module_para);
               final_tx = await Promise.all(tx.map( async (e) => {
+                var temp_tx = {};
+                var memo = null;
+                var hash = '';
+                var author_did = '';
+                
+                try {
+                  memo = JSON.parse(e.data.value);
+                } catch (err) {
+                }
+                var local_time = moment(e.genesisTime).local().format('YY/MM/DD HH:mm:ss');
+                //console.log('UTC=',e.genesisTime, 'local time=', local);
+                
+                var doc = await getNewsForUploadToChain(e.address);
+                if(doc && doc.state === 'chained'){
+                  hash = doc.news_hash;
+                }
+                
+                if(memo){
+                  author_did = (typeof(memo.para.udid) != "undefined")?memo.para.udid:'';
+                }
+                
+                temp_tx['time'] = local_time;
+                temp_tx['sender'] = author_did;
+                temp_tx['hash'] = hash;
+                temp_tx['href'] = env.chainHost.replace('/api', '/node/explorer/txs/')+hash;
+                if(memo){
+                  temp_tx['content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
+                  temp_tx['asset_did'] = e.address;
+                  temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';;
+                }else{
+                  temp_tx['content'] = '';
+                  temp_tx['uname'] = '匿名';
+                }
+                if(author_did && author_did.length > 0){
+                  var did_len = author_did.length;
+                  temp_tx['title'] = temp_tx['uname'] + " - " + author_did.substring(0,4) + '***' + author_did.substring(did_len-4,did_len);
+                }else{
+                  temp_tx['title'] = temp_tx['uname']
+                }
+                return temp_tx;
+              }));
+              
+              //console.log('on chain asset style - final_tx=', final_tx);
+              console.log('on chain asset style - final_tx.length=', final_tx.length);
+              
+              final_tx = final_tx.filter(function (e) { 
+                return e.hash != '';
+              });
+              //console.log('on chain asset style - after filter final_tx=', final_tx);
+              console.log('on chain asset style - after filter final_tx.length=', final_tx.length);
+            
+              /*new style v2 newsflash*/
+              tx = await fetchForgeTransactionsV2(dapp_module, module_para);
+              var tx_style_v2 = await Promise.all(tx.map( async (e) => {
                 var temp_tx = {};
                 var memo = null;
                 var asset_did = '';
@@ -56,7 +111,7 @@ module.exports = {
                 //console.log('UTC=',e.time, 'local time=', local);
                 if(memo && typeof(memo.para.content) != "undefined"){
                   asset_did = HashString('sha1', memo.para.content);
-                  console.log('asset_did=',asset_did);
+                  //console.log('asset_did=',asset_did);
                   var doc = await getNewsForUploadToChain(asset_did);
                   if(doc && doc.state === 'chained'){
                     author_did = doc.author_did;
@@ -75,22 +130,30 @@ module.exports = {
                   temp_tx['content'] = '';
                   temp_tx['uname'] = '匿名';
                 }
-                temp_tx['title'] = temp_tx['uname'] + "@" + temp_tx['time'];
+                if(author_did && author_did.length > 0){
+                  var did_len = author_did.length;
+                  temp_tx['title'] = temp_tx['uname'] + " - " + author_did.substring(0,4) + '***' + author_did.substring(did_len-4,did_len);
+                }else{
+                  temp_tx['title'] = temp_tx['uname']
+                }
                 return temp_tx;
               }));
               
-              //console.log('new style - final_tx=', final_tx);
-              console.log('new style - final_tx.length=', final_tx.length);
+              //console.log('style v2 - final_tx=', final_tx);
+              console.log('style v2 - final_tx.length=', final_tx.length);
               
-              final_tx = final_tx.filter(function (e) { 
+              tx_style_v2 = tx_style_v2.filter(function (e) { 
                 return e.sender != '';
               });
-              //console.log('new style - after filter final_tx=', final_tx);
-              console.log('new style - after filter final_tx.length=', final_tx.length);
+              //console.log('style v2 - after filter tx_style_v2=', tx_style_v2);
+              console.log('style v2 - after filter tx_style_v2.length=', tx_style_v2.length);
+              
+              /*append v2 tx to final tx tail*/
+              final_tx = final_tx.concat(tx_style_v2);
                 
               /*old style newsflash */
               tx = await fetchForgeTransactions(dapp_module, module_para);
-              var old_tx = tx.map(function( e ) {
+              var tx_style_v1 = tx.map(function( e ) {
                 var temp_tx = {};
                 var memo = null;
                 try {
@@ -111,12 +174,14 @@ module.exports = {
                   temp_tx['content'] = '';
                   temp_tx['uname'] = '匿名';
                 }
-                temp_tx['title'] = temp_tx['uname'] + "@" + temp_tx['time'];
+                
+                var did_len = e.sender.length;
+                temp_tx['title'] = temp_tx['uname'] + " - " + e.sender.substring(0,4) + '***' + e.sender.substring(did_len-4,did_len);
                 return temp_tx;
               });
               
-              /*append old tx to final tx tail*/
-              final_tx = final_tx.concat(old_tx);
+              /*append tx style v1 to final tx tail*/
+              final_tx = final_tx.concat(tx_style_v1);
                 
               break;
             default:

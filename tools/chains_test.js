@@ -64,7 +64,7 @@ async function getAccoutState(accoutAddr){
         tx_memo['para'] = {
           content1: '中国信息通信研究院、中国通信标准化协会、中国互联网协会、可信区块链推进计划共同主办的“2019可信区块链峰会”在北京召开',
           content2: '中国信息通信研究院、中国通信标准化协会、中国互联网协会、可信区块链推进计划共同主办的“2019可信区块链峰会”在北京召开',
-          content3: '中国信',
+          content3: '中国信息',
         };
         console.log('tx_memo=', JSON.stringify(tx_memo));
         

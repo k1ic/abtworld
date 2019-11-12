@@ -2,11 +2,16 @@
 require('dotenv').config();
 const ForgeSDK = require('@arcblock/forge-sdk');
 const { toAddress } = require('@arcblock/did');
-const { wallet, newsflashWallet } = require('./auth');
 const { fromTokenToUnit, fromUnitToToken } = require('@arcblock/forge-util');
+const { fromJSON } = require('@arcblock/forge-wallet');
+const { listAssets } = require('./assets');
+const { wallet, newsflashWallet, type } = require('./auth');
 const env = require('./env');
 
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
+
+const appWallet = fromJSON(wallet);
+const newsflashAppWallet = fromJSON(newsflashWallet);
 
 function unique(arr) {
   return arr.filter(function(item, index, arr) {
@@ -113,6 +118,7 @@ async function fetchForgeTransactions(module, module_para){
         return [];
       }
       console.log('fetchForgeTransactions newsflash type=', news_type);
+      
       
       transactions = await ForgeSDK.doRawQuery(`{
         listTransactions(addressFilter: {direction: ONE_WAY, receiver: "${wallet.address}"}, typeFilter: {types: "transfer"}, paging: {size: 1000}, timeFilter: {startDateTime: "2019-10-10 00:00:00"}) {
@@ -236,6 +242,66 @@ async function fetchForgeTransactionsV2(module, module_para){
   return tx;
 }
 
+async function fetchForgeTransactionsV3(module, module_para){
+  var tx = [];
+  var transactions = [];
+  
+  if (typeof(module) == "undefined" || !module) {
+    return [];
+  }
+  
+  console.log('fetchForgeTransactionsV3 module=', module, 'para=', module_para);
+  
+  switch(module){
+    case 'picture':
+      tx = fetchForgeTransactions(module, module_para);
+      break;
+    case 'newsflash':
+      if(typeof(module_para) == "undefined" || !module_para){
+        return [];
+      }
+      const news_type = module_para.news_type;
+      if(typeof(news_type) == "undefined" || !news_type || news_type === 'undefined'){
+        return [];
+      }
+      console.log('fetchForgeTransactionsV3 newsflash type=', news_type);
+      
+      tx = await listAssets(newsflashAppWallet.toAddress(), 1000);
+      //console.log('tx value', tx);
+      //console.log('tx array number', tx.length);
+         
+      if (tx && tx.length >= 1) {
+        console.log('fetchForgeTransactionsV3 - tx.length', tx.length);
+                  
+        const filter_tx = tx.filter(function (e) { 
+          if(e.data){
+            var memo = null;
+            try {
+              memo = JSON.parse(e.data.value);
+            } catch (err) {
+            }
+            if(memo && typeof(memo.module) != "undefined" && typeof(memo.para) != "undefined" && typeof(memo.para.type) != "undefined"){
+              return (memo.module === module && memo.para.type === news_type);
+            }else{
+              return 0;
+            }
+          }else{
+            return 0;
+          }
+        });
+        tx = filter_tx;
+                    
+        //console.log('fetchForgeTransactionsV3 -  newsflash filter tx', tx);
+        console.log('fetchForgeTransactionsV3 - newsflash filter tx.length', tx.length);
+      }
+      break;
+    default:
+      break;
+  }
+  
+  return tx;
+}
+
 
 async function getAssetPayDataFromTx(tx){  
   var arrMyPaymentData = new Array();
@@ -337,5 +403,6 @@ if (env.chainHost) {
 module.exports = {
   fetchForgeTransactions,
   fetchForgeTransactionsV2,
+  fetchForgeTransactionsV3,
   getAssetPayDataFromTx,
 };

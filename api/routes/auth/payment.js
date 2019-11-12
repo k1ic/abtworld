@@ -11,6 +11,7 @@ const env = require('../../libs/env');
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 const { Picture } = require('../../models');
 const { getNewsForUploadToChain, cleanUserDeadNews } = require('../newsflash');
+const { createNewsflahAsset, listAssets } = require('../../libs/assets');
 
 //const appWallet = fromJSON(wallet);
 //const newsflashAppWallet = fromJSON(newsflashWallet);
@@ -280,6 +281,104 @@ async function newsflashPaymentHook(txRes, forgeState, userDid) {
   } 
 }
 
+async function newsflashPaymentHookV2(txRes, forgeState, userDid) {
+  try {
+    console.log('newsflashPaymentHookV2');
+    if(txRes && txRes.getTx && txRes.getTx.code === 'OK' && txRes.getTx.info){
+      const tx_memo = JSON.parse(txRes.getTx.info.tx.itxJson.data.value);
+      const tx_value = parseFloat(fromUnitToToken(txRes.getTx.info.tx.itxJson.value, forgeState.token.decimal));
+      const tx_from = txRes.getTx.info.tx.from;
+      const tx_to = txRes.getTx.info.tx.itxJson.to;
+      var transferHash = null;
+      var res = null;
+            
+      console.log('Hook tx from:', tx_from, 'to: ', tx_to);
+      console.log('Hook tx_value=', tx_value, 'tx_memo=', tx_memo);
+      console.log('Hook tx_memo.module=', tx_memo.module);
+      if(tx_memo.module == 'newsflash'){
+        console.log('newsflash tx hook');
+              
+        if(typeof(tx_memo.para.asset_did) != "undefined" && tx_memo.para.asset_did.length > 0){
+          var newsflash_doc = await getNewsForUploadToChain(tx_memo.para.asset_did);
+          if(newsflash_doc){
+            /*create asset*/
+            transferHash = await createNewsflahAsset(tx_memo.para.asset_did);
+            
+            /*Update newsflash doc*/
+            if(transferHash && transferHash.length > 0){              
+              /*pay back and update doc*/
+              var pay_value_for_dapp_owner = tx_value/2;
+              var remain_value_for_minner = tx_value - pay_value_for_dapp_owner;
+              pay_value_for_dapp_owner = pay_value_for_dapp_owner.toFixed(6);
+              remain_value_for_minner = remain_value_for_minner.toFixed(6);
+              console.log('hook pay dapp owner=',pay_value_for_dapp_owner,'minner=',remain_value_for_minner);
+              
+              console.log('update newsflash doc');
+              newsflash_doc.news_hash = transferHash;
+              newsflash_doc.hash_href = env.chainHost.replace('/api', '/node/explorer/txs/')+transferHash;
+              newsflash_doc.minner_balance = String(remain_value_for_minner);
+              newsflash_doc.state = 'chained';
+              await newsflash_doc.save();
+              
+              try {
+                transferHash = await ForgeSDK.sendTransferTx({
+                  tx: {
+                    itx: {
+                      to: process.env.APP_OWNER_ACCOUNT,
+                      value: fromTokenToUnit(pay_value_for_dapp_owner, forgeState.token.decimal),
+                    },
+                  },
+                  wallet: newsflashAppWallet,
+                });
+                console.log('pay for dapp owner', transferHash);
+              } catch (err) {
+                transferHash = null;
+                console.error('pay for dapp owner err', err);
+              }       
+            }else{
+              transferHash = await ForgeSDK.sendTransferTx({
+                tx: {
+                  itx: {
+                    to: tx_from,
+                    value: fromTokenToUnit(tx_value, forgeState.token.decimal),
+                    data: {
+                      typeUrl: 'json',
+                      value: tx_memo,
+                    },
+                  },
+                },
+                wallet: newsflashAppWallet,
+              });
+              console.log('return back the token to user because of create asset error', transferHash);
+            }
+                  
+            /*clean dead news*/
+            await cleanUserDeadNews(userDid);
+            console.log('clean dead news for user', userDid);
+          }else{
+            /*return back the token to user when asset not exist*/
+            transferHash = await ForgeSDK.sendTransferTx({
+              tx: {
+                itx: {
+                  to: tx_from,
+                  value: fromTokenToUnit(tx_value, forgeState.token.decimal),
+                  data: {
+                    typeUrl: 'json',
+                    value: tx_memo,
+                  },
+                },
+              },
+              wallet: newsflashAppWallet,
+            });
+            console.log('return back the token to user because of asset not exist in db', transferHash);
+          }
+        }       
+      }
+    }
+  } catch (err) {
+    console.error('newsflashPaymentHookV2 error', err);
+  } 
+}
 
 module.exports = {
   action: 'payment',
@@ -296,7 +395,18 @@ module.exports = {
       console.log('dapp=', dapp);
       console.log('para=', para);
       
-      pay_to_addr = wallet.address;
+      if (typeof(dapp) != "undefined" && dapp && dapp.length > 0){
+        switch(dapp){
+          case 'newsflash':
+            pay_to_addr = newsflashWallet.address;
+            break;
+          default:
+            pay_to_addr = wallet.address;
+            break;
+        }
+      }else{
+        pay_to_addr = wallet.address;
+      }
       
       /*Init tx_memo*/
       tx_memo['module'] = dapp;
@@ -356,7 +466,7 @@ module.exports = {
               picturePaymentHook(res, state);
               break;
             case 'newsflash':
-              await newsflashPaymentHook(res, state, userDid);
+              newsflashPaymentHookV2(res, state, userDid);
               break;
             default:
               console.log('pay.onAuth, unknown dapp module', dapp_module);

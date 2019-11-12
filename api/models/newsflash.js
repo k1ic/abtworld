@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
 const NewsflashSchema = new mongoose.Schema({
-  asset_did: { type: String, required: true, default: '' },
+  asset_did: { type: String, default: '' },
+  content_did: { type: String, required: true, default: '' },
   author_did: { type: String, required: true, default: '' },
   author_name: { type: String, required: true, default: '' },
   news_hash: { type: String, default: '' },
@@ -10,6 +11,7 @@ const NewsflashSchema = new mongoose.Schema({
   hash_href: { type: String, default: '' },
   minner_balance: { type: String, required: true, default: '0' },
   state: { type: String, required: true, default: 'commit' },
+  minner_state: { type: String, required: true, default: 'idle' },
   givelike_counter: { type: String, required: true, default: '0' },
   forward_counter: { type: String, required: true, default: '0' },
   reply_list: { type: Array, default: [] },
