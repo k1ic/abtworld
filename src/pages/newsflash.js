@@ -29,13 +29,16 @@ import Layout from '../components/layout';
 import useSession from '../hooks/session';
 import forge from '../libs/sdk';
 import api from '../libs/api';
+import env from '../libs/env';
 import { HashString } from '../libs/crypto';
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
 const { TabPane } = Tabs;
 
+
 const isProduction = process.env.NODE_ENV === 'production';
+const admin_account = env.appAdminAccounts;
 
 /*direct or indirect*/
 const news_to_chain_mode = 'indirect';
@@ -48,6 +51,10 @@ const news_type_default = 'chains';
 /*pay valye*/
 const toPayEachChar = 0.001;
 const dPointNumMax = 6;
+
+/*send permistion list*/
+const ama_send_perm_udid = [ 'z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo' ];
+
 
 class App extends Component {  
   static async getInitialProps({pathname, query, asPath, req}) {
@@ -307,6 +314,29 @@ class App extends Component {
       //console.log('render newsflash_list.length=', this.state.newsflash_list.length);
     //}
     
+    /*send permission*/
+    var send_permission = false;
+    if(user){
+      if(-1 != admin_account.indexOf(user.did)){
+        send_permission = true;
+      }else{
+        switch(news_type){
+          case 'amas':
+            if(-1 != ama_send_perm_udid.indexOf(user.did)){
+              send_permission = true;
+            }else{
+              send_permission = false;
+            }
+            break;
+          default:
+            send_permission = true;
+            break;
+        }
+      }
+    }else{
+      send_permission = false;
+    }
+    
     return (
       <Layout title="HashNews">
         <Main>
@@ -334,15 +364,15 @@ class App extends Component {
             }
           </Tabs>
           {/*<div style={{ margin: '24px 0' }} />*/}
-          {user && (<TextArea
+          {send_permission && (<TextArea
             value={news_to_send}
             onChange={this.onNewsToSendChange}
             placeholder={"如: GoFun 出行推出 GoFun Connect 宣布与 ArcBlock 合作("+news_content_max_length+"字以内)"}
             autoSize={{ minRows: 1, maxRows: 10 }}
             maxLength={news_content_max_length}
           />)}
-          {user && (<div style={{ margin: '15px 0' }} /> )}
-          {user && (<Button
+          {send_permission && (<div style={{ margin: '15px 0' }} /> )}
+          {send_permission && (<Button
             key="submit"
             type="primary"
             size="large"
