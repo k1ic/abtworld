@@ -57,7 +57,7 @@ async function waitAndGetTxHash(hash){
   }
   
   try {
-    for(i=0;i<30;i++){
+    for(i=0;i<150;i++){
       res = await ForgeSDK.doRawQuery(`{
         getTx(hash: "${hash}") {
           code
@@ -72,7 +72,7 @@ async function waitAndGetTxHash(hash){
       if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
         break;
       }else{
-        await sleep(1000);
+        await sleep(100);
       }
     }
     console.log('waitAndGetTxHash counter', i);    

@@ -43,20 +43,24 @@ var news_content_max_length = 0;
 const list_items_per_page = 20;
 
 /*news type default value*/
-const news_type_default = 'amas';
+const news_type_default = 'chains';
 
 /*pay valye*/
-const toPayMax = 0.1;
+const toPayEachChar = 0.001;
 const dPointNumMax = 6;
 
 class App extends Component {  
   static async getInitialProps({pathname, query, asPath, req}) {
+    //console.log('getInitialProps pathname=', pathname);
     console.log('getInitialProps query=', query);
+    //console.log('getInitialProps asPath=', asPath);
+    //console.log('getInitialProps req=', req);
     return {};
   }
   
   constructor(props) {
     super(props);
+    //console.log('newsflash props=', props);
     
     /*initial state*/
     this.state = {
@@ -118,7 +122,18 @@ class App extends Component {
   /*component mount process*/
   componentDidMount() {
     this.fetchAppData();
-    this.fetchNewsFlash();
+    
+    //console.log('componentDidMount hash=', window.location.hash.slice(1));
+    const location_hash = window.location.hash.slice(1);
+    if(typeof(location_hash) != "undefined" && location_hash && location_hash.length > 0) {
+      this.setState({news_type: location_hash},()=>{
+        console.log('componentDidMount news_type=', this.state.news_type);        
+        this.fetchNewsFlash();
+      });
+    }else{
+      this.fetchNewsFlash();
+    }
+    
     if (! this.state.intervalIsSet) {
       let interval = setInterval(this.fetchNewsFlash, 30000);
       this.setState({ intervalIsSet: interval});
@@ -137,6 +152,7 @@ class App extends Component {
     console.log('handleNewsTypeChange value=', value);
     
     this.setState({news_type: value},()=>{
+       window.location.hash = `#${value}`;
       this.fetchNewsFlash();
     });
   }
@@ -145,7 +161,7 @@ class App extends Component {
     //console.log('onNewsToSendChange value='+value+' length='+value.length);
     const contentLength = value.length;
     if(contentLength > 0){
-      var toPay = (toPayMax*contentLength)/news_content_max_length;
+      var toPay = toPayEachChar*contentLength;
       var dpoitNum = 0;
       const toPaySplit = toPay.toString().split(".");
       if(toPaySplit.length > 1){
@@ -294,11 +310,8 @@ class App extends Component {
     return (
       <Layout title="HashNews">
         <Main>
-          <Typography component="h3" variant="h5" className="section-header" color="textSecondary">
-            哈希快讯
-          </Typography>
           <Typography component="p" variant="h5" className="section-description" color="textSecondary">
-            <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>自主身份发布，快讯实时上链。
+            <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>自主身份发布，快讯上链哈希可查。
           </Typography>
           <div style={{ margin: '24px 0' }} />
           {/*<Text style={{ margin: '0 10px 0 0' }} className="antd-select">类型</Text>
@@ -307,7 +320,7 @@ class App extends Component {
             <Option value="ads">广告</Option>
             <Option value="soups">鸡汤</Option>
           </Select>*/}
-          <Tabs defaultActiveKey={news_type_default} onChange={this.handleNewsTypeChange}>
+          <Tabs defaultActiveKey={window.location.hash.slice(1) || news_type_default} onChange={this.handleNewsTypeChange}>
             <TabPane tab="区块链" key="chains">
             </TabPane>
             <TabPane tab="AMA" key="amas">
@@ -316,6 +329,9 @@ class App extends Component {
             </TabPane>
             <TabPane tab="鸡汤" key="soups">
             </TabPane>
+            {!isProduction && <TabPane tab="测试" key="test">
+              </TabPane>
+            }
           </Tabs>
           {/*<div style={{ margin: '24px 0' }} />*/}
           {user && (<TextArea
@@ -420,9 +436,12 @@ const Main = styled.main`
   
   .antd-list-item{
     font-size: 1.0rem;
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    font-weight: 200;
+    font-family: Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial, sans-serif;
+    font-weight: 300;
     color: #000000;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    word-break: break-all;
   }
   
   .antd-list-item-meta-title{

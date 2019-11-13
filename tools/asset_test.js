@@ -158,7 +158,39 @@ const createNewsflahAsset = async cdid => {
   }
 }
 
-const listAssets= async (ower_did, pages) => {
+const getAssetGenesisHash = async asset_addr => {
+  var res = null;
+  var hash = null;
+  
+  //console.log('getAssetGenesisHash asset_addr=', asset_addr);
+  
+  res = await ForgeSDK.doRawQuery(`{
+    getAssetState(address: "${asset_addr}") {
+      code
+      state {
+        context {
+          genesisTx {
+            hash
+          }
+        }
+      }
+    }
+  }`); 
+  
+  if(res && res.getAssetState 
+    && res.getAssetState.code === 'OK' 
+    && res.getAssetState.state
+    && res.getAssetState.state.context
+    && res.getAssetState.state.context.genesisTx
+    && res.getAssetState.state.context.genesisTx.hash
+    && res.getAssetState.state.context.genesisTx.hash.length > 0){
+    hash = res.getAssetState.state.context.genesisTx.hash;
+  }
+  
+  return hash;
+}
+
+const listAssets = async (ower_did, pages) => {
   var res = null;
   var assets = null;
   
@@ -178,7 +210,6 @@ const listAssets= async (ower_did, pages) => {
     }
   }`); 
   
-  console.log();
   if(res && res.listAssets && res.listAssets.code === 'OK' && res.listAssets.assets && res.listAssets.assets.length > 0){
     assets = res.listAssets.assets;
   }
@@ -233,9 +264,17 @@ const listAssets= async (ower_did, pages) => {
     await createNewsflahAsset(cdid);
     
     /*show assets*/
-    const assets = await listAssets(newsflashAppWallet.toAddress(), 1000);
+    var assets = await listAssets(newsflashAppWallet.toAddress(), 1000);
     if(assets && assets.length > 0){
       console.log('The assets of ower', newsflashAppWallet.toAddress(), 'num', assets.length);
+      assets = await Promise.all(assets.map( async (e) => {
+        if(typeof(e.hash) == "undefined" || !e.hash || e.hash.length == 0){
+          const hash = await getAssetGenesisHash(e.address);
+          //console.log(hash);
+          e['hash'] = hash;
+        }
+        return e;
+      }));
       console.log(assets);
     }else{
       console.log('asset is empty');

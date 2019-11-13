@@ -11,6 +11,7 @@ const {
 const env = require('../libs/env');
 const { HashString } = require('../libs/crypto');
 const { getNewsForUploadToChain } = require('./newsflash');
+const { getAssetGenesisHash } = require('../libs/assets');
 
 module.exports = {
   init(app) {
@@ -57,8 +58,18 @@ module.exports = {
                 //console.log('UTC=',e.genesisTime, 'local time=', local);
                 
                 var doc = await getNewsForUploadToChain(e.address);
-                if(doc && doc.state === 'chained'){
+                if(doc){
+                  if(doc.state === 'chained'){
+                    temp_tx['state'] = 'allowed';
+                  }else{
+                    temp_tx['state'] = 'prohibited';
+                  }
                   hash = doc.news_hash;
+                }else{
+                  temp_tx['state'] = 'allowed';
+                  if(!hash || hash.length == 0){
+                    hash = await getAssetGenesisHash(e.address);
+                  }
                 }
                 
                 if(memo){
@@ -90,7 +101,7 @@ module.exports = {
               console.log('on chain asset style - final_tx.length=', final_tx.length);
               
               final_tx = final_tx.filter(function (e) { 
-                return e.hash != '';
+                return e.state === 'allowed';
               });
               //console.log('on chain asset style - after filter final_tx=', final_tx);
               console.log('on chain asset style - after filter final_tx.length=', final_tx.length);
@@ -115,7 +126,12 @@ module.exports = {
                   var doc = await getNewsForUploadToChain(asset_did);
                   if(doc && doc.state === 'chained'){
                     author_did = doc.author_did;
+                    temp_tx['state'] = 'allowed';
+                  }else{
+                    temp_tx['state'] = 'prohibited';
                   }
+                }else{
+                  temp_tx['state'] = 'prohibited';
                 }
                 
                 temp_tx['time'] = local_time;
@@ -143,7 +159,7 @@ module.exports = {
               console.log('style v2 - final_tx.length=', final_tx.length);
               
               tx_style_v2 = tx_style_v2.filter(function (e) { 
-                return e.sender != '';
+                return e.state === 'allowed';
               });
               //console.log('style v2 - after filter tx_style_v2=', tx_style_v2);
               console.log('style v2 - after filter tx_style_v2.length=', tx_style_v2.length);
@@ -162,6 +178,7 @@ module.exports = {
                 }
                 var local_time = moment(e.time).local().format('YY/MM/DD HH:mm:ss');
                 //console.log('UTC=',e.time, 'local time=', local);
+                temp_tx['state'] = 'allowed';
                 temp_tx['time'] = local_time;
                 temp_tx['sender'] = e.sender;
                 temp_tx['hash'] = e.hash;
@@ -192,7 +209,7 @@ module.exports = {
           if(final_tx && final_tx.length > 0){
             //console.log('api.payments.ok - final_tx', final_tx);
             console.log('api.payments.ok - final_tx.length', final_tx.length);
-            final_tx = final_tx.slice(0, 999);
+            final_tx = final_tx.slice(0, 499);
             //console.log('api.payments.ok - final_tx after slice', final_tx);
             console.log('api.payments.ok - final_tx.length after slice', final_tx.length);
             res.json(final_tx);

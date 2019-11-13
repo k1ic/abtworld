@@ -72,7 +72,7 @@ const waitAndGetTxHash = async hash => {
   }
   
   try {
-    for(i=0;i<30;i++){
+    for(i=0;i<150;i++){
       res = await ForgeSDK.doRawQuery(`{
         getTx(hash: "${hash}") {
           code
@@ -87,7 +87,7 @@ const waitAndGetTxHash = async hash => {
       if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
         break;
       }else{
-        await sleep(1000);
+        await sleep(100);
       }
     }
     console.log('waitAndGetTxHash counter', i);    
@@ -138,6 +138,38 @@ const createNewsflahAsset = async cdid => {
   return hash;
 }
 
+const getAssetGenesisHash = async asset_addr => {
+  var res = null;
+  var hash = null;
+  
+  //console.log('getAssetGenesisHash asset_addr=', asset_addr);
+  
+  res = await ForgeSDK.doRawQuery(`{
+    getAssetState(address: "${asset_addr}") {
+      code
+      state {
+        context {
+          genesisTx {
+            hash
+          }
+        }
+      }
+    }
+  }`); 
+  
+  if(res && res.getAssetState 
+    && res.getAssetState.code === 'OK' 
+    && res.getAssetState.state
+    && res.getAssetState.state.context
+    && res.getAssetState.state.context.genesisTx
+    && res.getAssetState.state.context.genesisTx.hash
+    && res.getAssetState.state.context.genesisTx.hash.length > 0){
+    hash = res.getAssetState.state.context.genesisTx.hash;
+  }
+  
+  return hash;
+}
+
 const listAssets= async (ower_did, pages) => {
   var res = null;
   var assets = null;
@@ -158,7 +190,6 @@ const listAssets= async (ower_did, pages) => {
     }
   }`); 
   
-  console.log();
   if(res && res.listAssets && res.listAssets.code === 'OK' && res.listAssets.assets && res.listAssets.assets.length > 0){
     assets = res.listAssets.assets;
   }
@@ -233,5 +264,6 @@ const listAssets= async (ower_did, pages) => {
 
 module.exports = {
   createNewsflahAsset,
+  getAssetGenesisHash,
   listAssets,
 };
