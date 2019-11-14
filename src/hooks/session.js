@@ -7,7 +7,23 @@ async function fetchSession() {
     const { status, data } = await api.get('/api/session');
 
     if (status === 400) {
-      removeToken();
+      //removeToken();
+    }
+
+    return data;
+  } catch (err) {
+    removeToken();
+  }
+
+  return {};
+}
+
+export async function fetchSessionUserOnly() {
+  try {
+    const { status, data } = await api.get('/api/session_user_only');
+
+    if (status === 400) {
+      //removeToken();
     }
 
     return data;

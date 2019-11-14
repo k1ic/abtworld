@@ -104,16 +104,20 @@ class NumericInput extends React.Component {
 class App extends Component {  
   static async getInitialProps({pathname, query, asPath, req}) {
     console.log('getInitialProps query=', query);
-    return {};
+    return {
+      asset_type: query.asset_type,
+    }
   }
   
   constructor(props) {
     super(props);
     
+    //console.log('props.asset_type=', props.asset_type);
+    
     /*initial state*/
     this.state = {
       session: null,
-      asset_type: 'entertainment',
+      asset_type: props.asset_type || 'entertainment',
       pic_title: '',
       pic_description: '',
       pic_worth: '',
@@ -324,7 +328,7 @@ class App extends Component {
               <Title level={4}>付费资源上传</Title>
               <div style={{ margin: '24px 0' }} />
               <Text>资源类型</Text> <br />
-              <Select defaultValue="entertainment" style={{ width: 120 }} onChange={this.handleAssetTypeChange}>
+              <Select defaultValue={this.props.asset_type || "entertainment"} style={{ width: 120 }} onChange={this.handleAssetTypeChange}>
                 <Option value="entertainment">私藏</Option>
                 <Option value="marriage">征婚</Option>
               </Select>
@@ -354,7 +358,7 @@ class App extends Component {
               </div>
               <div style={{ margin: '24px 0' }} />
               <Text>图片(jpg/png 5M以内)</Text> <br />
-              <Text type="danger">禁：黄赌毒</Text>
+              <Text type="danger">禁：黄赌毒和非自有版权资源</Text>
               <Upload{...props}           
               >
                 {fileList.length >= 1 ? null : uploadButton}

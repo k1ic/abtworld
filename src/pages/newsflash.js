@@ -418,7 +418,7 @@ class App extends Component {
         {sending && (
           <Auth
             responsive
-            action="payment"
+            action="payment_nf"
             locale="zh"
             checkFn={api.get}
             onError={this.onPaymentError}

@@ -113,12 +113,7 @@ export default function ProfilePage() {
               已传列表
             </Button>
             {(-1 != admin_account.indexOf(user.did)) && (
-              <Button color="primary" variant="contained" onClick={onUpload} style={{ marginTop: '30px' }}>
-                开始上传
-              </Button>
-            )}
-            {(-1 != admin_account.indexOf(user.did)) && (
-              <Button color="primary" variant="outlined" onClick={onAdmin} style={{ marginTop: '30px' }}>
+              <Button color="primary" variant="contained" onClick={onAdmin} style={{ marginTop: '30px' }}>
                 后台管理
               </Button>
             )}

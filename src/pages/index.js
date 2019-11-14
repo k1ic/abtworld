@@ -15,7 +15,12 @@ import zh_CN from 'antd/lib/locale-provider/zh_CN'
 import 'antd/dist/antd.css';
 
 import Layout from '../components/layout';
+
+import api from '../libs/api';
 import env from '../libs/env';
+
+const admin_account = env.appAdminAccounts;
+const isProduction = process.env.NODE_ENV === 'production';
 
 import { fetchPicsNum, fetchPreviewPics } from '../hooks/picture';
 
@@ -24,7 +29,7 @@ const pic_mar_num_one_page=4;
 const pic_ent_num_one_page=8;
 
 const renderPaymentPicListCard = x => (
-  <Grid key={x.title} item xs={12} sm={6} md={3} className="grid-item">
+  <Grid key={x.link} item xs={12} sm={6} md={3} className="grid-item">
     <Card className="payment-pic-list">
       <CardContent>
         <Typography component="p" color="primary" gutterBottom>
@@ -67,6 +72,7 @@ class App extends Component {
     
     /*initial state*/
     this.state = {
+      session: null,
       pics_ent: null,
       pics_mar: null,
       pics_ent_total: null,
@@ -75,6 +81,17 @@ class App extends Component {
     
     this.onEntPicsPageChange = this.onEntPicsPageChange.bind(this);
     this.onMarPicsPageChange = this.onMarPicsPageChange.bind(this);
+  }
+  
+  /*Fetch App data*/
+  async fetchAppData(){
+    try {
+      const { status, data} = await api.get('/api/session_user_only');
+      this.setState({session: data});
+    } catch (err) {
+      console.log('fetchAppData err', err);
+    }
+    return {};
   }
   
   /*Fetch Pics*/
@@ -113,6 +130,7 @@ class App extends Component {
   
   /*component mount process*/
   componentDidMount() {
+    this.fetchAppData();
     this.fetchPics('entertainment', 1);
     this.fetchPics('marriage', 1);
   }
@@ -131,10 +149,19 @@ class App extends Component {
     this.fetchPics('marriage', pageNumber);
   }
   
+  onEntUpload() {
+    window.location.href = '/upload?asset_type=entertainment';
+  };
+  
+  onMarUpload() {
+    window.location.href = '/upload?asset_type=marriage';
+  };
+  
   render() {
+    const session = this.state.session;
     const {pics_ent, pics_mar, pics_ent_total, pics_mar_total} = this.state;
     
-    if (pics_ent_total === null || pics_mar_total === null) {
+    if (!session || pics_ent_total === null || pics_mar_total === null) {
       return (
         <Layout title="Home">
           <Main>
@@ -143,6 +170,8 @@ class App extends Component {
         </Layout>
       );
     }
+    
+    const { user } = session;
     
     //console.log('pics_ent=', pics_ent);
     console.log('pics_ent_total=', pics_ent_total);
@@ -158,6 +187,17 @@ class App extends Component {
       //console.log("TBAWoolList[", i, "][login]=", TBAWoolList[i].login);
       TBAWoolList[i]['checkin'] = `http://abtworld.cn:${3030+i}/checkin`;
       //console.log("TBAWoolList[", i, "][checkin]=", TBAWoolList[i].checkin);
+    }
+    
+    var show_upload_permistion = false;
+    if(isProduction){
+      if( user && (-1 != admin_account.indexOf(user.did)) ){
+        show_upload_permistion = true;
+      }else{
+        show_upload_permistion = false;
+      }
+    }else{
+      show_upload_permistion = true;
     }
     
     return (
@@ -180,10 +220,19 @@ class App extends Component {
           </Carousel>
           */}
           {
-          <section className="section">
-            <Typography component="h3" variant="h5" className="section__header" color="textSecondary" gutterBottom>
+          <div className="section-header">
+            <Typography component="h3" variant="h5" color="textSecondary" className="nav-left">
               私藏
             </Typography>
+            {show_upload_permistion && (
+              <Button color="primary" variant="contained" onClick={this.onEntUpload} className="nav-right">
+                上传
+              </Button>
+            )}
+          </div>
+          }
+          {
+          <section className="section">
             <Typography component="p" variant="h6" className="page-description" color="textSecondary">
               <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>扫码支付后查看高清图片
             </Typography>
@@ -198,10 +247,19 @@ class App extends Component {
           </section>
           }
           {
-          <section className="section">
-            <Typography component="h3" variant="h5" className="section__header" color="secondary" gutterBottom>
+          <div className="section-header">
+            <Typography component="h3" variant="h5" className="nav-left" color="secondary">
               征婚
             </Typography>
+            {show_upload_permistion && (
+              <Button color="secondary" variant="contained" onClick={this.onMarUpload} className="nav-right">
+                上传
+              </Button>
+            )}
+          </div>
+          }
+          {
+          <section className="section">
             <Typography component="p" variant="h6" className="page-description" color="textSecondary">
               <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>扫码支付后查看详细资料
             </Typography>
@@ -237,6 +295,21 @@ const Main = styled.main`
     margin-bottom: 30px;
   }
 
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+   .nav-left {
+      margin-right: 10px;
+    }
+    
+    .nav-right {
+      margin-left: 10px;
+    }
+    margin-bottom: 10px;
+  }
+  
   .section {
     margin-bottom: 50px;
     .section__header {
