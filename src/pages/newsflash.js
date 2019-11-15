@@ -350,10 +350,17 @@ class App extends Component {
             <Option value="ads">广告</Option>
             <Option value="soups">鸡汤</Option>
           </Select>*/}
-          <Tabs defaultActiveKey={window.location.hash.slice(1) || news_type_default} onChange={this.handleNewsTypeChange}>
-            <TabPane tab="区块链" key="chains">
+          <Tabs defaultActiveKey={window.location.hash.slice(1) || news_type_default} 
+            onChange={this.handleNewsTypeChange}
+            tabBarStyle={{background:'#fff'}}
+            tabPosition="top"
+            tabBarGutter={10}
+          >
+            {/*<TabPane tab={<span style={{ fontSize: '16px', color: '#FF0033' }}><Icon type="fire" theme="twoTone" twoToneColor="#FF0033" />热门</span>} key="hot">
+            </TabPane>*/}
+            <TabPane tab={<span style={{ fontSize: '14px', color: '#0' }}>区块链</span>} key="chains">
             </TabPane>
-            <TabPane tab="AMA" key="amas">
+            <TabPane tab={<span style={{ fontSize: '16px', color: '#0' }}>AMA</span>} key="amas">
             </TabPane>
             <TabPane tab="广告" key="ads">
             </TabPane>

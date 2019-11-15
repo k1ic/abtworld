@@ -33,6 +33,16 @@ const { Option } = Select;
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+const titlePlaceholderObj = {
+  entertainment: '如: 流星陨石(9字以内)',
+  marriage: '如: 寻水的鱼(9字以内)',
+};
+
+const descriptionPlaceholderObj = {
+  entertainment: '如: 在一次追流星雨时捡到的一块珍贵陨石(1000字以内)',
+  marriage: '如: 亲情需要陪伴，友情需要经营，爱情需要保鲜，飘累了, 好想有个家！(1000字以内)',
+};
+
 function getBase64(img, callback) {
   const reader = new FileReader();
   reader.addEventListener('load', () => callback(reader.result));
@@ -266,7 +276,7 @@ class App extends Component {
   }
   
   render() {
-    const session = this.state.session;
+    const { session, asset_type } = this.state;
     //console.log('render session=', session);
     //console.log('render props=', this.props);
     
@@ -320,6 +330,23 @@ class App extends Component {
       </div>
     );
     
+    var titlePlaceholder = '';
+    var descriptionPlaceholder = '';
+    switch(asset_type){
+      case 'entertainment':
+        titlePlaceholder = titlePlaceholderObj.entertainment;
+        descriptionPlaceholder = descriptionPlaceholderObj.entertainment;
+        break;
+      case 'marriage':
+        titlePlaceholder = titlePlaceholderObj.marriage;
+        descriptionPlaceholder = descriptionPlaceholderObj.marriage;
+        break;
+      default:
+        titlePlaceholder = titlePlaceholderObj.entertainment;
+        descriptionPlaceholder = descriptionPlaceholderObj.entertainment;
+        break;
+    }
+    
     return (
       <Layout title="Upload">
         <Main>
@@ -337,7 +364,7 @@ class App extends Component {
               <TextArea
                 value={pic_title}
                 onChange={this.onTitleInputChange}
-                placeholder="如: 颐和园地图(9字以内)"
+                placeholder={titlePlaceholder}
                 autoSize={{ minRows: 1, maxRows: 1 }}
                 maxLength={9}
               />
@@ -346,7 +373,7 @@ class App extends Component {
               <TextArea
                 value={pic_description}
                 onChange={this.onDescriptionInputChange}
-                placeholder="如: 游玩时花15元人民币买的颐和园地图(1000字以内)"
+                placeholder={descriptionPlaceholder}
                 autoSize={{ minRows: 1, maxRows: 10 }}
                 maxLength={1000}
               />
