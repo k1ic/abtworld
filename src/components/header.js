@@ -61,7 +61,7 @@ export default function Header() {
           首页
         </Typography>
         <Typography href="/newsflash" component="a" variant="h6" color="inherit" className="text">
-          哈希快讯
+          哈希资讯
         </Typography>
         <Menu onClick={handleMoreClick} selectedKeys={[state.current]} mode="horizontal" theme="light" className="antd-menu" >
         <SubMenu
@@ -138,7 +138,7 @@ const Nav = styled(Toolbar)`
   .antd-menu{
     width: 80px;
     background: rgba(128, 128, 128, 0);
-    font-size: 1.25rem;
+    font-size: 1.0rem;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-weight: 500;
     line-height: 1.6;
@@ -157,6 +157,9 @@ const Nav = styled(Toolbar)`
       display: flex;
       justify-content: flex-start;
       align-items: center;
+      font-size: 1.0rem;
+      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+      font-weight: 500;
 
       .logo {
         width: 32px;
@@ -166,6 +169,9 @@ const Nav = styled(Toolbar)`
     }
     
     .text {
+      font-size: 1.0rem;
+      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+      font-weight: 500;
       margin-right: 10px;
     }
   }

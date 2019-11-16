@@ -18,7 +18,8 @@ import {
   Tooltip,
   List,
   Select,
-  Tabs
+  Tabs,
+  Switch
 } from "antd";
 import zh_CN from 'antd/lib/locale-provider/zh_CN'
 import reqwest from 'reqwest';
@@ -77,6 +78,7 @@ class App extends Component {
       news_to_send: '',
       toPay: 0,
       asset_did: '',
+      show_mode: 'all',
       newsflash_list: [],
       sending: false,
       loading: false,
@@ -107,12 +109,20 @@ class App extends Component {
       loading: true
     });
       
+    var udid_to_show = '';
+    if(this.state.session && this.state.session.user){
+      if(this.state.show_mode === 'mine'){
+        udid_to_show = this.state.session.user.did;
+      }
+    }
+    
     reqwest({
       url: '/api/payments',
       method: 'get',
       data: {
         module: 'newsflash',
         news_type: this.state.news_type,
+        udid_to_show: udid_to_show,
         ...params,
       },
       type: 'json',
@@ -133,7 +143,8 @@ class App extends Component {
     //console.log('componentDidMount hash=', window.location.hash.slice(1));
     const location_hash = window.location.hash.slice(1);
     if(typeof(location_hash) != "undefined" && location_hash && location_hash.length > 0) {
-      this.setState({news_type: location_hash},()=>{
+      const hashArr = location_hash.split('?');
+      this.setState({news_type: hashArr[0]},()=>{
         console.log('componentDidMount news_type=', this.state.news_type);        
         this.fetchNewsFlash();
       });
@@ -160,6 +171,19 @@ class App extends Component {
     
     this.setState({news_type: value},()=>{
        window.location.hash = `#${value}`;
+      this.fetchNewsFlash();
+    });
+  }
+  
+  onShowModeChange = checked => {
+    var show_mode = '';
+    if(checked){
+      show_mode = 'all';
+    }else{
+      show_mode = 'mine';
+    }
+    this.setState({show_mode: show_mode},()=>{
+      console.log('show mode change to', this.state.show_mode);
       this.fetchNewsFlash();
     });
   }
@@ -341,7 +365,9 @@ class App extends Component {
       <Layout title="HashNews">
         <Main>
           <Typography component="p" variant="h5" className="section-description" color="textSecondary">
-            <a href="https://abtwallet.io/zh/" target="_blank">ABT钱包</a>自主身份发布，快讯上链哈希可查。
+            自主身份发布，资讯哈希可查
+            <Switch checked={this.state.show_mode === 'all'?true:false} onChange={this.onShowModeChange} disabled={user == null} size="small" className="antd-showmode-switch"/>
+            {this.state.show_mode === 'all'?'全部':'我的'}
           </Typography>
           <div style={{ margin: '24px 0' }} />
           {/*<Text style={{ margin: '0 10px 0 0' }} className="antd-select">类型</Text>
@@ -350,7 +376,7 @@ class App extends Component {
             <Option value="ads">广告</Option>
             <Option value="soups">鸡汤</Option>
           </Select>*/}
-          <Tabs defaultActiveKey={window.location.hash.slice(1) || news_type_default} 
+          <Tabs defaultActiveKey={news_type} 
             onChange={this.handleNewsTypeChange}
             tabBarStyle={{background:'#fff'}}
             tabPosition="top"
@@ -358,11 +384,13 @@ class App extends Component {
           >
             {/*<TabPane tab={<span style={{ fontSize: '16px', color: '#FF0033' }}><Icon type="fire" theme="twoTone" twoToneColor="#FF0033" />热门</span>} key="hot">
             </TabPane>*/}
-            <TabPane tab={<span style={{ fontSize: '14px', color: '#0' }}>区块链</span>} key="chains">
-            </TabPane>
-            <TabPane tab={<span style={{ fontSize: '16px', color: '#0' }}>AMA</span>} key="amas">
+            <TabPane tab={<span style={{ fontSize: '14px', color: '#0' }}>快讯</span>} key="chains">
             </TabPane>
             <TabPane tab="广告" key="ads">
+            </TabPane>
+            <TabPane tab="备忘" key="memos">
+            </TabPane>
+            <TabPane tab={<span style={{ fontSize: '16px', color: '#0' }}>AMA</span>} key="amas">
             </TabPane>
             <TabPane tab="鸡汤" key="soups">
             </TabPane>
@@ -391,7 +419,7 @@ class App extends Component {
             发布 <br/>
             {toPay}{token.symbol}
           </Button> )}
-          <div style={{ margin: '24px 0' }} />
+          {send_permission && <div style={{ margin: '24px 0' }} /> }
           <LocaleProvider locale={zh_CN}>
             <List
               itemLayout="vertical"
@@ -458,6 +486,10 @@ const Main = styled.main`
     font-weight: 200;
     color: #000000;
     //margin-bottom: 20px;
+    .antd-showmode-switch {
+      margin-left: 10px;
+      margin-right: 5px;
+    }
   }
   
   .antd-select{

@@ -29,7 +29,7 @@ module.exports = {
               }
               break;
             case 'newsflash':
-              module_para = {news_type: req.query.news_type};
+              module_para = {news_type: req.query.news_type, udid_to_show: req.query.udid_to_show};
               break;
             default:
               break;
@@ -199,7 +199,15 @@ module.exports = {
               
               /*append tx style v1 to final tx tail*/
               final_tx = final_tx.concat(tx_style_v1);
-                
+              
+              /*filter the final tx by udid_to_show*/
+              const udid_to_show = module_para.udid_to_show;
+              if(typeof(udid_to_show) != "undefined" && udid_to_show && udid_to_show.length > 0){
+                final_tx = final_tx.filter(function (e) {
+                  return (e.sender === udid_to_show);
+                });
+              }
+              
               break;
             default:
               final_tx = tx;

@@ -157,14 +157,14 @@ class App extends Component {
       for(var i in hashArr){
         var hashData = hashArr[i].toString().split('=');
         if(hashData.length > 1){
-          hashObj[hashData[0]] = hashData[1];
+          hashObj[hashData[0]] = (hashData[1].split('?'))[0];
         }else{
           hashObj[hashData[0]] = '';
         }
       }
-      //if(JSON.stringify(hashObj) != "{}"){
-      //  console.log('hashObj=', hashObj);
-      //}
+      if(JSON.stringify(hashObj) != "{}"){
+        console.log('hashObj=', hashObj);
+      }
     }
     if(hashObj != null 
       && JSON.stringify(hashObj) != "{}"
@@ -365,10 +365,16 @@ const Main = styled.main`
     justify-content: space-between;
     
    .nav-left {
+      font-size: 1.0rem;
+      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+      font-weight: 500;
       margin-right: 10px;
     }
     
     .nav-right {
+      font-size: 1.0rem;
+      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+      font-weight: 500;
       margin-left: 10px;
     }
     margin-bottom: 10px;
