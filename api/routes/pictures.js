@@ -140,36 +140,61 @@ async function getPicsForPreview(strCategory, user_did, iStart, iEnd){
   var new_docs = [];
   var found = 0;
   var myPayedData = [];
-    
-  await Picture.find().byState('approved').exec(function(err, docs){
-    if(docs && docs.length>0){
-      console.log('Found', docs.length, 'approved docs');
-      new_docs = docs;
-    }else{
-      console.log('Approved document not found!');
+  
+  if (typeof(strCategory) != "undefined" && strCategory && strCategory === 'hot'){
+    await Picture.find().hotByPayCounter().exec(function(err, docs){
+      if(docs && docs.length>0){
+        console.log('Found', docs.length, 'Hot docs');
+        new_docs = docs;
+      }else{
+        console.log('Hot document not found!');
+      }
+      found = 1;
+    })
+  
+    /*wait found result*/
+    var wait_counter = 0;
+    while(!found){
+      await sleep(1);
+      wait_counter++;
+      if(wait_counter > 15000){
+        break;
+      }
     }
-    found = 1;
-  })
   
-  /*wait found result*/
-  var wait_counter = 0;
-  while(!found){
-    await sleep(1);
-    wait_counter++;
-    if(wait_counter > 15000){
-      break;
+    console.log('getPicsForPreview wait counter', wait_counter);
+    console.log('getPicsForPreview Hot docs.length', new_docs.length);
+  }else{
+    await Picture.find().byState('approved').exec(function(err, docs){
+      if(docs && docs.length>0){
+        console.log('Found', docs.length, 'approved docs');
+        new_docs = docs;
+      }else{
+        console.log('Approved document not found!');
+      }
+      found = 1;
+    })
+  
+    /*wait found result*/
+    var wait_counter = 0;
+    while(!found){
+      await sleep(1);
+      wait_counter++;
+      if(wait_counter > 15000){
+        break;
+      }
     }
-  }
   
-  console.log('getPicsForPreview wait counter', wait_counter);
-  console.log('getPicsForPreview approved docs.length', new_docs.length);
+    console.log('getPicsForPreview wait counter', wait_counter);
+    console.log('getPicsForPreview approved docs.length', new_docs.length);
   
-  /*Category filter*/
-  if (new_docs.length > 0 && typeof(strCategory) != "undefined") {
-    new_docs = new_docs.filter(function (e) { 
-      return e.category === strCategory;
-    });
-    console.log('getPicsForPreview', strCategory, 'docs.length=', new_docs.length);
+    /*Category filter*/
+    if (new_docs.length > 0 && typeof(strCategory) != "undefined") {
+      new_docs = new_docs.filter(function (e) { 
+        return e.category === strCategory;
+      });
+      console.log('getPicsForPreview', strCategory, 'docs.length=', new_docs.length);
+    }
   }
   
   /*Pagination filter */
@@ -210,6 +235,7 @@ async function getPicsForPreview(strCategory, user_did, iStart, iEnd){
       doc['description'] = e.description;
       doc['worth'] = e.worth;
       doc['token_sym'] = e.token_sym;
+	  doc['payed_counter'] = e.payed_counter;
       return doc;
     });
     
@@ -342,30 +368,52 @@ async function getPicsNum(strState, strCategory){
   var new_docs = [];
   var found = 0;
   
-  await Picture.find().byState(strState).exec(function(err, docs){
-    if(docs && docs.length>0){
-      console.log('Found', docs.length, strState, 'docs');
-      new_docs = docs;
-    }else{
-      console.log(strState, 'document not found!');
-    }
-    found = 1;
-  })
+  if (typeof(strCategory) != "undefined" && strCategory && strCategory === 'hot'){
+    await Picture.find().hotByPayCounter().exec(function(err, docs){
+      if(docs && docs.length>0){
+        console.log('Found', docs.length, 'Hot docs');
+        new_docs = docs;
+      }else{
+        console.log('Hot document not found!');
+      }
+      found = 1;
+    })
   
-  /*wait found result*/
-  var wait_counter = 0;
-  while(!found){
-    await sleep(1);
-    wait_counter++;
-    if(wait_counter > 15000){
-      break;
+    /*wait found result*/
+    var wait_counter = 0;
+    while(!found){
+      await sleep(1);
+      wait_counter++;
+      if(wait_counter > 15000){
+        break;
+      }
     }
-  }
+  }else{
+    await Picture.find().byState(strState).exec(function(err, docs){
+      if(docs && docs.length>0){
+        console.log('Found', docs.length, strState, 'docs');
+        new_docs = docs;
+      }else{
+        console.log(strState, 'document not found!');
+      }
+      found = 1;
+    })
   
-  if (typeof(strCategory) != "undefined") {
-    new_docs = new_docs.filter(function (e) { 
-      return e.category === strCategory;
-    });
+    /*wait found result*/
+    var wait_counter = 0;
+    while(!found){
+      await sleep(1);
+      wait_counter++;
+      if(wait_counter > 15000){
+        break;
+      }
+    }
+  
+    if (typeof(strCategory) != "undefined") {
+      new_docs = new_docs.filter(function (e) { 
+        return e.category === strCategory;
+      });
+    }
   }
   
   console.log('getPicsNum wait counter', wait_counter);

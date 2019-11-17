@@ -17,8 +17,6 @@ module.exports = [
     worth: '10',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'marriage',
@@ -34,8 +32,6 @@ module.exports = [
     worth: '10',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'marriage',
@@ -51,8 +47,6 @@ module.exports = [
     worth: '10',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'entertainment',
@@ -68,8 +62,6 @@ module.exports = [
     worth: '18',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'entertainment',
@@ -85,8 +77,6 @@ module.exports = [
     worth: '18',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'marriage',
@@ -102,8 +92,6 @@ module.exports = [
     worth: '10',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'marriage',
@@ -119,8 +107,6 @@ module.exports = [
     worth: '10',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'marriage',
@@ -136,8 +122,6 @@ module.exports = [
     worth: '10',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   }, 
   {
     category: 'marriage',
@@ -153,8 +137,6 @@ module.exports = [
     worth: '10',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   }, 
   {
     category: 'entertainment',
@@ -170,8 +152,6 @@ module.exports = [
     worth: '10',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'entertainment',
@@ -187,8 +167,6 @@ module.exports = [
     worth: '10',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'entertainment',
@@ -204,8 +182,6 @@ module.exports = [
     worth: '10',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'entertainment',
@@ -221,8 +197,6 @@ module.exports = [
     worth: '30',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'entertainment',
@@ -238,8 +212,6 @@ module.exports = [
     worth: '5',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'entertainment',
@@ -255,8 +227,6 @@ module.exports = [
     worth: '28',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'entertainment',
@@ -272,8 +242,6 @@ module.exports = [
     worth: '28',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'entertainment',
@@ -289,8 +257,6 @@ module.exports = [
     worth: '28',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'entertainment',
@@ -306,8 +272,6 @@ module.exports = [
     worth: '28',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'entertainment',
@@ -323,8 +287,6 @@ module.exports = [
     worth: '28',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'entertainment',
@@ -340,8 +302,6 @@ module.exports = [
     worth: '28',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
   {
     category: 'entertainment',
@@ -357,8 +317,6 @@ module.exports = [
     worth: '28',
     token_sym: 'TBA',
     payback_rate: '0.6',
-    payed_counter: '0',
-    payer_list: [],
   },
 ];
 

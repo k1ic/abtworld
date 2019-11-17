@@ -14,8 +14,11 @@ const PictureSchema = new mongoose.Schema({
   worth: { type: String, required: true, default: '18' },
   token_sym: { type: String, required: true, default: 'TBA' },
   payback_rate: { type: String, required: true, default: '0.6' },
-  payed_counter: { type: String, required: true, default: '0' },
-  payer_list: { type: Array, required: true, default: [] },
+  payed_counter: { type: Number, default: 0 },
+  payed_balance: { type: Number, default: 0 },
+  payer_list: { type: Array, default: [] },
+  like_list: { type: Array, default: [] },
+  comment_list: { type: Array, default: [] },
   state: { type: String, required: true, default: 'commit' },
   createdAt: { type: Date },
   updatedAt: { type: Date },
@@ -27,6 +30,24 @@ PictureSchema.query.byAssetDid = function(strAssetDid){
 
 PictureSchema.query.byState = function(strState){
   return this.find({state: strState}).sort({"createdAt":-1});
+}
+
+PictureSchema.query.hotByPayCounter = function(){
+  var docs =  this.find({$and: [
+    {state: "approved"},
+    {payed_counter: {$gt: 0}}
+  ]}).sort({"payed_counter":-1});
+  
+  return docs;
+}
+
+PictureSchema.query.hotByPayBalance = function(){
+  var docs =  this.find({$and: [
+    {state: "approved"},
+    {payed_balance: {$gt: 0}}
+  ]}).sort({"payed_balance":-1});
+  
+  return docs;
 }
 
 PictureSchema.query.byMultiState = function(arrStates, sortField, sortOrder){

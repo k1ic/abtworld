@@ -169,7 +169,10 @@ class App extends Component {
   handleNewsTypeChange = value => {
     console.log('handleNewsTypeChange value=', value);
     
-    this.setState({news_type: value},()=>{
+    this.setState({
+      news_type: value,
+      newsflash_list: []
+    },()=>{
        window.location.hash = `#${value}`;
       this.fetchNewsFlash();
     });

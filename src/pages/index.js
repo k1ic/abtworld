@@ -52,6 +52,25 @@ const renderPaymentPicListCard = x => (
   </Grid>
 );
 
+const renderHotPicListCard = x => (
+  <Grid key={x.link} item xs={12} sm={6} md={3} className="grid-item">
+    <Card className="payment-pic-list">
+      <CardContent>
+        <Typography component="p" color="primary" gutterBottom>
+          {x.title} - {x.worth} {x.token_sym}
+        </Typography>
+        <Typography href={x.link} component="a" variant="h6" color="inherit" gutterBottom>
+          <img className="pic-list" src={x.pic_src} alt={x.title} height="225" width="225" />
+        </Typography>
+        <Typography component="p" color="primary" gutterBottom>
+          查看人数:{x.payed_counter} <br/>
+		  {x.owner}：{x.description}
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+);
+
 class App extends Component {
   static async getInitialProps({pathname, query, asPath, req}) {
     console.log('getInitialProps query=', query);
@@ -197,7 +216,9 @@ class App extends Component {
     
     this.setState({
       category: value,
-      currPage: 1
+      currPage: 1,
+      tab_pics: null,
+      tab_pics_total: null
     },()=>{
       const location_hash = '#category='+this.state.category+'&page='+String(this.state.currPage);
       window.location.hash = location_hash;
@@ -276,6 +297,17 @@ class App extends Component {
     }else{
       show_upload_permistion = true;
     }
+	
+	var show_hot_permistion = false;
+	if(isProduction){
+      if( user && (-1 != admin_account.indexOf(user.did)) ){
+        show_hot_permistion = true;
+      }else{
+        show_hot_permistion = false;
+      }
+    }else{
+      show_hot_permistion = true;
+    }
     
     return (
       <Layout title="Home">
@@ -314,8 +346,8 @@ class App extends Component {
             tabBarGutter={10}
             className="antd-tabs"
           >
-            {/*<TabPane tab={<span style={{ fontSize: '20px', color: '#FF0033' }}><Icon type="fire" theme="twoTone" twoToneColor="#FF0033" />热门</span>} key={pics_category_list[0]}>
-            </TabPane>*/}
+            { show_hot_permistion && (<TabPane tab={<span style={{ fontSize: '20px', color: '#0' }}><Icon type="fire" theme="twoTone" twoToneColor="#FF0033" />热门</span>} key={pics_category_list[0]}>
+            </TabPane>)}
             <TabPane tab={<span style={{ fontSize: '20px', color: '#0' }}>私藏</span>} key={pics_category_list[1]}>
             </TabPane>
             <TabPane tab={<span style={{ fontSize: '20px', color: '#0' }}>征婚</span>} key={pics_category_list[2]}>
@@ -324,7 +356,9 @@ class App extends Component {
           {
           <section className="section">
             <Grid container spacing={6} className="grid-cards">
-              {tab_pics?tab_pics.map(x => renderPaymentPicListCard(x)):''}
+              {tab_pics?
+			   (category==='hot'?tab_pics.map(x => renderHotPicListCard(x)):tab_pics.map(x => renderPaymentPicListCard(x)))
+			   :''}
             </Grid>
             <LocaleProvider locale={zh_CN}>
               <div className="pagination">

@@ -107,8 +107,29 @@ async function picturePaymentHook(txRes, forgeState) {
 
         if(pic_asset && pic_asset.length > 0) {
           pic_asset = pic_asset[0];
-          console.log('payback pic_asset=', pic_asset);
-                
+          
+          //update doc info
+          pic_asset.payed_counter += 1;
+          pic_asset.payed_balance += tx_value;
+		  
+		  const new_payer_info = {
+		    udid: tx_from,
+			payed_balance: tx_value,
+		  };
+		  if(pic_asset.payer_list && pic_asset.payer_list.length > 0){
+		    const index=pic_asset.payer_list.findIndex((element)=>element.udid == tx_from);
+			if(index != -1){
+			  pic_asset.payer_list[index].payed_balance += tx_value;
+			}else{
+			  pic_asset.payer_list.push(new_payer_info);
+			}
+		  }else{
+		    pic_asset.payer_list.push(new_payer_info);
+		  }
+		  pic_asset.markModified('payer_list');
+		  await pic_asset.save();
+		  console.log('Hook pic_asset update to', pic_asset);
+		  
           //verify owner accnout
           res = await ForgeSDK.doRawQuery(`{
             getAccountState(address: "${pic_asset.owner_did.replace(/^did:abt:/, '')}") {
