@@ -7,7 +7,7 @@ const { fromTokenToUnit, fromUnitToToken } = require('@arcblock/forge-util');
 const { fromAddress } = require('@arcblock/forge-wallet');
 const { fromSecretKey, WalletType } = require('@arcblock/forge-wallet');
 const { wallet, newsflashWallet, type } = require('../api/libs/auth');
-const { Base64ImageToFile } = require('../api/libs/image');
+const { Base64ImageDataToFile } = require('../api/libs/image');
 const env = require('../api/libs/env');
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
@@ -67,7 +67,7 @@ async function getForgeState(){
   try {
     const forgeState = await getForgeState();
     if (typeof(forgeState.token.icon) != "undefined" && forgeState.token.icon && forgeState.token.icon.length > 0) {
-      Base64ImageToFile(forgeState.token.icon, __dirname+'/../src/static/images/hashnews/'+forgeState.token.symbol+'.png');
+      Base64ImageDataToFile(forgeState.token.icon, __dirname+'/../src/static/images/hashnews/'+forgeState.token.symbol+'.png');
     }
 
     process.exit(0);

@@ -83,10 +83,13 @@ module.exports = {
                 if(memo){
                   temp_tx['content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
                   temp_tx['asset_did'] = e.address;
-                  temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';;
+                  temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';
+				  temp_tx['uavatar'] = (typeof(memo.para.uavatar) != "undefined")?memo.para.uavatar:'';
                 }else{
                   temp_tx['content'] = '';
+				  temp_tx['asset_did'] = e.address;
                   temp_tx['uname'] = '匿名';
+				  temp_tx['uavatar'] = '';
                 }
                 if(author_did && author_did.length > 0){
                   var did_len = author_did.length;
@@ -141,10 +144,13 @@ module.exports = {
                 if(memo){
                   temp_tx['content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
                   temp_tx['asset_did'] = asset_did;
-                  temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';;
+                  temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';
+				  temp_tx['uavatar'] = '';
                 }else{
                   temp_tx['content'] = '';
+				  temp_tx['asset_did'] = asset_did;
                   temp_tx['uname'] = '匿名';
+				  temp_tx['uavatar'] = '';
                 }
                 if(author_did && author_did.length > 0){
                   var did_len = author_did.length;
@@ -186,10 +192,13 @@ module.exports = {
                 if(memo){
                   temp_tx['content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
                   temp_tx['asset_did'] = (typeof(memo.para.content) != "undefined")?HashString('sha1', memo.para.content):'';
-                  temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';;
+                  temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';
+				  temp_tx['uavatar'] = '';
                 }else{
                   temp_tx['content'] = '';
+				  temp_tx['asset_did'] = '';
                   temp_tx['uname'] = '匿名';
+				  temp_tx['uavatar'] = '';
                 }
                 
                 var did_len = e.sender.length;

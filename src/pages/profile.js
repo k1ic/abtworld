@@ -97,7 +97,7 @@ export default function ProfilePage() {
       <Main>
         <Grid container spacing={6}>
           <Grid item xs={12} md={3} className="avatar">
-            <Avatar size={240} did={user.did} />
+            {user.avatar.length > 0?<img src={user.avatar} height="240" width="240"/>:<Avatar size={240} did={user.did} />}
             <Button color="secondary" variant="outlined" onClick={onLogout}>
               退出
             </Button>

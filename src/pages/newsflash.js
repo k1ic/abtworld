@@ -443,7 +443,7 @@ class App extends Component {
                   className="antd-list-item"
                 >
                   <List.Item.Meta
-                    avatar={<Avatar size={40} did={item.sender} />}
+                    avatar={item.uavatar.length>0?<img src={item.uavatar} height="40" width="40"/>:<Avatar size={40} did={item.sender} />}
                     title={<p className="antd-list-item-meta-title">{item.title}</p>}
                     description={<a href={item.href} target="_blank" className="antd-list-item-meta-description"> 哈希@{item.time} </a>}
                   />

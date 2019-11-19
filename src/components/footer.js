@@ -20,6 +20,10 @@ export default function Footer() {
           title: 'ABT钱包',
           link: 'https://abtwallet.io/',
         },
+		{
+          title: '周报',
+          link: 'https://github.com/ArcBlock/weekly-digest',
+        },
         {
           title: 'Github',
           link: 'https://github.com/ArcBlock',
@@ -35,7 +39,7 @@ export default function Footer() {
       items: [
         { 
           title: '首汽共享汽车', 
-          link: 'https://www.shouqiev.com/' 
+          link: 'https://gfcexplorer.shouqiev.com/' 
         },
         { 
           title: '引力波互动', 
@@ -52,10 +56,6 @@ export default function Footer() {
         {
           title: '熵湾科技',
           link: '/',
-        },
-        {
-          title: '白鹭科技',
-          link: 'http://egretia.io/',
         },
       ],
     },

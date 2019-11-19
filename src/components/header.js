@@ -96,7 +96,7 @@ export default function Header() {
         )}
         {session.value && session.value.user && (
           <Button href="/profile" className="avatar">
-            <UserAvatar did={session.value.user.did} />
+            {session.value.user.avatar.length > 0?<img src={session.value.user.avatar} height="40" width="40"/>:<UserAvatar did={session.value.user.did} />}
           </Button>
         )}
       </div>

@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const multiparty = require('multiparty');
 const { 
-  Base64ImageToFile, 
+  Base64ImageDataToFile, 
   ThumbImageGen,
   UserPaymentHdDirGet,
   UserPaymentThumbDirGet,
@@ -128,7 +128,7 @@ module.exports = {
             const hd_filename = HashString('sha1', Date())+'.jpg';
             const hd_file = UserPaymentHdDirGet(user.did)+'/'+hd_filename;
             const hd_web_file = UserPaymentWebHdDirGet(user.did)+'/'+hd_filename;
-            Base64ImageToFile(imageUrl, hd_file);
+            Base64ImageDataToFile(imageUrl, hd_file);
             const asset_did = HashFile('sha1', hd_file);
             console.log('asset_did=',asset_did);
             const picDb = await findPics(asset_did);

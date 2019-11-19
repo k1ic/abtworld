@@ -5,6 +5,7 @@ const NewsflashSchema = new mongoose.Schema({
   content_did: { type: String, required: true, default: '' },
   author_did: { type: String, required: true, default: '' },
   author_name: { type: String, required: true, default: '' },
+  author_avatar: { type: String, default: '' },
   news_hash: { type: String, default: '' },
   news_type: { type: String, required: true, default: '' },
   news_content: { type: String, required: true, default: '' },

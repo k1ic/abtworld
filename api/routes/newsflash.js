@@ -43,6 +43,7 @@ async function NewsflashAdd(fields){
     content_did: fields.asset_did[0],
     author_did: user.did,
     author_name: user.name,
+	author_avatar: user.avatar_small,
     news_hash: '',
     news_type: fields.news_type[0],
     news_content: fields.news_content[0],
