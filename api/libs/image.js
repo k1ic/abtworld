@@ -129,17 +129,17 @@ async function ThumbImageGen(strSrcFile, strThumbFile, thumbWide, thumbHeigh){
     gm(strSrcFile)
       .resize(thumbWide,thumbHeigh, '!')
       .setFormat('JPEG')
-      .quality(70)
+      .quality(100)
       .strip()
       .autoOrient()
       .write(strThumbFile, function(err){
         if(err){
           console.log("resize error: " + err);
-		  resolve('');
+          resolve('');
         }else{
           console.log("resize success");
-		  const data = FileToBase64ImageData(strThumbFile);
-		  resolve(data);
+          const data = FileToBase64ImageData(strThumbFile);
+          resolve(data);
         }
       });
   });

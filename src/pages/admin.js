@@ -175,8 +175,8 @@ class App extends Component {
       params['results'] = 10;             /*每页10条记录*/
       params['page'] = 1;                 /*第1页*/
       params['sortField'] = 'createdAt';
-      params['sortOrder'] = 'ascend';
-      params['state'] = ['commited'];
+      params['sortOrder'] = 'descend';
+      params['state'] = ['commited', 'approved'];
       console.log('params:', params);
     }else{
       console.log('params:', params);
@@ -234,11 +234,11 @@ class App extends Component {
   handleTableChange = (pagination, filters, sorter) => {
     if(Object.keys(sorter).length == 0){
       sorter['field'] = 'createdAt';
-      sorter['order'] = 'ascend';
+      sorter['order'] = 'descend';
     }
     
     if(Object.keys(filters).length == 0){
-      filters['state'] = ['commited'];
+      filters['state'] = ['commited', 'approved'];
     }
     
     console.log('pagination='+JSON.stringify(pagination));
