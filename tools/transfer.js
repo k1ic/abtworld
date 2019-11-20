@@ -57,16 +57,20 @@ async function getAccoutState(accoutAddr){
       
       accountBalance = accountBalance.toFixed(6);
       if(accountBalance > 0){
+        /*
+        const transferValue = accountBalance;
+        //const transferValue = 0.000001;
         transferHash = await ForgeSDK.sendTransferTx({
           tx: {
             itx: {
               to: process.env.APP_OWNER_ACCOUNT,
-              value: fromTokenToUnit(accountBalance, state.token.decimal),
+              value: fromTokenToUnit(transferValue, state.token.decimal),
             },
           },
           wallet: appWallet,
         });
         console.log('default app transferHash=', transferHash);
+        */
       }else{
         console.log('Default app account balance is empty');
       }
@@ -86,6 +90,7 @@ async function getAccoutState(accoutAddr){
       
       accountBalance = accountBalance.toFixed(6);
       if(accountBalance > 0){
+        /*
         transferHash = await ForgeSDK.sendTransferTx({
           tx: {
             itx: {
@@ -96,6 +101,7 @@ async function getAccoutState(accoutAddr){
           wallet: newsflashAppWallet,
         });
         console.log('newsflash app transferHash=', transferHash);
+        */
       }else{
         console.log('newsflash app account balance is empty');
       }

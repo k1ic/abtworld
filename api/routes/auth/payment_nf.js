@@ -16,7 +16,7 @@ const { createNewsflahAsset, listAssets } = require('../../libs/assets');
 //const appWallet = fromJSON(wallet);
 //const newsflashAppWallet = fromJSON(newsflashWallet);
 
-const forgeTxDPointMaxNum = 6;
+const forgeTxDPointMaxNum = 6; /*The max decimal point is 6. The fromTokenToUnit API will failure when max then 6*/
 const forgeTxDPointMaxPow = Math.pow(10, forgeTxDPointMaxNum);
 
 const appWallet = fromSecretKey(process.env.APP_SK, type);
