@@ -84,12 +84,12 @@ module.exports = {
                   temp_tx['content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
                   temp_tx['asset_did'] = e.address;
                   temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';
-				  temp_tx['uavatar'] = (typeof(memo.para.uavatar) != "undefined")?memo.para.uavatar:'';
+                  temp_tx['uavatar'] = (typeof(memo.para.uavatar) != "undefined")?memo.para.uavatar:'';
                 }else{
                   temp_tx['content'] = '';
-				  temp_tx['asset_did'] = e.address;
+                  temp_tx['asset_did'] = e.address;
                   temp_tx['uname'] = '匿名';
-				  temp_tx['uavatar'] = '';
+                  temp_tx['uavatar'] = '';
                 }
                 if(author_did && author_did.length > 0){
                   var did_len = author_did.length;
@@ -97,6 +97,25 @@ module.exports = {
                 }else{
                   temp_tx['title'] = temp_tx['uname']
                 }
+                
+                if(doc){
+                  temp_tx['comment_min_rem'] = doc.remain_comment_minner_balance;
+                  temp_tx['like_min_rem'] = doc.remain_like_minner_balance;
+                  temp_tx['forward_min_rem'] = doc.remain_forward_minner_balance;
+                  temp_tx['comment_cnt'] = doc.comment_counter;
+                  temp_tx['like_cnt'] = doc.like_counter;
+                  temp_tx['forward_cnt'] = doc.forward_counter;
+                  temp_tx['comment_list'] = doc.comment_list;
+                }else{
+                  temp_tx['comment_min_rem'] = 0;
+                  temp_tx['like_min_rem'] = 0;
+                  temp_tx['forward_min_rem'] = 0;
+                  temp_tx['comment_cnt'] = 0;
+                  temp_tx['like_cnt'] = 0;
+                  temp_tx['forward_cnt'] = 0;
+                  temp_tx['comment_list'] = [];
+                }
+
                 return temp_tx;
               }));
               
@@ -123,10 +142,12 @@ module.exports = {
                 }
                 var local_time = moment(e.time).local().format('YY/MM/DD HH:mm:ss');
                 //console.log('UTC=',e.time, 'local time=', local);
+                
+                var doc = null;
                 if(memo && typeof(memo.para.content) != "undefined"){
                   asset_did = HashString('sha1', memo.para.content);
                   //console.log('asset_did=',asset_did);
-                  var doc = await getNewsForUploadToChain(asset_did);
+                  doc = await getNewsForUploadToChain(asset_did);
                   if(doc && doc.state === 'chained'){
                     author_did = doc.author_did;
                     temp_tx['state'] = 'allowed';
@@ -145,12 +166,12 @@ module.exports = {
                   temp_tx['content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
                   temp_tx['asset_did'] = asset_did;
                   temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';
-				  temp_tx['uavatar'] = '';
+                  temp_tx['uavatar'] = '';
                 }else{
                   temp_tx['content'] = '';
-				  temp_tx['asset_did'] = asset_did;
+                  temp_tx['asset_did'] = asset_did;
                   temp_tx['uname'] = '匿名';
-				  temp_tx['uavatar'] = '';
+                  temp_tx['uavatar'] = '';
                 }
                 if(author_did && author_did.length > 0){
                   var did_len = author_did.length;
@@ -158,6 +179,25 @@ module.exports = {
                 }else{
                   temp_tx['title'] = temp_tx['uname']
                 }
+                
+                if(doc){
+                  temp_tx['comment_min_rem'] = doc.remain_comment_minner_balance;
+                  temp_tx['like_min_rem'] = doc.remain_like_minner_balance;
+                  temp_tx['forward_min_rem'] = doc.remain_forward_minner_balance;
+                  temp_tx['comment_cnt'] = doc.comment_counter;
+                  temp_tx['like_cnt'] = doc.like_counter;
+                  temp_tx['forward_cnt'] = doc.forward_counter;
+                  temp_tx['comment_list'] = doc.comment_list;
+                }else{
+                  temp_tx['comment_min_rem'] = 0;
+                  temp_tx['like_min_rem'] = 0;
+                  temp_tx['forward_min_rem'] = 0;
+                  temp_tx['comment_cnt'] = 0;
+                  temp_tx['like_cnt'] = 0;
+                  temp_tx['forward_cnt'] = 0;
+                  temp_tx['comment_list'] = [];
+                }
+                
                 return temp_tx;
               }));
               
@@ -193,16 +233,36 @@ module.exports = {
                   temp_tx['content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
                   temp_tx['asset_did'] = (typeof(memo.para.content) != "undefined")?HashString('sha1', memo.para.content):'';
                   temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';
-				  temp_tx['uavatar'] = '';
+                  temp_tx['uavatar'] = '';
                 }else{
                   temp_tx['content'] = '';
-				  temp_tx['asset_did'] = '';
+                  temp_tx['asset_did'] = '';
                   temp_tx['uname'] = '匿名';
-				  temp_tx['uavatar'] = '';
+                  temp_tx['uavatar'] = '';
                 }
                 
                 var did_len = e.sender.length;
                 temp_tx['title'] = temp_tx['uname'] + " - " + e.sender.substring(0,4) + '***' + e.sender.substring(did_len-4,did_len);
+                
+                var doc = null;
+                if(doc){
+                  temp_tx['comment_min_rem'] = doc.remain_comment_minner_balance;
+                  temp_tx['like_min_rem'] = doc.remain_like_minner_balance;
+                  temp_tx['forward_min_rem'] = doc.remain_forward_minner_balance;
+                  temp_tx['comment_cnt'] = doc.comment_counter;
+                  temp_tx['like_cnt'] = doc.like_counter;
+                  temp_tx['forward_cnt'] = doc.forward_counter;
+                  temp_tx['comment_list'] = doc.comment_list;
+                }else{
+                  temp_tx['comment_min_rem'] = 0;
+                  temp_tx['like_min_rem'] = 0;
+                  temp_tx['forward_min_rem'] = 0;
+                  temp_tx['comment_cnt'] = 0;
+                  temp_tx['like_cnt'] = 0;
+                  temp_tx['forward_cnt'] = 0;
+                  temp_tx['comment_list'] = [];
+                }
+                
                 return temp_tx;
               });
               

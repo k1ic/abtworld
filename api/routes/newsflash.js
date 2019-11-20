@@ -43,17 +43,26 @@ async function NewsflashAdd(fields){
     content_did: fields.asset_did[0],
     author_did: user.did,
     author_name: user.name,
-	author_avatar: user.avatar_small,
+    author_avatar: user.avatar_small,
     news_hash: '',
     news_type: fields.news_type[0],
     news_content: fields.news_content[0],
     hash_href: '',
-    minner_balance: '0',
     state: 'commit',
     minner_state: 'idle',
-    givelike_counter: '0',
-    forward_counter: '0',
-    reply_list: [],
+    total_comment_minner_balance: 0,
+    total_like_minner_balance: 0,
+    total_forward_minner_balance: 0,
+    each_comment_minner_balance: 0,
+    each_like_minner_balance: 0,
+    each_forward_minner_balance: 0,
+    remain_comment_minner_balance: 0,
+    remain_like_minner_balance: 0,
+    remain_forward_minner_balance: 0,
+    comment_counter: 0,
+    like_counter: 0,
+    forward_counter: 0,
+    comment_list: [],
     createdAt: Date(),
   });
   await new_doc.save();
@@ -155,39 +164,6 @@ async function NewsflashStateManager(action, asset_did){
         break;
     }
   }else{
-    result = false;
-  }
-  
-  return result;
-}
-
-async function NewsflashGetMinnerBalance(asset_did) {
-  var doc = await Newsflash.findOne({ asset_did: asset_did });
-  var balance = '0';
-  
-  if(doc) {
-    balance = doc.minner_balance;
-  }
-  
-  return balance;
-}
-
-async function NewsflashUpdateMinnerBalance(asset_did, minner_value){
-  var result = false;  
-  var doc = await Newsflash.findOne({ asset_did: asset_did });
-  
-  if(doc){
-    var balance_remain = 0;
-    if(parseInt(doc.minner_balance) > parseInt(minner_value)){
-      balance_remain = parseInt(doc.minner_balance) - parseInt(minner_value);
-      doc.minner_balance = String(balance_remain);
-    }else{
-      doc.minner_balance = '0';
-    }
-    await doc.save()
-    result = true;
-  }
-  else{
     result = false;
   }
   

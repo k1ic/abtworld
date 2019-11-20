@@ -52,7 +52,7 @@ mongoose.connection.on('reconnected', () => {
 // Create and config express application
 const server = express();
 server.use(cookieParser());
-server.use(bodyParser.json({limit: '2mb'}));
+server.use(bodyParser.json({limit: '1mb'}));
 server.use(bodyParser.urlencoded({ extended: true }));
 server.use(cors());
 

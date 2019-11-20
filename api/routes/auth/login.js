@@ -16,11 +16,17 @@ const description = {
   zh: `用 ABT 钱包登录 ${env.appName}`,
 };
 
+/*for abt wallet 2.0 to request avatar*/
+//const loginReqFields = ['fullName', 'email', 'avatar'];
+
+/*The ios wallet 1.0 will crash when request avatar*/
+const loginReqFields = ['fullName', 'email'];
+
 module.exports = {
   action: 'login',
   claims: {
     profile: ({ extraParams: { locale } }) => ({
-      fields: ['fullName', 'email', 'avatar'],
+      fields: loginReqFields,
       description: description[locale] || description.en,
     }),
   },

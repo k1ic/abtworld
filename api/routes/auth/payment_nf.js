@@ -16,8 +16,16 @@ const { createNewsflahAsset, listAssets } = require('../../libs/assets');
 //const appWallet = fromJSON(wallet);
 //const newsflashAppWallet = fromJSON(newsflashWallet);
 
+const forgeTxDPointMaxNum = 6;
+const forgeTxDPointMaxPow = Math.pow(10, forgeTxDPointMaxNum);
+
 const appWallet = fromSecretKey(process.env.APP_SK, type);
 const newsflashAppWallet = fromSecretKey(process.env.APP_NEWSFLASH_SK, type);
+
+function forgeTxValueSecureConvert(value){
+  /*convert the tx value base on max decimal pointer*/
+  return Math.floor((value)*forgeTxDPointMaxPow)/forgeTxDPointMaxPow; /*round down*/
+}
 
 async function waitAndGetTxHash(hash){
   var res = null;
@@ -82,16 +90,52 @@ async function newsflashPaymentHookV2(hash, forgeState, userDid) {
             /*Update newsflash doc*/
             if(transferHash && transferHash.length > 0){              
               /*pay back and update doc*/
-              var pay_value_for_dapp_owner = tx_value/2;
-              var remain_value_for_minner = tx_value - pay_value_for_dapp_owner;
-              pay_value_for_dapp_owner = pay_value_for_dapp_owner.toFixed(6);
-              remain_value_for_minner = remain_value_for_minner.toFixed(6);
+              const pay_value_for_dapp_owner = forgeTxValueSecureConvert(tx_value/2);
+              const remain_value_for_minner = forgeTxValueSecureConvert(tx_value - pay_value_for_dapp_owner);
               console.log('hook pay dapp owner=',pay_value_for_dapp_owner,'minner=',remain_value_for_minner);
+              
+              /********************************************************************************************
+               *************************minner balance assignment******************************************
+               ********************************************************************************************/
+              /*1. comment : 60% - for TOP20
+                2. like    : 20% - for TOP10
+                3. forward : 20% - for TOP10
+               */
+              const total_comment_minner_balance = forgeTxValueSecureConvert(remain_value_for_minner * 0.6);
+              const total_like_minner_balance = forgeTxValueSecureConvert(remain_value_for_minner * 0.2);
+              const total_forward_minner_balance = forgeTxValueSecureConvert(remain_value_for_minner * 0.2);
+              
+              const each_comment_minner_balance = forgeTxValueSecureConvert(total_comment_minner_balance/20);
+              const each_like_minner_balance = forgeTxValueSecureConvert(total_like_minner_balance/10);
+              const each_forward_minner_balance = forgeTxValueSecureConvert(total_forward_minner_balance/10);
+              console.log('hook pay minner balance assignment total comment='+total_comment_minner_balance+' like='+total_like_minner_balance+' forward='+total_forward_minner_balance);
+              console.log('hook pay minner balance assignment each comment='+each_comment_minner_balance+' like='+each_like_minner_balance+' forward='+each_forward_minner_balance);
+              
               
               console.log('update newsflash doc');
               newsflash_doc.news_hash = transferHash;
               newsflash_doc.hash_href = env.chainHost.replace('/api', '/node/explorer/txs/')+transferHash;
-              newsflash_doc.minner_balance = String(remain_value_for_minner);
+              newsflash_doc.total_comment_minner_balance = total_comment_minner_balance;
+              newsflash_doc.total_like_minner_balance = total_like_minner_balance;
+              newsflash_doc.total_forward_minner_balance = total_forward_minner_balance;
+              newsflash_doc.each_comment_minner_balance = each_comment_minner_balance;
+              newsflash_doc.each_like_minner_balance = each_like_minner_balance;
+              newsflash_doc.each_forward_minner_balance = each_forward_minner_balance;
+              if(each_comment_minner_balance > 0){
+                newsflash_doc.remain_comment_minner_balance = total_comment_minner_balance;
+              }else{
+                newsflash_doc.remain_comment_minner_balance = 0;
+              }
+              if(each_like_minner_balance > 0){
+                newsflash_doc.remain_like_minner_balance = total_like_minner_balance;
+              }else{
+                newsflash_doc.remain_like_minner_balance = 0;
+              }
+              if(each_forward_minner_balance > 0){
+                newsflash_doc.remain_forward_minner_balance = total_forward_minner_balance;
+              }else{
+                newsflash_doc.remain_forward_minner_balance = 0;
+              }
               newsflash_doc.state = 'chained';
               await newsflash_doc.save();
               

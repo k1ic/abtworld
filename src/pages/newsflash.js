@@ -129,6 +129,10 @@ class App extends Component {
     }).then(data => {
       
       console.log('End fetchNewsFlash');
+      //if(data && data.length > 0){
+      //  console.log(data.slice(0, 9));
+      //}
+      
       this.setState({
         newsflash_list: data,
         loading: false
