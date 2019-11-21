@@ -38,13 +38,13 @@ const renderPaymentPicListCard = x => (
   <Grid key={x.link} item xs={12} sm={6} md={3} className="grid-item">
     <Card className="payment-pic-list">
       <CardContent>
-        <Typography component="p" color="primary" gutterBottom>
+        <Typography component="p" color="primary" className="payment-pic-list-title" gutterBottom>
           {x.title} - {x.worth} {x.token_sym}
         </Typography>
         <Typography href={x.link} component="a" variant="h6" color="inherit" gutterBottom>
           <img className="pic-list" src={x.pic_src} alt={x.title} height="225" width="225" />
         </Typography>
-        <Typography component="p" color="primary" gutterBottom>
+        <Typography component="p" color="primary" className="payment-pic-list-description" gutterBottom>
           {x.owner}：{x.description}
         </Typography>
       </CardContent>
@@ -56,15 +56,15 @@ const renderHotPicListCard = x => (
   <Grid key={x.link} item xs={12} sm={6} md={3} className="grid-item">
     <Card className="payment-pic-list">
       <CardContent>
-        <Typography component="p" color="primary" gutterBottom>
+        <Typography component="p" color="primary" className="payment-pic-list-title" gutterBottom>
           {x.title} - {x.worth} {x.token_sym}
         </Typography>
         <Typography href={x.link} component="a" variant="h6" color="inherit" gutterBottom>
           <img className="pic-list" src={x.pic_src} alt={x.title} height="225" width="225" />
         </Typography>
-        <Typography component="p" color="primary" gutterBottom>
+        <Typography component="p" color="primary" className="payment-pic-list-description" gutterBottom>
           查看人数:{x.payed_counter} <br/>
-		  {x.owner}：{x.description}
+          {x.owner}：{x.description}
         </Typography>
       </CardContent>
     </Card>
@@ -438,6 +438,20 @@ const Main = styled.main`
   .payment-pic-list {
     height: 320px;
     width: 260px;
+    
+    .payment-pic-list-title{
+      font-size: 1.0rem;
+      font-family: Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial, sans-serif;
+      font-weight: 100;
+      color: #000000;
+    }
+    
+    .payment-pic-list-description{
+      font-size: 1.0rem;
+      font-family: Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial, sans-serif;
+      font-weight: 100;
+      color: #3CB371;
+    }
   }
 
   .pic-list {

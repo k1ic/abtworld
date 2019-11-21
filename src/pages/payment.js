@@ -229,7 +229,7 @@ const Main = styled.main`
     margin: 20px 0 0;
     margin-bottom: 20px;
     pointer-event:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;
-    color: #66CCCC;
+    color: #000000;
     font-size: 20px;
     width:100%;
     height: auto;
@@ -242,7 +242,7 @@ const Main = styled.main`
     margin: 20px 0 0;
     margin-bottom: 10px;
     pointer-event:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;
-    color: #66CCCC;
+    color: #3CB371;
     font-size: 20px;
     width:100%;
     height: auto;

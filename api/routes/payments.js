@@ -12,6 +12,9 @@ const env = require('../libs/env');
 const { HashString } = require('../libs/crypto');
 const { getNewsForUploadToChain } = require('./newsflash');
 const { getAssetGenesisHash } = require('../libs/assets');
+const {
+  getUserDidFragment
+} = require('../libs/user');
 
 module.exports = {
   init(app) {
@@ -93,7 +96,7 @@ module.exports = {
                 }
                 if(author_did && author_did.length > 0){
                   var did_len = author_did.length;
-                  temp_tx['title'] = temp_tx['uname'] + " - " + author_did.substring(0,4) + '***' + author_did.substring(did_len-4,did_len);
+                  temp_tx['title'] = temp_tx['uname']+'('+getUserDidFragment(author_did)+')';
                 }else{
                   temp_tx['title'] = temp_tx['uname']
                 }

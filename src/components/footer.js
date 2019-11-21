@@ -85,11 +85,11 @@ export default function Footer() {
       ],
     },
     {
-      title: '友链',
+      title: '广告',
       items: [
         {
           title: '大地云仓',
-          link: 'http://www.dadiyuncang.com/wap/open/app.html#/cloud/invite?id=11826',
+          link: 'http://wap.bb.dadiyuncang.com/pages/center/QRcode?userid=13777&username=%E5%88%98%E5%8D%8E%E6%95%AC',
         },
       ],
     },

@@ -9,6 +9,9 @@ const {
   fetchForgeTransactions,
   getAssetPayDataFromTx
 } = require('../libs/transactions');
+const {
+  getUserDidFragment
+} = require('../libs/user');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
@@ -216,8 +219,15 @@ async function getPicsForPreview(strCategory, user_did, iStart, iEnd){
 
     new_docs = new_docs.map(function( e ) {
       var doc = {};
+      var owner_did_fragment = getUserDidFragment(e.owner_did);
+      //console.log('getPicsForPreview owner_did_fragment=', owner_did_fragment);
+      
       doc['category'] = e.category;
-      doc['owner'] = e.owner;
+      if(owner_did_fragment && owner_did_fragment.length > 0){
+        doc['owner'] = e.owner+'('+owner_did_fragment+')';
+      }else{
+        doc['owner'] = e.owner;
+      }
       if(myPayedData && myPayedData.length > 0){          
         const payed_data_found = myPayedData.find(function(data){
           return (data.asset_did === e.asset_did && parseFloat(data.payed) >= parseFloat(e.worth));
@@ -235,10 +245,11 @@ async function getPicsForPreview(strCategory, user_did, iStart, iEnd){
       doc['description'] = e.description;
       doc['worth'] = e.worth;
       doc['token_sym'] = e.token_sym;
-	  doc['payed_counter'] = e.payed_counter;
+      doc['payed_counter'] = e.payed_counter;
       return doc;
     });
     
+    //console.log('getPicsForPreview remap new_docs=', new_docs);
     console.log('getPicsForPreview remap new_docs.length=', new_docs.length);
   }
 
@@ -273,6 +284,19 @@ async function getPicsForPayShow(strAssetDid){
   
   console.log('getPicsForPayShow wait counter', wait_counter);
   //console.log(new_docs);
+  
+  if (new_docs.length > 0) {
+    new_docs = new_docs.map(function( e ) {
+      var doc = e;
+      var owner_did_fragment = getUserDidFragment(e.owner_did);
+      if(owner_did_fragment && owner_did_fragment.length > 0){
+        doc.owner = e.owner+'('+owner_did_fragment+')';
+      }else{
+        doc.owner = e.owner;
+      }
+      return doc;
+    });
+  }
   
   return new_docs;
 }
