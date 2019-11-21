@@ -89,7 +89,7 @@ export default function Footer() {
       items: [
         {
           title: '大地云仓',
-          link: 'http://wap.bb.dadiyuncang.com/pages/center/QRcode?userid=13777&username=%E5%88%98%E5%8D%8E%E6%95%AC',
+          link: 'http://wap.bb.dadiyuncang.com/pages/users/register?recommend=11826',
         },
       ],
     },

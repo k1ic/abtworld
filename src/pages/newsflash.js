@@ -56,7 +56,6 @@ const dPointNumMax = 6;
 /*send permistion list*/
 const ama_send_perm_udid = [ 'z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo' ];
 
-
 class App extends Component {  
   static async getInitialProps({pathname, query, asPath, req}) {
     //console.log('getInitialProps pathname=', pathname);
@@ -260,7 +259,34 @@ class App extends Component {
         });
       }
     }
-  }
+  };
+  
+  onListItemActionClick = (action_type, asset_did) => {
+    const { session, news_type, news_to_send } = this.state;
+    const { user, token } = session;
+    
+    console.log('onListItemActionClick action_type=', action_type, 'asset_did=', asset_did);
+    
+    if(!user){
+      window.location.href = '/newsflash?openLogin=true';
+      return null;
+    }
+    
+  };
+  
+  IconText = ({ type, text, token_symbol, balance, action_type, asset_did }) => (
+    <span>
+      {balance}{token_symbol}
+      {/*<img className="list-item-action-img" src="/static/images/hashnews/ABT.png" alt="ABT" height="25" width="25" />*/}
+      <a onClick={e => {
+          this.onListItemActionClick(action_type, asset_did);
+        }}
+      > 
+        <Icon type={type} style={{ marginLeft: 8, marginRight: 8 }} />
+        {text}
+      </a>
+    </span>
+  );
   
   onPaymentClose = async result => {
     console.log('onPaymentClose');
@@ -368,6 +394,11 @@ class App extends Component {
       send_permission = false;
     }
     
+    var list_action_show = false;
+    if(!isProduction){
+      list_action_show = true;
+    }
+    
     return (
       <Layout title="HashNews">
         <Main>
@@ -442,7 +473,11 @@ class App extends Component {
               renderItem={item => (
                 <List.Item
                   key={item.hash}
-                  actions={[]}
+                  actions={list_action_show?[
+                    <this.IconText type="like-o" text={item.like_cnt} action_type='like' token_symbol={token.symbol} balance={item.like_min_rem} asset_did={item.asset_did} key="list-item-like" />,
+                    <this.IconText type="message" text={item.comment_cnt} action_type='comment' token_symbol={token.symbol} balance={item.comment_min_rem} asset_did={item.asset_did}  key="list-item-message" />,
+                    <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' token_symbol={token.symbol} balance={item.forward_min_rem} asset_did={item.asset_did}  key="list-item-share" />,
+                  ]:[]}
                   extra={null}
                   className="antd-list-item"
                 >

@@ -63,6 +63,8 @@ async function NewsflashAdd(fields){
     like_counter: 0,
     forward_counter: 0,
     comment_list: [],
+    like_list: [],
+    forward_list: [],
     createdAt: Date(),
   });
   await new_doc.save();

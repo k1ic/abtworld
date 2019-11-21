@@ -25,6 +25,8 @@ const NewsflashSchema = new mongoose.Schema({
   like_counter: { type: Number, default: 0 },
   forward_counter: { type: Number, default: 0 },
   comment_list: { type: Array, default: [] },
+  like_list: { type: Array, default: [] },
+  forward_list: { type: Array, default: [] },
   createdAt: { type: Date },
   updatedAt: { type: Date },
 });

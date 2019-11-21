@@ -109,6 +109,8 @@ module.exports = {
                   temp_tx['like_cnt'] = doc.like_counter;
                   temp_tx['forward_cnt'] = doc.forward_counter;
                   temp_tx['comment_list'] = doc.comment_list;
+                  temp_tx['like_list'] = doc.like_list;
+                  temp_tx['forward_list'] = doc.forward_list;
                 }else{
                   temp_tx['comment_min_rem'] = 0;
                   temp_tx['like_min_rem'] = 0;
@@ -117,6 +119,8 @@ module.exports = {
                   temp_tx['like_cnt'] = 0;
                   temp_tx['forward_cnt'] = 0;
                   temp_tx['comment_list'] = [];
+                  temp_tx['like_list'] = [];
+                  temp_tx['forward_list'] = [];
                 }
 
                 return temp_tx;
@@ -191,6 +195,8 @@ module.exports = {
                   temp_tx['like_cnt'] = doc.like_counter;
                   temp_tx['forward_cnt'] = doc.forward_counter;
                   temp_tx['comment_list'] = doc.comment_list;
+                  temp_tx['like_list'] = doc.like_list;
+                  temp_tx['forward_list'] = doc.forward_list;
                 }else{
                   temp_tx['comment_min_rem'] = 0;
                   temp_tx['like_min_rem'] = 0;
@@ -199,6 +205,8 @@ module.exports = {
                   temp_tx['like_cnt'] = 0;
                   temp_tx['forward_cnt'] = 0;
                   temp_tx['comment_list'] = [];
+                  temp_tx['like_list'] = [];
+                  temp_tx['forward_list'] = [];
                 }
                 
                 return temp_tx;
@@ -256,6 +264,8 @@ module.exports = {
                   temp_tx['like_cnt'] = doc.like_counter;
                   temp_tx['forward_cnt'] = doc.forward_counter;
                   temp_tx['comment_list'] = doc.comment_list;
+                  temp_tx['like_list'] = doc.like_list;
+                  temp_tx['forward_list'] = doc.forward_list;
                 }else{
                   temp_tx['comment_min_rem'] = 0;
                   temp_tx['like_min_rem'] = 0;
@@ -264,6 +274,8 @@ module.exports = {
                   temp_tx['like_cnt'] = 0;
                   temp_tx['forward_cnt'] = 0;
                   temp_tx['comment_list'] = [];
+                  temp_tx['like_list'] = [];
+                  temp_tx['forward_list'] = [];
                 }
                 
                 return temp_tx;
