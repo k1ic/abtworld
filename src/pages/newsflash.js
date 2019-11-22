@@ -45,6 +45,7 @@ const admin_account = env.appAdminAccounts;
 const news_to_chain_mode = 'indirect';
 var news_content_max_length = 0;
 const list_items_per_page = 20;
+const news_comment_max_length = 200;
 
 /*news type default value*/
 const news_type_default = 'chains';
@@ -82,8 +83,11 @@ class App extends Component {
       sending: false,
       loading: false,
       minning: false,
+      comment_input_visible: false,
+      comment_to_send: '',
     };
     
+    this.comment_asset_did = '';
     this.onListItemActionClick = this.onListItemActionClick.bind(this);
   }
   
@@ -222,6 +226,11 @@ class App extends Component {
       this.setState({ toPay: 0 });
     }
     this.setState({ news_to_send: value });
+  };
+  
+  onCommentToSendChange = ({ target: { value } }) => {
+    //console.log('onCommentToSendChange value='+value+' length='+value.length);
+    this.setState({ comment_to_send: value });
   };
   
   /*Send news handler*/
@@ -377,6 +386,11 @@ class App extends Component {
         }
         break;
       case 'comment':
+        this.comment_asset_did = asset_did;
+        this.setState({
+          comment_to_send: '',
+          comment_input_visible: true
+        });
         break;
       case 'share':
         break;
@@ -399,6 +413,32 @@ class App extends Component {
       </a>
     </span>
   );
+  
+  handleCommentInputOk = e => {
+    const { comment_to_send } = this.state;
+  
+    console.log('handleCommentInputOk, asset_did=', this.comment_asset_did);
+    console.log('comment_to_send.length=', comment_to_send.length);
+    //console.log('comment_to_send=', comment_to_send);
+    
+    this.setState({
+      comment_to_send: '',
+      comment_input_visible: false
+    },()=>{
+      this.comment_asset_did = '';
+    });
+  };
+  
+  handleCommentInputCancel = e => {
+    console.log('handleCommentInputCancel, asset_did=', this.comment_asset_did);
+    
+    this.setState({
+      comment_to_send: '',
+      comment_input_visible: false
+    },()=>{
+      this.comment_asset_did = '';
+    });
+  };
   
   onPaymentClose = async result => {
     console.log('onPaymentClose');
@@ -432,7 +472,7 @@ class App extends Component {
   };
 
   render() {
-    const { session, news_type, news_to_send, toPay, sending } = this.state;
+    const { session, news_type, news_to_send, comment_to_send, toPay, sending } = this.state;
     //console.log('render session=', session);
     //console.log('render props=', this.props);
     
@@ -606,6 +646,22 @@ class App extends Component {
                 </List.Item>
               )}
             />
+            <Modal
+             title="发表评论"
+             visible={this.state.comment_input_visible}
+             onOk={this.handleCommentInputOk}
+             okText='发送'
+             onCancel={this.handleCommentInputCancel}
+             destroyOnClose={true}
+            >
+              <TextArea
+                value={comment_to_send}
+                onChange={this.onCommentToSendChange}
+                placeholder={"如: ArcBlock在实体行业的落地应用越来越多("+news_comment_max_length+"字以内)"}
+                autoSize={{ minRows: 1, maxRows: 5 }}
+                maxLength={news_comment_max_length}
+              />
+            </Modal>
           </LocaleProvider>
         </Main>
         {sending && (
