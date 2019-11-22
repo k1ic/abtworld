@@ -156,7 +156,7 @@ async function NewsflashItemGiveLike(fields){
           doc.remain_like_minner_balance -= doc.each_like_minner_balance;
           doc.remain_like_minner_balance = forgeTxValueSecureConvert(doc.remain_like_minner_balance);
         }else{
-          miner_value = doc.remain_like_minner_balance;
+          miner_value = forgeTxValueSecureConvert(doc.remain_like_minner_balance);
           doc.remain_like_minner_balance = 0;
         }
       }
