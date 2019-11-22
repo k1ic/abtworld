@@ -12,20 +12,13 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 const { Picture } = require('../../models');
 const { getNewsForUploadToChain, cleanUserDeadNews } = require('../newsflash');
 const { createNewsflahAsset, listAssets } = require('../../libs/assets');
+const { forgeTxValueSecureConvert } = require('../../libs/transactions');
 
 //const appWallet = fromJSON(wallet);
 //const newsflashAppWallet = fromJSON(newsflashWallet);
 
-const forgeTxDPointMaxNum = 6; /*The max decimal point is 6. The fromTokenToUnit API will failure when max then 6*/
-const forgeTxDPointMaxPow = Math.pow(10, forgeTxDPointMaxNum);
-
 const appWallet = fromSecretKey(process.env.APP_SK, type);
 const newsflashAppWallet = fromSecretKey(process.env.APP_NEWSFLASH_SK, type);
-
-function forgeTxValueSecureConvert(value){
-  /*convert the tx value base on max decimal pointer*/
-  return Math.floor((value)*forgeTxDPointMaxPow)/forgeTxDPointMaxPow; /*round down*/
-}
 
 async function waitAndGetTxHash(hash){
   var res = null;

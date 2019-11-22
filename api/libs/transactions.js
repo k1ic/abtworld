@@ -13,6 +13,14 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 const appWallet = fromJSON(wallet);
 const newsflashAppWallet = fromJSON(newsflashWallet);
 
+const forgeTxDPointMaxNum = 6; /*The max decimal point is 6. The fromTokenToUnit API will failure when max then 6*/
+const forgeTxDPointMaxPow = Math.pow(10, forgeTxDPointMaxNum);
+
+function forgeTxValueSecureConvert(value){
+  /*convert the tx value base on max decimal pointer*/
+  return Math.floor((value)*forgeTxDPointMaxPow)/forgeTxDPointMaxPow; /*round down*/
+}
+
 function unique(arr) {
   return arr.filter(function(item, index, arr) {
     //当前元素，在原始数组中的第一个索引==当前索引值，否则返回当前元素
@@ -401,6 +409,7 @@ if (env.chainHost) {
 */
 
 module.exports = {
+  forgeTxValueSecureConvert,
   fetchForgeTransactions,
   fetchForgeTransactionsV2,
   fetchForgeTransactionsV3,

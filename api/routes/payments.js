@@ -4,6 +4,7 @@ const ForgeSDK = require('@arcblock/forge-sdk');
 const { toAddress } = require('@arcblock/did');
 const { wallet } = require('../libs/auth');
 const { 
+  forgeTxValueSecureConvert,
   fetchForgeTransactions,
   fetchForgeTransactionsV2,
   fetchForgeTransactionsV3
@@ -15,6 +16,9 @@ const { getAssetGenesisHash } = require('../libs/assets');
 const {
   getUserDidFragment
 } = require('../libs/user');
+const {
+  newsflashDocLikeStatusGet
+} = require('./newsflash');
 
 module.exports = {
   init(app) {
@@ -32,7 +36,7 @@ module.exports = {
               }
               break;
             case 'newsflash':
-              module_para = {news_type: req.query.news_type, udid_to_show: req.query.udid_to_show};
+              module_para = {news_type: req.query.news_type, udid: req.query.udid, udid_to_show: req.query.udid_to_show};
               break;
             default:
               break;
@@ -102,15 +106,20 @@ module.exports = {
                 }
                 
                 if(doc){
-                  temp_tx['comment_min_rem'] = doc.remain_comment_minner_balance;
-                  temp_tx['like_min_rem'] = doc.remain_like_minner_balance;
-                  temp_tx['forward_min_rem'] = doc.remain_forward_minner_balance;
+                  temp_tx['comment_min_rem'] = forgeTxValueSecureConvert(doc.remain_comment_minner_balance);
+                  temp_tx['like_min_rem'] = forgeTxValueSecureConvert(doc.remain_like_minner_balance);
+                  temp_tx['forward_min_rem'] = forgeTxValueSecureConvert(doc.remain_forward_minner_balance);
                   temp_tx['comment_cnt'] = doc.comment_counter;
                   temp_tx['like_cnt'] = doc.like_counter;
                   temp_tx['forward_cnt'] = doc.forward_counter;
                   temp_tx['comment_list'] = doc.comment_list;
                   temp_tx['like_list'] = doc.like_list;
                   temp_tx['forward_list'] = doc.forward_list;
+                  if(module_para.udid && module_para.udid.length > 0){
+                    temp_tx['like_status'] = newsflashDocLikeStatusGet(doc, module_para.udid);
+                  }else{
+                    temp_tx['like_status'] = false;
+                  }
                 }else{
                   temp_tx['comment_min_rem'] = 0;
                   temp_tx['like_min_rem'] = 0;
@@ -121,6 +130,7 @@ module.exports = {
                   temp_tx['comment_list'] = [];
                   temp_tx['like_list'] = [];
                   temp_tx['forward_list'] = [];
+                  temp_tx['like_status'] = false;
                 }
 
                 return temp_tx;
@@ -188,15 +198,20 @@ module.exports = {
                 }
                 
                 if(doc){
-                  temp_tx['comment_min_rem'] = doc.remain_comment_minner_balance;
-                  temp_tx['like_min_rem'] = doc.remain_like_minner_balance;
-                  temp_tx['forward_min_rem'] = doc.remain_forward_minner_balance;
+                  temp_tx['comment_min_rem'] = forgeTxValueSecureConvert(doc.remain_comment_minner_balance);
+                  temp_tx['like_min_rem'] = forgeTxValueSecureConvert(doc.remain_like_minner_balance);
+                  temp_tx['forward_min_rem'] = forgeTxValueSecureConvert(doc.remain_forward_minner_balance);
                   temp_tx['comment_cnt'] = doc.comment_counter;
                   temp_tx['like_cnt'] = doc.like_counter;
                   temp_tx['forward_cnt'] = doc.forward_counter;
                   temp_tx['comment_list'] = doc.comment_list;
                   temp_tx['like_list'] = doc.like_list;
                   temp_tx['forward_list'] = doc.forward_list;
+                  if(module_para.udid && module_para.udid.length > 0){
+                    temp_tx['like_status'] = newsflashDocLikeStatusGet(doc, module_para.udid);
+                  }else{
+                    temp_tx['like_status'] = false;
+                  }
                 }else{
                   temp_tx['comment_min_rem'] = 0;
                   temp_tx['like_min_rem'] = 0;
@@ -207,6 +222,7 @@ module.exports = {
                   temp_tx['comment_list'] = [];
                   temp_tx['like_list'] = [];
                   temp_tx['forward_list'] = [];
+                  temp_tx['like_status'] = false;
                 }
                 
                 return temp_tx;
@@ -257,15 +273,20 @@ module.exports = {
                 
                 var doc = null;
                 if(doc){
-                  temp_tx['comment_min_rem'] = doc.remain_comment_minner_balance;
-                  temp_tx['like_min_rem'] = doc.remain_like_minner_balance;
-                  temp_tx['forward_min_rem'] = doc.remain_forward_minner_balance;
+                  temp_tx['comment_min_rem'] = forgeTxValueSecureConvert(doc.remain_comment_minner_balance);
+                  temp_tx['like_min_rem'] = forgeTxValueSecureConvert(doc.remain_like_minner_balance);
+                  temp_tx['forward_min_rem'] = forgeTxValueSecureConvert(doc.remain_forward_minner_balance);
                   temp_tx['comment_cnt'] = doc.comment_counter;
                   temp_tx['like_cnt'] = doc.like_counter;
                   temp_tx['forward_cnt'] = doc.forward_counter;
                   temp_tx['comment_list'] = doc.comment_list;
                   temp_tx['like_list'] = doc.like_list;
                   temp_tx['forward_list'] = doc.forward_list;
+                  if(module_para.udid && module_para.udid.length > 0){
+                    temp_tx['like_status'] = newsflashDocLikeStatusGet(doc, module_para.udid);
+                  }else{
+                    temp_tx['like_status'] = false;
+                  }
                 }else{
                   temp_tx['comment_min_rem'] = 0;
                   temp_tx['like_min_rem'] = 0;
@@ -276,6 +297,7 @@ module.exports = {
                   temp_tx['comment_list'] = [];
                   temp_tx['like_list'] = [];
                   temp_tx['forward_list'] = [];
+                  temp_tx['like_status'] = false;
                 }
                 
                 return temp_tx;

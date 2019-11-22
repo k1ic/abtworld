@@ -3,9 +3,20 @@ const mongoose = require('mongoose');
 const { Newsflash } = require('../models');
 const multiparty = require('multiparty');
 const { 
+  forgeTxValueSecureConvert,
   fetchForgeTransactions,
   getAssetPayDataFromTx
 } = require('../libs/transactions');
+
+const ForgeSDK = require('@arcblock/forge-sdk');
+const { fromJSON } = require('@arcblock/forge-wallet');
+const { fromTokenToUnit, fromUnitToToken } = require('@arcblock/forge-util');
+const { fromAddress } = require('@arcblock/forge-wallet');
+const { fromSecretKey, WalletType } = require('@arcblock/forge-wallet');
+const { wallet, newsflashWallet, type } = require('../libs/auth');
+const env = require('../libs/env');
+const appWallet = fromSecretKey(process.env.APP_SK, type);
+const newsflashAppWallet = fromSecretKey(process.env.APP_NEWSFLASH_SK, type);
 
 const isProduction = process.env.NODE_ENV === 'production';
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
@@ -71,6 +82,110 @@ async function NewsflashAdd(fields){
   console.log('NewsflashAdd saved to db');
   
   return true;;
+}
+
+const newsflashDocLikeStatusGet = (doc, udid) => {
+  var likeStatus = false;
+  var like_list_item = null;
+  
+  if(doc && doc.like_list && doc.like_list.length > 0){
+    like_list_item = doc.like_list.find( function(x){
+      return x.udid === udid;
+    });
+    if(like_list_item){
+      likeStatus = true;
+    }
+  }
+  
+  return likeStatus;
+};
+
+async function payToMiner(udid, mbalance){
+  const { state } = await ForgeSDK.getForgeState(
+    {},
+    { ignoreFields: ['state.protocols', /\.txConfig$/, /\.gas$/] }
+  );
+  var transferHash = null;
+  
+  try {
+    transferHash = await ForgeSDK.sendTransferTx({
+      tx: {
+        itx: {
+          to: udid,
+          value: fromTokenToUnit(mbalance, state.token.decimal),
+        },
+      },
+      wallet: newsflashAppWallet,
+    });
+    console.log('pay', mbalance, 'to minner', udid, transferHash);
+  } catch (err) {
+    transferHash = null;
+    console.error('pay to miner err', err);
+  }
+  
+  return transferHash;
+}
+
+async function NewsflashItemGiveLike(fields){
+  var like_list_item = null;
+  
+  /*fields verify*/
+  if(!fields
+    || typeof(fields.user) == "undefined"
+    || typeof(fields.asset_did) == "undefined"){
+    console.log('NewsflashItemGiveLike invalid fields');
+    return null;
+  }
+  
+  const user = JSON.parse(fields.user[0]);
+  var doc = await Newsflash.findOne({ asset_did: fields.asset_did[0] });
+  if(doc){
+    var likeStatus = newsflashDocLikeStatusGet(doc, user.did);
+    if(likeStatus == false){
+      //doc.minner_state = 'mining';
+      //await doc.save();
+      
+      /*increate like counter*/
+      doc.like_counter += 1;
+      
+      /*like miner*/
+      var miner_value = 0;
+      if(doc.remain_like_minner_balance > 0){
+        if(doc.remain_like_minner_balance > doc.each_like_minner_balance){
+          miner_value = doc.each_like_minner_balance;
+          doc.remain_like_minner_balance -= doc.each_like_minner_balance;
+          doc.remain_like_minner_balance = forgeTxValueSecureConvert(doc.remain_like_minner_balance);
+        }else{
+          miner_value = doc.remain_like_minner_balance;
+          doc.remain_like_minner_balance = 0;
+        }
+      }
+      
+      if(miner_value > 0){
+        /* pay to miner */
+        var transferHash = await payToMiner(user.did, miner_value);
+        if(!transferHash){
+          miner_value = 0;
+        }
+      }else{
+        console.log('NewsflashItemGiveLike empty minner pool');
+      }
+      
+      /*Add new like item to like list*/
+      like_list_item = {
+        udid: user.did,
+        mbalance: miner_value
+      };
+      doc.like_list.push(like_list_item);
+      doc.markModified('like_list');
+      
+      /*update doc*/
+      //doc.minner_state = 'idle';
+      await doc.save();
+    }
+  }
+  
+  return like_list_item;
 }
 
 async function cleanUserDeadNews(strAuthorDid){
@@ -227,13 +342,30 @@ module.exports = {
           
           if(typeof(fields.cmd) != "undefined" && fields.cmd[0] != "undefined"){
             var result = false;
+            var resValue = 'OK';
             
             const cmd = fields.cmd[0];
             console.log('api.newsflashset cmd=', cmd);
             
+            /*cmd list
+             *1. add:  add news to db
+             *2. give_like: give like to newsflash
+             *3. add_comment: add comment to newsflash
+             *4. share: share newsflash
+             */
             switch (cmd) {
               case 'add':
                 result = await NewsflashAdd(fields);
+                break;
+              case 'give_like':
+                result = await NewsflashItemGiveLike(fields);
+                if(result){
+                  resValue = String(result.mbalance);
+                }
+                break;
+              case 'add_comment':
+                break;
+              case 'share':
                 break;
               default:
                 break;
@@ -243,7 +375,7 @@ module.exports = {
               console.log('api.newsflashset ok');
               
               res.statusCode = 200;
-              res.write('newsflash set success');
+              res.write(resValue);
               res.end();
               return;
             }
@@ -265,6 +397,7 @@ module.exports = {
     /*end of /api/newsflashset post*/
   },
   
+  newsflashDocLikeStatusGet,
   getNewsForUploadToChain,
   cleanUserDeadNews,
 };

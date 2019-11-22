@@ -31,7 +31,7 @@ import useSession from '../hooks/session';
 import forge from '../libs/sdk';
 import api from '../libs/api';
 import env from '../libs/env';
-import { HashString } from '../libs/crypto';
+import { forgeTxValueSecureConvert, HashString } from '../libs/crypto';
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
@@ -81,14 +81,21 @@ class App extends Component {
       newsflash_list: [],
       sending: false,
       loading: false,
+      minning: false,
     };
+    
+    this.onListItemActionClick = this.onListItemActionClick.bind(this);
   }
   
   /*Fetch App data*/
   async fetchAppData(){
     try {
       const { status, data} = await api.get('/api/session');
-      this.setState({session: data});
+      this.setState({
+        session: data
+      },()=>{
+        this.fetchNewsFlash();
+      });
     } catch (err) {
     }
     return {};
@@ -96,7 +103,7 @@ class App extends Component {
   
   /*Fetch news flash */
   fetchNewsFlash = (params = {}) => {
-    
+    var udid = '';
     if(this.state.loading === true){
       console.log('fetchNewsFlash is loading');
       return;
@@ -110,6 +117,7 @@ class App extends Component {
       
     var udid_to_show = '';
     if(this.state.session && this.state.session.user){
+      udid = this.state.session.user.did;
       if(this.state.show_mode === 'mine'){
         udid_to_show = this.state.session.user.did;
       }
@@ -121,6 +129,7 @@ class App extends Component {
       data: {
         module: 'newsflash',
         news_type: this.state.news_type,
+        udid: udid,
         udid_to_show: udid_to_show,
         ...params,
       },
@@ -140,19 +149,17 @@ class App extends Component {
   };
   
   /*component mount process*/
-  componentDidMount() {
-    this.fetchAppData();
-    
+  componentDidMount() {    
     //console.log('componentDidMount hash=', window.location.hash.slice(1));
     const location_hash = window.location.hash.slice(1);
     if(typeof(location_hash) != "undefined" && location_hash && location_hash.length > 0) {
       const hashArr = location_hash.split('?');
       this.setState({news_type: hashArr[0]},()=>{
         console.log('componentDidMount news_type=', this.state.news_type);        
-        this.fetchNewsFlash();
+        this.fetchAppData();
       });
     }else{
-      this.fetchNewsFlash();
+      this.fetchAppData();
     }
     
     if (! this.state.intervalIsSet) {
@@ -247,13 +254,15 @@ class App extends Component {
           method: 'post',
           processData: false,
           data: formData,
-          success: () => {
+          success: (result) => {
+            //console.log('add newsflash success with response=', result.response);
             this.setState({
               asset_did: asset_did,
               sending: true,
             });
           },
-          error: () => {
+          error: (result) => {
+            console.log('add newsflash error with response=', result.response);
             Modal.error({title: '发布失败'});
           },
         });
@@ -261,28 +270,131 @@ class App extends Component {
     }
   };
   
+  newsflashListItemFind = asset_did => {
+    const {newsflash_list} = this.state;
+    var newsflashItem = null;
+    
+    if(!newsflash_list || newsflash_list.length == 0){
+      return null;
+    }
+    
+    newsflashItem = newsflash_list.find( function(x){
+      return x.asset_did === asset_did;
+    });
+    
+    return newsflashItem;
+  }
+  
+  newsflashListItemLikeStatusGet = (item, userDid) => {
+    var likeStatus = false;
+    var like_list_item = null;
+    
+    if(item && item.like_list && item.like_list.length > 0){
+      like_list_item = item.like_list.find( function(x){
+        return x.udid === userDid;
+      });
+      if(like_list_item){
+        likeStatus = true;
+      }
+    }
+    
+    return likeStatus;
+  }
+  
   onListItemActionClick = (action_type, asset_did) => {
-    const { session, news_type, news_to_send } = this.state;
+    const { session, newsflash_list } = this.state;
     const { user, token } = session;
+    var newsflashItem = this.newsflashListItemFind(asset_did);
     
     console.log('onListItemActionClick action_type=', action_type, 'asset_did=', asset_did);
+    
+    if(!newsflashItem){
+      console.log('onListItemActionClick invalid newsflash item');
+      return null;
+    }
     
     if(!user){
       window.location.href = '/newsflash?openLogin=true';
       return null;
     }
     
+    /*Disable auto refresh*/
+    if (this.state.intervalIsSet) {
+      clearInterval(this.state.intervalIsSet);
+      this.setState({ intervalIsSet: null});
+    }
+    
+    switch(action_type){
+      case 'like':
+        /*verify if already liked*/
+        if(this.newsflashListItemLikeStatusGet(newsflashItem, user.did)){
+          Modal.success({title: '忽略重复点赞'});
+        }else{
+          newsflashItem.like_cnt += 1;
+          const like_list_item = {
+           udid: user.did,
+           mbalance: 0
+          };
+          newsflashItem.like_list.push(like_list_item);
+          newsflashItem.like_status = true;
+          
+          /*send like minning request*/
+          this.setState({
+            minning: true
+          });
+          
+          const formData = new FormData();
+          formData.append('user', JSON.stringify(user));
+          formData.append('cmd', 'give_like');
+          formData.append('asset_did', asset_did);
+        
+          reqwest({
+            url: '/api/newsflashset',
+            method: 'post',
+            processData: false,
+            data: formData,
+            success: (result) => {
+              console.log('like minning success with response=', result.response);
+              if(parseFloat(result.response) > 0){
+                newsflashItem.like_min_rem -= parseFloat(result.response);
+                newsflashItem.like_min_rem = forgeTxValueSecureConvert(newsflashItem.like_min_rem);
+                const modal_content = '获得'+result.response+token.symbol;
+                Modal.success({title: modal_content});
+              }else{
+                console.log('like minning poll is empty');
+              }
+              this.setState({
+                minning: false
+              });
+            },
+            error: (result) => {
+              console.log('like minning error with response=', result.response);
+              this.setState({
+                minning: false
+              });
+            },
+          });
+        }
+        break;
+      case 'comment':
+        break;
+      case 'share':
+        break;
+      default:
+        break;
+    }
+    
   };
   
-  IconText = ({ type, text, token_symbol, balance, action_type, asset_did }) => (
-    <span>
+  IconText = ({ type, text, token_symbol, balance, action_type, like_status, asset_did }) => (
+    <span className="antd-list-action-icon-text">
       {balance}{token_symbol}
       {/*<img className="list-item-action-img" src="/static/images/hashnews/ABT.png" alt="ABT" height="25" width="25" />*/}
       <a onClick={e => {
           this.onListItemActionClick(action_type, asset_did);
         }}
       > 
-        <Icon type={type} style={{ marginLeft: 8, marginRight: 8 }} />
+        {action_type=='like'&&like_status==true?<Icon type={type} theme="twoTone" twoToneColor="#0000FF" style={{ marginLeft: 8, marginRight: 8 }} />:<Icon type={type} style={{ marginLeft: 8, marginRight: 8 }} />}
         {text}
       </a>
     </span>
@@ -397,6 +509,10 @@ class App extends Component {
     var list_action_show = false;
     if(!isProduction){
       list_action_show = true;
+    }else{
+      if(user && -1 != admin_account.indexOf(user.did)){
+        list_action_show = true;
+      }
     }
     
     return (
@@ -474,9 +590,9 @@ class App extends Component {
                 <List.Item
                   key={item.hash}
                   actions={list_action_show?[
-                    <this.IconText type="like-o" text={item.like_cnt} action_type='like' token_symbol={token.symbol} balance={item.like_min_rem} asset_did={item.asset_did} key="list-item-like" />,
-                    <this.IconText type="message" text={item.comment_cnt} action_type='comment' token_symbol={token.symbol} balance={item.comment_min_rem} asset_did={item.asset_did}  key="list-item-message" />,
-                    <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' token_symbol={token.symbol} balance={item.forward_min_rem} asset_did={item.asset_did}  key="list-item-share" />,
+                    <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} balance={item.like_min_rem} asset_did={item.asset_did} key="list-item-like" />,
+                    <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} balance={item.comment_min_rem} asset_did={item.asset_did}  key="list-item-message" />,
+                    <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' like_status={item.like_status} token_symbol={token.symbol} balance={item.forward_min_rem} asset_did={item.asset_did}  key="list-item-share" />,
                   ]:[]}
                   extra={null}
                   className="antd-list-item"
@@ -566,7 +682,14 @@ const Main = styled.main`
     font-size: 0.8rem;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-weight: 200;
-    color: #1874CD;
+    color: #000000;
+  }
+  
+  .antd-list-action-icon-text{
+    font-size: 0.6rem;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-weight: 200;
+    color: #FF6600;
   }
 
 `;
