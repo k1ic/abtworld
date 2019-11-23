@@ -18,6 +18,8 @@ const env = require('../libs/env');
 const appWallet = fromSecretKey(process.env.APP_SK, type);
 const newsflashAppWallet = fromSecretKey(process.env.APP_NEWSFLASH_SK, type);
 
+const { getLocalTimeStr } = require('../libs/time');
+
 const isProduction = process.env.NODE_ENV === 'production';
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
@@ -99,6 +101,63 @@ const newsflashDocLikeStatusGet = (doc, udid) => {
   
   return likeStatus;
 };
+
+const newsflashDocCommentFind = (doc, comment) => {
+  var comment_list_item = null;
+  
+  if(doc && doc.comment_list && doc.comment_list.length > 0){
+    comment_list_item = doc.comment_list.find( function(x){
+      return x.comment === comment;
+    });
+  }
+  
+  return comment_list_item;
+}
+
+const newsflashDocCommentMinableValueGet = (doc, udid, comment) => {
+  var minValue = 0;
+  var comment_list_item = null;
+  
+  if(!doc || !udid || !comment){
+    return 0;
+  }
+  
+  /*min pool is empty*/
+  if(doc.remain_comment_minner_balance == 0){
+     console.log('newsflashDocCommentMinableValueGet empty minner pool');
+     return 0;
+  }
+  
+  /*The comment is too short*/
+  console.log('newsflashDocCommentMinableValueGet comment.length', comment.length);
+  if(comment.length < 5){
+    console.log('newsflashDocCommentMinableValueGet comment is too short');
+    return 0;
+  }
+  
+  /*Only min once each user*/
+  if(doc.comment_list && doc.comment_list.length > 0){
+    comment_list_item = doc.comment_list.find( function(x){
+      return (x.udid === udid && x.mbalance > 0);
+    });
+    if(comment_list_item){
+      console.log('newsflashDocCommentMinableValueGet udid=', udid, 'already minned');
+      return 0;
+    }
+  }
+  
+  /*Get the minable value*/
+  if(doc.remain_comment_minner_balance > doc.each_comment_minner_balance){
+    minValue = doc.each_comment_minner_balance;
+  }else{
+    minValue = forgeTxValueSecureConvert(doc.remain_comment_minner_balance);
+  }
+  
+  console.log('newsflashDocCommentMinableValueGet minValue=', minValue);
+  
+  return minValue;
+}
+
 
 async function payToMiner(udid, mbalance){
   const { state } = await ForgeSDK.getForgeState(
@@ -186,6 +245,74 @@ async function NewsflashItemGiveLike(fields){
   }
   
   return like_list_item;
+}
+
+
+async function NewsflashItemAddComment(fields){
+  var comment_list_item = null;
+  
+  /*fields verify*/
+  if(!fields
+    || typeof(fields.user) == "undefined"
+    || typeof(fields.asset_did) == "undefined"
+    || typeof(fields.comment) == "undefined"){
+    console.log('NewsflashItemAddComment invalid fields');
+    return null;
+  }
+  
+  const user = JSON.parse(fields.user[0]);
+  const comment = fields.comment[0];
+  var doc = await Newsflash.findOne({ asset_did: fields.asset_did[0] });
+  
+  if(doc){
+    if(newsflashDocCommentFind(doc, comment)){
+      console.log('NewsflashItemAddComment comment already in list');
+      return null;
+    }
+    
+    comment_list_item = {
+      uname: user.name,
+      udid: user.did,
+      time: getLocalTimeStr(),
+      comment: comment,
+      mbalance: 0
+    };
+    
+    const minValue = newsflashDocCommentMinableValueGet(doc, user.did, comment);
+    comment_list_item.mbalance = minValue;
+    
+    //doc.minner_state = 'mining';
+    //await doc.save();
+    if(minValue > 0){
+      /* pay to miner */
+      var transferHash = await payToMiner(user.did, minValue);
+      if(!transferHash){
+        minValue = 0;
+        comment_list_item.mbalance = 0;
+      }
+      
+      /*update min remains*/
+      if(minValue > 0){
+        if(doc.remain_comment_minner_balance > minValue){
+          doc.remain_comment_minner_balance -= minValue;
+          doc.remain_comment_minner_balance = forgeTxValueSecureConvert(doc.remain_comment_minner_balance);
+        }else{
+          doc.remain_comment_minner_balance = 0;
+        }
+      }
+    }
+    
+    /*update doc*/
+    //doc.minner_state = 'idle';
+    doc.comment_counter += 1;
+    doc.comment_list.push(comment_list_item);
+    doc.markModified('comment_list');
+    await doc.save();
+    
+    console.log('NewsflashItemAddComment comment add success');
+  }
+  
+  return comment_list_item;
 }
 
 async function cleanUserDeadNews(strAuthorDid){
@@ -364,6 +491,10 @@ module.exports = {
                 }
                 break;
               case 'add_comment':
+                result = await NewsflashItemAddComment(fields);
+                if(result){
+                  resValue = String(result.mbalance);
+                }
                 break;
               case 'share':
                 break;

@@ -25,6 +25,7 @@ import zh_CN from 'antd/lib/locale-provider/zh_CN'
 import reqwest from 'reqwest';
 import 'antd/dist/antd.css';
 import Auth from '@arcblock/did-react/lib/Auth';
+//import moment from 'moment';
 
 import Layout from '../components/layout';
 import useSession from '../hooks/session';
@@ -32,6 +33,8 @@ import forge from '../libs/sdk';
 import api from '../libs/api';
 import env from '../libs/env';
 import { forgeTxValueSecureConvert, HashString } from '../libs/crypto';
+import { getCurrentTime } from '../libs/time';
+import { getUserDidFragment } from '../libs/user';
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
@@ -337,7 +340,7 @@ class App extends Component {
       case 'like':
         /*verify if already liked*/
         if(this.newsflashListItemLikeStatusGet(newsflashItem, user.did)){
-          Modal.success({title: '忽略重复点赞'});
+          Modal.success({title: '已赞过'});
         }else{
           newsflashItem.like_cnt += 1;
           const like_list_item = {
@@ -367,7 +370,7 @@ class App extends Component {
               if(parseFloat(result.response) > 0){
                 newsflashItem.like_min_rem -= parseFloat(result.response);
                 newsflashItem.like_min_rem = forgeTxValueSecureConvert(newsflashItem.like_min_rem);
-                const modal_content = '获得'+result.response+token.symbol;
+                const modal_content = '获得'+result.response+token.symbol+" 请到ABT钱包中查看!";
                 Modal.success({title: modal_content});
               }else{
                 console.log('like minning poll is empty');
@@ -402,24 +405,96 @@ class App extends Component {
   
   IconText = ({ type, text, token_symbol, balance, action_type, like_status, asset_did }) => (
     <span className="antd-list-action-icon-text">
-      {balance}{token_symbol}
+      <span className="antd-list-action-icon-text-balance">{balance}</span>
       {/*<img className="list-item-action-img" src="/static/images/hashnews/ABT.png" alt="ABT" height="25" width="25" />*/}
       <a onClick={e => {
           this.onListItemActionClick(action_type, asset_did);
         }}
       > 
-        {action_type=='like'&&like_status==true?<Icon type={type} theme="twoTone" twoToneColor="#0000FF" style={{ marginLeft: 8, marginRight: 8 }} />:<Icon type={type} style={{ marginLeft: 8, marginRight: 8 }} />}
+        {action_type=='like'&&like_status==true?<Icon type={type} theme="twoTone" twoToneColor="#0000FF" style={{ marginLeft: 4, marginRight: 4 }} />:<Icon type={type} style={{ marginLeft: 8, marginRight: 8 }} />}
         {text}
       </a>
     </span>
   );
   
   handleCommentInputOk = e => {
-    const { comment_to_send } = this.state;
+    const { session, newsflash_list, comment_to_send } = this.state;
+    const { user, token } = session;
+    var newsflashItem = this.newsflashListItemFind(this.comment_asset_did);
+    
+    if(!newsflashItem){
+      console.log('handleCommentInputOk invalid newsflash item');
+      return null;
+    }
+  
+    //verify input parameter
+    if(!this.comment_asset_did || this.comment_asset_did.length == 0){
+      console.log('handleCommentInputOk invalid comment_asset_did');
+      return null;
+    }
+    if(!comment_to_send || comment_to_send.length == 0){
+      console.log('handleCommentInputOk comment_to_send is empy');
+      return null;
+    }
   
     console.log('handleCommentInputOk, asset_did=', this.comment_asset_did);
     console.log('comment_to_send.length=', comment_to_send.length);
     //console.log('comment_to_send=', comment_to_send);
+    
+    var current_time = getCurrentTime();
+    //console.log('current_time=', current_time);
+    
+    var comment_list_item = {
+      uname: user.name,
+      udid: user.did,
+      time: current_time,
+      comment: comment_to_send,
+      mbalance: 0
+    };
+    
+    /*send comment minning request*/
+    this.setState({
+      minning: true
+    });
+          
+    const formData = new FormData();
+    formData.append('user', JSON.stringify(user));
+    formData.append('cmd', 'add_comment');
+    formData.append('asset_did', this.comment_asset_did);
+    formData.append('comment', comment_to_send);
+        
+    reqwest({
+      url: '/api/newsflashset',
+      method: 'post',
+      processData: false,
+      data: formData,
+      success: (result) => {
+        console.log('add comment minning success with response=', result.response);
+        if(parseFloat(result.response) > 0){
+          newsflashItem.comment_min_rem -= parseFloat(result.response);
+          newsflashItem.comment_min_rem = forgeTxValueSecureConvert(newsflashItem.comment_min_rem);
+          const modal_content = '获得'+result.response+token.symbol+" 请到ABT钱包中查看!";
+          Modal.success({title: modal_content});
+        }else{
+          console.log('comment minning poll is empty');
+        }
+        
+        newsflashItem.comment_cnt += 1;
+        comment_list_item.mbalance = parseFloat(result.response);
+        newsflashItem.comment_list.push(comment_list_item);
+        
+        this.setState({
+          minning: false
+        });
+      },
+      error: (result) => {
+        console.log('comment minning error with response=', result.response);
+        Modal.error({title: '评论失败，请检查是否刷屏!'});
+        this.setState({
+          minning: false
+        });
+      },
+    });
     
     this.setState({
       comment_to_send: '',
@@ -742,10 +817,12 @@ const Main = styled.main`
   }
   
   .antd-list-action-icon-text{
-    font-size: 0.6rem;
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    font-weight: 200;
-    color: #FF6600;
+    .antd-list-action-icon-text-balance{
+      font-size: 0.6rem;
+      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+      font-weight: 200;
+      color: #FF6600;
+    }
   }
 
 `;
