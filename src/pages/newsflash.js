@@ -26,6 +26,8 @@ import reqwest from 'reqwest';
 import 'antd/dist/antd.css';
 import Auth from '@arcblock/did-react/lib/Auth';
 //import moment from 'moment';
+import * as QrCode from 'qrcode.react';
+import * as html2canvas from 'html2canvas';
 
 import Layout from '../components/layout';
 import useSession from '../hooks/session';
@@ -35,6 +37,8 @@ import env from '../libs/env';
 import { forgeTxValueSecureConvert, HashString } from '../libs/crypto';
 import { getCurrentTime } from '../libs/time';
 import { getUserDidFragment } from '../libs/user';
+
+const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
@@ -56,6 +60,10 @@ const news_type_default = 'chains';
 /*pay valye*/
 const toPayEachChar = 0.001;
 const dPointNumMax = 6;
+
+/*poster window width*/
+const posterWinWidth = 300;
+var share_news_pic_data = '';
 
 /*send permistion list*/
 const ama_send_perm_udid = [ 'z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo' ];
@@ -97,9 +105,13 @@ class App extends Component {
       minning: false,
       comment_input_visible: false,
       comment_to_send: '',
+      gen_share_news_visible: false,
+      share_news_pic_visible: false,
     };
     
     this.comment_asset_did = '';
+    this.share_asset_did = '';
+    this.share_news_items = [];
     this.winW = 0;
     this.winH = 0;
     this.onListItemActionClick = this.onListItemActionClick.bind(this);
@@ -324,7 +336,23 @@ class App extends Component {
     return likeStatus;
   }
   
-  onListItemActionClick = (action_type, asset_did) => {
+  newsflashListItemForwardStatusGet = (item, userDid) => {
+    var forwardStatus = false;
+    var forward_list_item = null;
+    
+    if(item && item.forward_list && item.forward_list.length > 0){
+      forward_list_item = item.forward_list.find( function(x){
+        return x.udid === userDid;
+      });
+      if(forward_list_item){
+        forwardStatus = true;
+      }
+    }
+    
+    return forwardStatus;
+  }
+  
+  onListItemActionClick = async (action_type, asset_did) => {
     const { session, newsflash_list } = this.state;
     const { user, token } = session;
     var newsflashItem = this.newsflashListItemFind(asset_did);
@@ -407,6 +435,55 @@ class App extends Component {
         });
         break;
       case 'share':
+        this.share_asset_did = asset_did;
+        this.share_news_items[0] = newsflashItem;
+        
+        this.setState({
+          gen_share_news_visible: true
+        },()=>{
+          share_news_pic_data = '';
+          var opts = {
+            dpi: window.devicePixelRatio * 4,
+            scale: 4,
+            useCORS: true
+          };
+          
+          html2canvas(document.getElementById('shareNewsContent'), opts).then(function(canvas) {
+            share_news_pic_data = canvas.toDataURL("image/jpg");            
+          });
+        });
+        
+        /*wait share news pic ready*/
+        var wait_counter = 0;
+        while(share_news_pic_data.length == 0){
+          await sleep(1);
+          wait_counter++;
+          if(wait_counter > 15000){
+            break;
+          }
+        }
+        console.log('share news pic ready counter=', wait_counter);
+        if(share_news_pic_data.length > 0){
+          this.setState({
+            gen_share_news_visible: false,
+            share_news_pic_visible: true
+          }, ()=>{
+            let posterImage = document.getElementById("shareNewsPic");
+            posterImage.src = share_news_pic_data;
+          });
+        }else{
+          this.setState({
+            gen_share_news_visible: false
+          }, ()=>{
+          });
+          consolg.log('share news failure');
+        }
+        
+        //html2canvas(document.getElementById(this.share_asset_did),{scale:1}).then(function(canvas) {
+        //  let posterImage = document.getElementById("shareNewsPic")
+        //  posterImage.src = canvas.toDataURL("image/jpg")
+        //});
+        
         break;
       default:
         break;
@@ -530,6 +607,99 @@ class App extends Component {
       comment_input_visible: false
     },()=>{
       this.comment_asset_did = '';
+    });
+  };
+  
+  handleGenShareNewsOk = e => {
+    console.log('handleGenShareNewsOk, asset_did=', this.share_asset_did);
+   
+    this.setState({
+      gen_share_news_visible: false
+    },()=>{
+    });
+  };
+  
+  handleGenShareNewsCancel = e => {
+    console.log('handleGenShareNewsCancel, asset_did=', this.share_asset_did);
+    
+    this.setState({
+      gen_share_news_visible: false
+    },()=>{
+      this.share_asset_did = '';
+    });
+  };
+  
+  handleShareNewsPicOk = e => {
+    const { session } = this.state;
+    const { user, token } = session;
+    
+    console.log('handleShareNewsPicOk share_news_pic_data.length=', share_news_pic_data.length);
+   
+    var newsflashItem = this.newsflashListItemFind(this.share_asset_did);
+    if(newsflashItem){
+      newsflashItem.forward_cnt += 1;
+      const forward_list_item = {
+        udid: user.did,
+        mbalance: 0
+      };
+      newsflashItem.forward_list.push(forward_list_item);
+          
+      /*send forward minning request*/
+      this.setState({
+        minning: true
+      });
+          
+      const formData = new FormData();
+      formData.append('user', JSON.stringify(user));
+      formData.append('cmd', 'forward');
+      formData.append('asset_did', this.share_asset_did);
+        
+      reqwest({
+        url: '/api/newsflashset',
+        method: 'post',
+        processData: false,
+        data: formData,
+        success: (result) => {
+          console.log('forward minning success with response=', result.response);
+          if(parseFloat(result.response) > 0){
+            newsflashItem.forward_min_rem -= parseFloat(result.response);
+            newsflashItem.forward_min_rem = forgeTxValueSecureConvert(newsflashItem.forward_min_rem);
+            const modal_content = '获得'+result.response+token.symbol+" 请到ABT钱包中查看!";
+            Modal.success({title: modal_content});
+          }else{
+            console.log('forward minning poll is empty or already minned');
+          }
+          this.setState({
+            minning: false
+          });
+        },
+        error: (result) => {
+          console.log('forward minning error with response=', result.response);
+          this.setState({
+            minning: false
+          });
+        },
+      });
+    }else{
+      console.log('handleShareNewsPicOk unknown news item.');
+    }
+   
+    this.setState({
+      share_news_pic_visible: false
+    },()=>{
+      share_news_pic_data = '';
+      this.share_asset_did = '';
+    });
+  };
+  
+  handleShareNewsPicCancel = e => {
+    console.log('handleShareNewsPicCancel share_news_pic_data.length=', share_news_pic_data.length);
+    
+    this.setState({
+      share_news_pic_visible: false
+    },()=>{
+      share_news_pic_data = '';
+      this.share_asset_did = '';
     });
   };
   
@@ -731,9 +901,9 @@ class App extends Component {
                 <List.Item
                   key={item.hash}
                   actions={list_action_show?[
-                    <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} balance={item.like_min_rem} asset_did={item.asset_did} key="list-item-like" />,
-                    <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} balance={item.comment_min_rem} asset_did={item.asset_did}  key="list-item-message" />,
-                    <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' like_status={item.like_status} token_symbol={token.symbol} balance={item.forward_min_rem} asset_did={item.asset_did}  key="list-item-share" />,
+                    <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} balance={item.like_min_rem} asset_did={item.asset_did} key={"list-item-like"+item.hash} />,
+                    <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} balance={item.comment_min_rem} asset_did={item.asset_did}  key={"list-item-message"+item.hash} />,
+                    <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' like_status={item.like_status} token_symbol={token.symbol} balance={item.forward_min_rem} asset_did={item.asset_did}  key={"list-item-share"+item.hash} />,
                   ]:[]}
                   extra={null}
                   className="antd-list-item"
@@ -743,9 +913,11 @@ class App extends Component {
                     title={<p className="antd-list-item-meta-title">{item.title}</p>}
                     description={<a href={item.href} target="_blank" className="antd-list-item-meta-description"> 哈希@{item.time} </a>}
                   />
-                  <Paragraph ellipsis={{ rows: 6, expandable: true }}>
-                    {item.content}
-                  </Paragraph>
+                  <div id={item.asset_did}>
+                    <Paragraph ellipsis={{ rows: 6, expandable: true }}>
+                      {item.content}
+                    </Paragraph>
+                  </div>
                   {(list_action_show && item.comment_list.length > 0) && 
                     <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />}
                 </List.Item>
@@ -769,6 +941,67 @@ class App extends Component {
                 autoSize={{ minRows: 1, maxRows: 5 }}
                 maxLength={news_comment_max_length}
               />
+            </Modal>
+            <Modal
+             style={{ top: 10 }}
+             title={null}
+             closable={false}
+             footer={null}
+             visible={this.state.gen_share_news_visible}
+             okText='生成'
+             onOk={this.handleGenShareNewsOk}
+             onCancel={this.handleGenShareNewsCancel}
+             destroyOnClose={true}
+             forceRender={true}
+             width = {posterWinWidth}
+            >
+              <div id="shareNewsContent">
+                <List
+                  itemLayout="vertical"
+                  size="large"
+                  pagination={null}
+                  dataSource={this.share_news_items}
+                  footer={null}
+                  renderItem={item => (
+                    <List.Item
+                      key={"share"+item.hash}
+                      actions={list_action_show?[
+                        <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} balance={item.like_min_rem} asset_did={item.asset_did} key={"list-item-like-share"+item.hash} />,
+                        <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} balance={item.comment_min_rem} asset_did={item.asset_did}  key={"list-item-message-share"+item.hash} />,
+                      ]:[]}
+                      extra={null}
+                      className="antd-list-item"
+                    >
+                      <List.Item.Meta
+                        avatar={item.uavatar.length>0?<img src={item.uavatar} height="40" width="40"/>:<Avatar size={40} did={item.sender} />}
+                        title={<p style={{ fontSize: '12px', color: '#3CB371' }}>{item.title}</p>}
+                        description={<a href={item.href} target="_blank" style={{ fontSize: '12px', color: '#0000FF' }}> 哈希@{item.time} </a>}
+                      />
+                      {item.content}
+                    </List.Item>
+                  )}
+                />
+                <span style={{ fontSize: '14px', color: '#009966', marginLeft: 10,  marginRight: 30 }} >哈希快讯</span>
+                <QrCode value={"http://abtworld.cn/newsflash"} size={60} level={'L'} fgColor={"#006699"} bgColor={"#D3D3D3"} includeMargin={false} id="HashNewsQrCode" style={{ marginRight: 0 }} />
+                <span style={{fontSize: '14px', color: '#009966', marginLeft: 10 }} >http://abtworld.cn/newsflash</span> <br/>
+                <span style={{fontSize: '14px', color: '#009966', marginLeft: 10 }} >自主身份发布，资讯哈希可查！</span>
+              </div>
+            </Modal>
+            <Modal
+             style={{ top: 10 }}
+             title="长按分享图片"
+             closable={true}
+             visible={this.state.share_news_pic_visible}
+             okText='完成'
+             onOk={this.handleShareNewsPicOk}
+             onCancel={this.handleShareNewsPicCancel}
+             destroyOnClose={true}
+             forceRender={true}
+             width = {posterWinWidth}
+            >
+              <div>
+                <img src="/static/blank.jpg" id="shareNewsPic" alt="HashNews"  width={posterWinWidth - 30} />
+              </div>
             </Modal>
           </LocaleProvider>
         </Main>
@@ -846,7 +1079,7 @@ const Main = styled.main`
     font-size: 0.8rem;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-weight: 200;
-    color: #000000;
+    color: #0000FF;
   }
   
   .antd-list-action-icon-text{

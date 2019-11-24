@@ -103,6 +103,22 @@ const newsflashDocLikeStatusGet = (doc, udid) => {
   return likeStatus;
 };
 
+const newsflashDocForwardStatusGet = (doc, udid) => {
+  var forwardStatus = false;
+  var forward_list_item = null;
+  
+  if(doc && doc.forward_list && doc.forward_list.length > 0){
+    forward_list_item = doc.forward_list.find( function(x){
+      return x.udid === udid;
+    });
+    if(forward_list_item){
+      forwardStatus = true;
+    }
+  }
+  
+  return forwardStatus;
+};
+
 const newsflashDocCommentFind = (doc, comment) => {
   var comment_list_item = null;
   
@@ -246,6 +262,77 @@ async function NewsflashItemGiveLike(fields){
   }
   
   return like_list_item;
+}
+
+async function NewsflashItemForward(fields){
+  var forward_list_item = null;
+  
+  /*fields verify*/
+  if(!fields
+    || typeof(fields.user) == "undefined"
+    || typeof(fields.asset_did) == "undefined"){
+    console.log('NewsflashItemForward invalid fields');
+    return null;
+  }
+  
+  const user = JSON.parse(fields.user[0]);
+  var doc = await Newsflash.findOne({ asset_did: fields.asset_did[0] });
+  if(doc){
+    var forwardStatus = newsflashDocForwardStatusGet(doc, user.did);
+    if(forwardStatus == false){
+      //doc.minner_state = 'mining';
+      //await doc.save();
+      
+      /*increate forward counter*/
+      doc.forward_counter += 1;
+      
+      /*forward miner*/
+      var miner_value = 0;
+      if(doc.remain_forward_minner_balance > 0){
+        if(doc.remain_forward_minner_balance > doc.each_forward_minner_balance){
+          miner_value = doc.each_forward_minner_balance;
+          doc.remain_forward_minner_balance -= doc.each_forward_minner_balance;
+          doc.remain_forward_minner_balance = forgeTxValueSecureConvert(doc.remain_forward_minner_balance);
+        }else{
+          miner_value = forgeTxValueSecureConvert(doc.remain_forward_minner_balance);
+          doc.remain_forward_minner_balance = 0;
+        }
+      }
+      
+      if(miner_value > 0){
+        /* pay to miner */
+        var transferHash = await payToMiner(user.did, miner_value);
+        if(!transferHash){
+          miner_value = 0;
+        }
+      }else{
+        console.log('NewsflashItemForward empty minner pool');
+      }
+      
+      /*Add new forward item to forward list*/
+      forward_list_item = {
+        udid: user.did,
+        mbalance: miner_value
+      };
+      doc.forward_list.push(forward_list_item);
+      doc.markModified('forward_list');
+      
+      /*update doc*/
+      //doc.minner_state = 'idle';
+      await doc.save();
+    }else{
+      /*increate forward counter*/
+      doc.forward_counter += 1;
+      await doc.save();
+      
+      forward_list_item = {
+        udid: user.did,
+        mbalance: 0
+      };
+    }
+  }
+  
+  return forward_list_item;
 }
 
 
@@ -498,7 +585,11 @@ module.exports = {
                   resValue = String(result.mbalance);
                 }
                 break;
-              case 'share':
+              case 'forward':
+                result = await NewsflashItemForward(fields);
+                if(result){
+                  resValue = String(result.mbalance);
+                }
                 break;
               default:
                 break;
