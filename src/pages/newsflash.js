@@ -48,7 +48,7 @@ const admin_account = env.appAdminAccounts;
 const news_to_chain_mode = 'indirect';
 var news_content_max_length = 0;
 const list_items_per_page = 20;
-const news_comment_max_length = 200;
+const news_comment_max_length = 100;
 
 /*news type default value*/
 const news_type_default = 'chains';
@@ -59,6 +59,15 @@ const dPointNumMax = 6;
 
 /*send permistion list*/
 const ama_send_perm_udid = [ 'z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo' ];
+
+const renderCommentList = (x, token) => (
+  <span className="antd-list-comment-list-item-text">
+    <span style={{ fontSize: '14px', color: '#3CB371' }}>{x.uname}：</span>
+    <span style={{ fontSize: '14px', color: '#0' }}>{x.comment}</span>
+    {(x.mbalance>0)?<span style={{ fontSize: '10px', color: '#FF6600' }}> +{x.mbalance} {token.symbol}</span>:''}
+    <br/>
+  </span>
+);
 
 class App extends Component {  
   static async getInitialProps({pathname, query, asPath, req}) {
@@ -91,6 +100,8 @@ class App extends Component {
     };
     
     this.comment_asset_did = '';
+    this.winW = 0;
+    this.winH = 0;
     this.onListItemActionClick = this.onListItemActionClick.bind(this);
   }
   
@@ -417,6 +428,12 @@ class App extends Component {
     </span>
   );
   
+  CommentList = ({ asset_did, comment_cnt, comment_list, token }) => (
+    <Paragraph className="antd-list-comment-list-text" ellipsis={{ rows: 6, expandable: true }}>
+      {comment_list.map(x => renderCommentList(x, token))}
+    </Paragraph>
+  );
+  
   handleCommentInputOk = e => {
     const { session, newsflash_list, comment_to_send } = this.state;
     const { user, token } = session;
@@ -444,8 +461,9 @@ class App extends Component {
     var current_time = getCurrentTime();
     //console.log('current_time=', current_time);
     
+    const uname_with_did = user.name+'('+getUserDidFragment(user.did)+')';
     var comment_list_item = {
-      uname: user.name,
+      uname: uname_with_did,
       udid: user.did,
       time: current_time,
       comment: comment_to_send,
@@ -566,6 +584,14 @@ class App extends Component {
     //  window.location.href = '/?openLogin=true';
     //  return null;
     //}
+    
+    this.winW = window.innerWidth;
+    this.winH = window.innerHeight;
+    //console.log('render winW=', this.winW, 'winH=', this.winH);
+    var commentInpuTopOffset = this.winH/2;
+    if(commentInpuTopOffset == 0){
+      commentInpuTopOffset = 20;
+    }
     
     if(news_to_chain_mode === 'indirect'){
       news_content_max_length = 1000;
@@ -717,22 +743,29 @@ class App extends Component {
                     title={<p className="antd-list-item-meta-title">{item.title}</p>}
                     description={<a href={item.href} target="_blank" className="antd-list-item-meta-description"> 哈希@{item.time} </a>}
                   />
-                  {item.content}
+                  <Paragraph ellipsis={{ rows: 6, expandable: true }}>
+                    {item.content}
+                  </Paragraph>
+                  {(list_action_show && item.comment_list.length > 0) && 
+                    <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />}
                 </List.Item>
               )}
             />
             <Modal
-             title="发表评论"
+             style={{ top: commentInpuTopOffset }}
+             title={null}
+             closable={false}
              visible={this.state.comment_input_visible}
              onOk={this.handleCommentInputOk}
              okText='发送'
              onCancel={this.handleCommentInputCancel}
              destroyOnClose={true}
+             wrapClassName={'web'}
             >
               <TextArea
                 value={comment_to_send}
                 onChange={this.onCommentToSendChange}
-                placeholder={"如: ArcBlock在实体行业的落地应用越来越多("+news_comment_max_length+"字以内)"}
+                placeholder={"写评论..."}
                 autoSize={{ minRows: 1, maxRows: 5 }}
                 maxLength={news_comment_max_length}
               />
@@ -822,6 +855,34 @@ const Main = styled.main`
       font-family: "Roboto", "Helvetica", "Arial", sans-serif;
       font-weight: 200;
       color: #FF6600;
+    }
+  }
+  
+  .antd-list-comment-list-text{
+      font-size: 0.8rem;
+      font-family: Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial, sans-serif;
+      font-weight: 100;
+      color: #000000;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      word-break: break-all;
+      background-color: #F5F5F5;
+   }
+  
+  .web {
+    .ant-modal-content {
+      position: relative;
+      background-color: #00000000 !important;
+      border: 0;
+      border-radius: 4px;
+      background-clip: padding-box;
+      box-shadow: 0 0 0 rgba(0, 0, 0, 0) !important;
+    }
+
+    .ant-modal-body {
+      padding: 0 !important;
+      font-size: 0 !important;
+      line-height: 1 !important;
     }
   }
 

@@ -19,6 +19,7 @@ const appWallet = fromSecretKey(process.env.APP_SK, type);
 const newsflashAppWallet = fromSecretKey(process.env.APP_NEWSFLASH_SK, type);
 
 const { getLocalTimeStr } = require('../libs/time');
+const { getUserDidFragment } = require('../libs/user');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
@@ -270,8 +271,9 @@ async function NewsflashItemAddComment(fields){
       return null;
     }
     
+    const uname_with_did = user.name+'('+getUserDidFragment(user.did)+')';
     comment_list_item = {
-      uname: user.name,
+      uname: uname_with_did,
       udid: user.did,
       time: getLocalTimeStr(),
       comment: comment,
