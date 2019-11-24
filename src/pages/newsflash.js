@@ -493,7 +493,7 @@ class App extends Component {
   
   IconText = ({ type, text, token_symbol, balance, action_type, like_status, asset_did }) => (
     <span className="antd-list-action-icon-text">
-      <span className="antd-list-action-icon-text-balance">{balance}</span>
+      <span style={{ fontSize: '10px', color: '#FF6600' }}>{balance}</span>
       {/*<img className="list-item-action-img" src="/static/images/hashnews/ABT.png" alt="ABT" height="25" width="25" />*/}
       <a onClick={e => {
           this.onListItemActionClick(action_type, asset_did);
@@ -957,6 +957,7 @@ class App extends Component {
             >
               <div id="shareNewsContent">
                 <List
+                  style={{ marginLeft: 10,  marginRight: 10 }}
                   itemLayout="vertical"
                   size="large"
                   pagination={null}
@@ -984,15 +985,15 @@ class App extends Component {
                 <span style={{ fontSize: '14px', color: '#009966', marginLeft: 10,  marginRight: 30 }} >哈希快讯</span>
                 <QrCode value={"http://abtworld.cn/newsflash"} size={60} level={'L'} fgColor={"#006699"} bgColor={"#D3D3D3"} includeMargin={false} id="HashNewsQrCode" style={{ marginRight: 0 }} />
                 <span style={{fontSize: '14px', color: '#009966', marginLeft: 10 }} >http://abtworld.cn/newsflash</span> <br/>
-                <span style={{fontSize: '14px', color: '#009966', marginLeft: 10 }} >自主身份发布，资讯哈希可查！</span>
+                <span style={{fontSize: '14px', color: '#009966', marginLeft: 10 }} >自主身份发布，资讯哈希可查！</span> <br/>
               </div>
             </Modal>
             <Modal
              style={{ top: 10 }}
-             title="长按分享图片"
+             title="长按图片进行分享"
              closable={true}
              visible={this.state.share_news_pic_visible}
-             okText='完成'
+             okText='已分享'
              onOk={this.handleShareNewsPicOk}
              onCancel={this.handleShareNewsPicCancel}
              destroyOnClose={true}
@@ -1000,7 +1001,7 @@ class App extends Component {
              width = {posterWinWidth}
             >
               <div>
-                <img src="/static/blank.jpg" id="shareNewsPic" alt="HashNews"  width={posterWinWidth - 30} />
+                <img src="/static/blank.jpg" id="shareNewsPic" alt="HashNews"  width={posterWinWidth - 40} />
               </div>
             </Modal>
           </LocaleProvider>
