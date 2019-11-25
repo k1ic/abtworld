@@ -17,10 +17,10 @@ const description = {
 };
 
 /*for abt wallet 2.0 to request avatar*/
-const loginReqFields = ['fullName', 'email', 'avatar'];
+//const loginReqFields = ['fullName', 'email', 'avatar'];
 
 /*The ios wallet 1.0 will crash when request avatar*/
-//const loginReqFields = ['fullName', 'email'];
+const loginReqFields = ['fullName', 'email'];
 
 module.exports = {
   action: 'login',

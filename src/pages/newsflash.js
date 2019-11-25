@@ -837,14 +837,14 @@ class App extends Component {
       send_permission = false;
     }
     
-    var list_action_show = false;
-    if(!isProduction){
-      list_action_show = true;
-    }else{
-      if(user && -1 != admin_account.indexOf(user.did)){
-        list_action_show = true;
-      }
-    }
+    var list_action_show = true;
+    //if(!isProduction){
+    //  list_action_show = true;
+    //}else{
+    //  if(user && -1 != admin_account.indexOf(user.did)){
+    //    list_action_show = true;
+    //  }
+    //}
     
     return (
       <Layout title="HashNews">
