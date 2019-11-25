@@ -1003,7 +1003,7 @@ class App extends Component {
                   )}
                 />
                 <span style={{ fontSize: '14px', color: '#009966', marginLeft: 10,  marginRight: 30 }} >哈希快讯</span>
-                <QrCode value={"http://abtworld.cn/newsflash"} size={60} level={'L'} fgColor={"#006699"} bgColor={"#D3D3D3"} includeMargin={false} id="HashNewsQrCode" style={{ marginRight: 0 }} />
+                <QrCode value={"http://abtworld.cn/newsflash"} size={60} level={'M'} fgColor={"#FFFFFF"} bgColor={"#0"} includeMargin={false} id="HashNewsQrCode" style={{ marginRight: 0 }} />
                 <span style={{fontSize: '14px', color: '#009966', marginLeft: 10 }} >http://abtworld.cn/newsflash</span> <br/>
                 <span style={{fontSize: '14px', color: '#009966', marginLeft: 10 }} >自主身份发布，资讯哈希可查！</span> <br/>
               </div>
