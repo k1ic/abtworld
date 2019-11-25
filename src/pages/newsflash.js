@@ -107,6 +107,7 @@ class App extends Component {
       comment_to_send: '',
       gen_share_news_visible: false,
       share_news_pic_visible: false,
+      shared_btn_disabled: true,
     };
     
     this.comment_asset_did = '';
@@ -114,6 +115,7 @@ class App extends Component {
     this.share_news_items = [];
     this.winW = 0;
     this.winH = 0;
+    this.shareNewsPicTime = null;
     this.onListItemActionClick = this.onListItemActionClick.bind(this);
   }
   
@@ -466,7 +468,8 @@ class App extends Component {
         if(share_news_pic_data.length > 0){
           this.setState({
             gen_share_news_visible: false,
-            share_news_pic_visible: true
+            share_news_pic_visible: true,
+            shared_btn_disabled: true,
           }, ()=>{
             let posterImage = document.getElementById("shareNewsPic");
             posterImage.src = share_news_pic_data;
@@ -610,6 +613,21 @@ class App extends Component {
     });
   };
   
+  handleShareNewsPicContextMenu = e => {
+    //console.log('handleShareNewsPicContextMenu, e=', e);
+    if(this.shareNewsPicTime){
+      clearTimeout(this.shareNewsPicTime);
+      this.shareNewsPicTime = null;
+    }
+    
+    this.shareNewsPicTime = setTimeout(() => {
+      this.setState({
+        shared_btn_disabled: false
+      },()=>{
+      });
+    }, 8000);
+  }
+  
   handleGenShareNewsOk = e => {
     console.log('handleGenShareNewsOk, asset_did=', this.share_asset_did);
    
@@ -685,7 +703,8 @@ class App extends Component {
     }
    
     this.setState({
-      share_news_pic_visible: false
+      share_news_pic_visible: false,
+      shared_btn_disabled: true,
     },()=>{
       share_news_pic_data = '';
       this.share_asset_did = '';
@@ -696,7 +715,8 @@ class App extends Component {
     console.log('handleShareNewsPicCancel share_news_pic_data.length=', share_news_pic_data.length);
     
     this.setState({
-      share_news_pic_visible: false
+      share_news_pic_visible: false,
+      shared_btn_disabled: true,
     },()=>{
       share_news_pic_data = '';
       this.share_asset_did = '';
@@ -991,17 +1011,18 @@ class App extends Component {
             <Modal
              style={{ top: 10 }}
              title="长按图片进行分享"
-             closable={true}
+             closable={false}
              visible={this.state.share_news_pic_visible}
              okText='已分享'
              onOk={this.handleShareNewsPicOk}
              onCancel={this.handleShareNewsPicCancel}
+             okButtonProps={{ disabled: this.state.shared_btn_disabled }}
              destroyOnClose={true}
              forceRender={true}
              width = {posterWinWidth}
             >
               <div>
-                <img src="/static/blank.jpg" id="shareNewsPic" alt="HashNews"  width={posterWinWidth - 40} />
+                <img src="/static/blank.jpg" id="shareNewsPic" alt="HashNews"  width={posterWinWidth - 40} onContextMenu={this.handleShareNewsPicContextMenu} />
               </div>
             </Modal>
           </LocaleProvider>

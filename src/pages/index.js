@@ -166,6 +166,11 @@ class App extends Component {
   
   /*component mount process*/
   componentDidMount() {
+    window.document.oncontextmenu = function(){ 
+      //disable rigth click menu
+      return false;
+    }
+    
     /*parse location hash to object*/
     /*location hash example: #category=entertainment&page=2 */
     const location_hash = window.location.hash.slice(1);

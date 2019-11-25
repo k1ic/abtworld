@@ -138,6 +138,10 @@ class App extends Component {
   
   /*component mount process*/
   componentDidMount() {
+    window.document.oncontextmenu = function(){ 
+      //disable rigth click menu
+      return false;
+    }
     this.fetchAppData();
   }
   

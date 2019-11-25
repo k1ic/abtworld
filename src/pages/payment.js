@@ -163,6 +163,11 @@ export default function PaymentPage(props) {
   const para_obj = {asset_did: asset_did};
   const para = JSON.stringify(para_obj);
 
+  window.document.oncontextmenu = function(){ 
+    //disable rigth click menu
+    return false;
+  }
+
   setTimeout(() => {
     try {
       if (fValueToPay > 0 && getPaymentPendingFlag() == 0){
