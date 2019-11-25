@@ -105,7 +105,8 @@ class App extends Component {
             QQ：2439897034 <br/>
             邮箱：2439897034@qq.com <br/>
             <QrCode value={"http://abtworld.cn"} size={200} level={'L'} fgColor={"#339966"} bgColor={"#D3D3D3"} includeMargin={true} id="AbworldQrCode" style={{ marginRight: 30 }} />
-            <QrCode value={"http://abtworld.cn/newsflash"} size={200} level={'L'} fgColor={"#006699"} bgColor={"#D3D3D3"} includeMargin={true} id="HashNewsQrCode"/>
+            <QrCode value={"http://abtworld.cn/newsflash"} size={200} level={'L'} fgColor={"#006699"} bgColor={"#D3D3D3"} includeMargin={true} id="HashNewsQrCode" style={{ marginRight: 30 }} />
+            <QrCode value={"http://abtworld.cn/didchat"} size={200} level={'L'} fgColor={"#339966"} bgColor={"#D3D3D3"} includeMargin={true} id="DIDChatQrCode"/>
           </Typography>
         </Main>
       </Layout>

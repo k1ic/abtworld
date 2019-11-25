@@ -23,6 +23,7 @@ const paymentsRoutes = require('../routes/payments');
 const picturesRoutes = require('../routes/pictures');
 const uploadRoutes = require('../routes/upload');
 const newsflashRoutes = require('../routes/newsflash');
+const didChatRoutes = require('../routes/chats');
 
 //const isProduction = process.env.NODE_ENV === 'production';
 const isProduction = 0;
@@ -106,6 +107,7 @@ paymentsRoutes.init(router);
 picturesRoutes.init(router);
 uploadRoutes.init(router);
 newsflashRoutes.init(router);
+didChatRoutes.init(router);
 
 // Check for application account
 ForgeSDK.getAccountState({ address: wallet.address })
