@@ -450,6 +450,9 @@ class App extends Component {
             useCORS: true
           };
           
+          //document.getElementById('shareNewsListItemContent').style.whiteSpace = 'pre-wrap';
+          //document.getElementById('shareNewsListItemContent').style.wordWrap = 'break-word';
+          //document.getElementById('shareNewsListItemContent').style.wordBreak = 'break-all';
           html2canvas(document.getElementById('shareNewsContent'), opts).then(function(canvas) {
             share_news_pic_data = canvas.toDataURL("image/jpg");            
           });
@@ -998,7 +1001,7 @@ class App extends Component {
                         title={<p style={{ fontSize: '12px', color: '#3CB371' }}>{item.title}</p>}
                         description={<a href={item.href} target="_blank" style={{ fontSize: '12px', color: '#0000FF' }}> 哈希@{item.time} </a>}
                       />
-                      {item.content}
+                      <span id="shareNewsListItemContent" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all' }}>{item.content}</span>
                     </List.Item>
                   )}
                 />
