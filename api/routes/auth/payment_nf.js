@@ -232,8 +232,8 @@ module.exports = {
       };
 
       return {
-        txType: 'TransferTx',
-        txData: {
+        type: 'TransferTx',
+        data: {
           itx: {
             to: pay_to_addr,
             value: fromTokenToUnit(toPay, state.token.decimal),

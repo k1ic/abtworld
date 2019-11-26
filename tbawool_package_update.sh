@@ -1,4 +1,6 @@
 #!/bin/bash
+cd ~/tbawool/tbawool
+git pull
 cd ~/tbawool
 for((i=1;i<=11;i++));
 do
@@ -7,10 +9,11 @@ let tbawoolport+=$i;
 echo $tbawoolport
 cd tbawool${tbawoolport}
 pwd
-cp -f ../cmn_src/package.json ./
+cp -f ../tbawool/package.json ./
 yarn
 cp -f ../cmn_src/atom-one-dark.css ./node_modules/highlight.js/styles/
-cp -f ../cmn_src/checkin.js ./src/pages/
+cp -rf ../tbawool/src ./
+cp -rf ../tbawool/api ./
 yarn build 
 cd ../
 done

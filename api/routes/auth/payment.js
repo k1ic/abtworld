@@ -83,9 +83,11 @@ async function waitAndGetTxHash(hash){
   return res;
 }
 
-async function picturePaymentHook(txRes, forgeState) {
+async function picturePaymentHook(hash, forgeState, userDid) {
   try {
     console.log('picturePaymentHook');
+    
+    const txRes = await waitAndGetTxHash(hash);
     
     if(txRes && txRes.getTx && txRes.getTx.code === 'OK' && txRes.getTx.info){
       const tx_memo = JSON.parse(txRes.getTx.info.tx.itxJson.data.value);
@@ -234,8 +236,8 @@ module.exports = {
       };
 
       return {
-        txType: 'TransferTx',
-        txData: {
+        type: 'TransferTx',
+        data: {
           itx: {
             to: pay_to_addr,
             value: fromTokenToUnit(toPay, state.token.decimal),
@@ -268,23 +270,8 @@ module.exports = {
 
       console.log('pay.onAuth', hash);
       
-      /*wait tx ready and get hash result*/
-      var res = await waitAndGetTxHash(hash);
-      
-      if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
-        const tx_memo = JSON.parse(res.getTx.info.tx.itxJson.data.value);
-        const dapp_module = tx_memo.module;
-        if(typeof(dapp_module) != "undefined" && dapp_module.length > 0){
-          switch(dapp_module){
-            case 'picture':
-              picturePaymentHook(res, state);
-              break;
-            default:
-              console.log('pay.onAuth, unknown dapp module', dapp_module);
-              break;
-          }
-        }
-      }
+      /*payment hook for picture*/
+      picturePaymentHook(hash, state, userDid);
       
       return { hash, tx: claim.origin };
     } catch (err) {

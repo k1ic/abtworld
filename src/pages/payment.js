@@ -22,6 +22,8 @@ import {fetchPayedPics} from '../hooks/picture';
 import { onAuthError } from '../libs/auth';
 import env from '../libs/env';
 
+const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
+
 const admin_account = env.appAdminAccounts;
 const isProduction = process.env.NODE_ENV === 'production';
 //const isProduction = 0;
@@ -56,10 +58,12 @@ const onPaymentError = async result => {
 };
 
 const onPaymentSuccess = async result => {
+  /*wait payment to chain*/
+  await sleep(3000);
+  
+  /*reload window*/
   setPaymentPendigFlag(0);
   window.location.reload();
-
-  //payback to resources owner
 };
 
 export default function PaymentPage(props) {
@@ -218,12 +222,21 @@ PaymentPage.getInitialProps = async function ({pathname, query, asPath, req}) {
     //console.log('pathname=', pathname);
     //console.log('query=', query);
     console.log('query.asset_did=', query.asset_did);
+    console.log('query._t_=', query._t_);
     //console.log('asPath=', asPath);
     //console.log('req=', req);
     //console.log('req.url=', req.url);
+    
+    const wback_ts = query._t_;
+    if(typeof(wback_ts) != "undefined" && wback_ts && wback_ts.length > 0){
+      console.log('getInitialProps wait tx to chain start');
+      await sleep(3000);
+      console.log('getInitialProps wait tx to chain ended');
+    }
 
     return {
       asset_did: query.asset_did,
+      wback_ts: wback_ts,
     }
 }
 
