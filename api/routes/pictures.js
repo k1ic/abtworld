@@ -112,7 +112,7 @@ async function getMyPayedPics(req){
   for(var i=0; i<myPayedData.length; i++){
     found = 0;
     Picture.find().byAssetDid(myPayedData[i].asset_did).exec(function(err, docs){
-      if(docs && docs.length > 0 && parseFloat(myPayedData[i].payed) >= parseFloat(docs[0].worth)){
+      if(docs && docs.length > 0 && parseFloat(myPayedData[i].payed).toFixed(6) >= parseFloat(docs[0].worth).toFixed(6)){
         console.log('Found', docs.length, 'asset_did docs');
         new_docs.push(docs[0]);
       }else{
@@ -145,7 +145,7 @@ async function getPicsForPreview(strCategory, user_did, iStart, iEnd){
   var myPayedData = [];
   
   if (typeof(strCategory) != "undefined" && strCategory && strCategory === 'hot'){
-    await Picture.find().hotByPayCounter().exec(function(err, docs){
+    await Picture.find().hotByHotIndex().exec(function(err, docs){
       if(docs && docs.length>0){
         console.log('Found', docs.length, 'Hot docs');
         new_docs = docs;
@@ -230,7 +230,7 @@ async function getPicsForPreview(strCategory, user_did, iStart, iEnd){
       }
       if(myPayedData && myPayedData.length > 0){          
         const payed_data_found = myPayedData.find(function(data){
-          return (data.asset_did === e.asset_did && parseFloat(data.payed) >= parseFloat(e.worth));
+          return (data.asset_did === e.asset_did && parseFloat(data.payed).toFixed(6) >= parseFloat(e.worth).toFixed(6));
         });
         if(typeof(payed_data_found) != "undefined" && payed_data_found){
           doc['pic_src'] = e.hd_src;
@@ -245,7 +245,7 @@ async function getPicsForPreview(strCategory, user_did, iStart, iEnd){
       doc['description'] = e.description;
       doc['worth'] = e.worth;
       doc['token_sym'] = e.token_sym;
-      doc['payed_counter'] = e.payed_counter;
+      doc['hot_index'] = e.hot_index;
       return doc;
     });
     
@@ -393,7 +393,7 @@ async function getPicsNum(strState, strCategory){
   var found = 0;
   
   if (typeof(strCategory) != "undefined" && strCategory && strCategory === 'hot'){
-    await Picture.find().hotByPayCounter().exec(function(err, docs){
+    await Picture.find().hotByHotIndex().exec(function(err, docs){
       if(docs && docs.length>0){
         console.log('Found', docs.length, 'Hot docs');
         new_docs = docs;

@@ -14,12 +14,17 @@ const PictureSchema = new mongoose.Schema({
   worth: { type: String, required: true, default: '18' },
   token_sym: { type: String, required: true, default: 'TBA' },
   payback_rate: { type: String, required: true, default: '0.6' },
-  payed_counter: { type: Number, default: 0 },
+  state: { type: String, required: true, default: 'commit' },
   payed_balance: { type: Number, default: 0 },
   payer_list: { type: Array, default: [] },
+  payed_counter: { type: Number, default: 0 },
+  like_counter: { type: Number, default: 0 },
+  comment_counter: { type: Number, default: 0 },
+  share_counter: { type: Number, default: 0 },
   like_list: { type: Array, default: [] },
   comment_list: { type: Array, default: [] },
-  state: { type: String, required: true, default: 'commit' },
+  share_list: { type: Array, default: [] },
+  hot_index: { type: Number, default: 0 },
   createdAt: { type: Date },
   updatedAt: { type: Date },
 });
@@ -36,7 +41,7 @@ PictureSchema.query.hotByPayCounter = function(){
   var docs =  this.find({$and: [
     {state: "approved"},
     {payed_counter: {$gt: 0}}
-  ]}).sort({"payed_counter":-1});
+  ]}).sort({"payed_counter":-1, "updatedAt":-1});
   
   return docs;
 }
@@ -45,7 +50,16 @@ PictureSchema.query.hotByPayBalance = function(){
   var docs =  this.find({$and: [
     {state: "approved"},
     {payed_balance: {$gt: 0}}
-  ]}).sort({"payed_balance":-1});
+  ]}).sort({"payed_balance":-1, "updatedAt":-1});
+  
+  return docs;
+}
+
+PictureSchema.query.hotByHotIndex = function(){
+  var docs =  this.find({$and: [
+    {state: "approved"},
+    {hot_index: {$gt: 0}}
+  ]}).sort({"hot_index":-1, "updatedAt":-1});
   
   return docs;
 }

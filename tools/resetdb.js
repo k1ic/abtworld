@@ -43,17 +43,17 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
       }
     }
     
-	var found = 0;
-	var found_docs = [];
+    var found = 0;
+    var found_docs = [];
     Picture.find().exec(function(err, docs){
-	  if(docs && docs.length>0){
-	    console.log('Found', docs.length, 'docs');
-		found_docs = docs;
-	  }
-	  found = 1;
-	});
-	
-	/*wait found result*/
+      if(docs && docs.length>0){
+        console.log('Found', docs.length, 'docs');
+        found_docs = docs;
+      }
+      found = 1;
+    });
+
+    /*wait found result*/
     var wait_counter = 0;
     while(!found){
       await sleep(1);
@@ -62,18 +62,19 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
         break;
       }
     }
-	
-	/*reset dbs*/
-	console.log('Reset ' + found_docs.length + ' docs');
-	for(var i=0;i<found_docs.length;i++){
-	  var doc = found_docs[i];
-	  //doc.payed_counter = 0;
-	  //doc.payed_balance = 0;
-	  //console.log(doc);
-	  await doc.save();
-	}
-	
-	Picture.find().byState('approved').exec(function(err, docs){
+ 
+    /*reset dbs*/
+    console.log('Reset ' + found_docs.length + ' docs');
+    for(var i=0;i<found_docs.length;i++){
+      var doc = found_docs[i];
+      //doc.payed_counter = 0;
+      //doc.payed_balance = 0;
+      //doc.hot_index = 0;
+      //console.log(doc);
+      await doc.save();
+    }
+ 
+    Picture.find().byState('approved').exec(function(err, docs){
        if(docs && docs.length>0){
          console.log('Found', docs.length, 'approved docs');
          var new_docs = docs.map(function( e ) {
@@ -86,9 +87,6 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
             doc['description'] = e.description;
             doc['worth'] = e.worth;
             doc['token_sym'] = e.token_sym;
-            doc['payed_counter'] = e.payed_counter;
-			doc['payed_balance'] = e.payed_balance;
-            doc['payer_list'] = e.payer_list;
             return doc;
          });
          console.log(new_docs);

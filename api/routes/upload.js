@@ -161,11 +161,6 @@ module.exports = {
               worth: pic_worth,
               token_sym: token.symbol,
               payback_rate: '0.6',
-              payed_counter: 0,
-		      payed_balance: 0,
-              payer_list: [],
-		      like_list: [],
-		      comment_list: [],
               state: upload_state_default,
               createdAt: Date(),
             });

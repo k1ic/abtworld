@@ -63,7 +63,7 @@ const renderHotPicListCard = x => (
           <img className="pic-list" src={x.pic_src} alt={x.title} height="225" width="225" />
         </Typography>
         <Typography component="p" color="primary" className="payment-pic-list-description" gutterBottom>
-          查看人数:{x.payed_counter} <br/>
+          热门指数:{x.hot_index} <br/>
           {x.owner}：{x.description}
         </Typography>
       </CardContent>

@@ -63,6 +63,9 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
         picture.worth = AssetPicList[i].worth;
         picture.token_sym = AssetPicList[i].token_sym;
         picture.payback_rate = AssetPicList[i].payback_rate;
+        if(picture.hot_index == 0){
+          picture.hot_index = picture.payed_counter;
+        }
         picture.updatedAt = Date();
         await picture.save();
         //console.log('update picture', picture);
@@ -81,11 +84,6 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
           worth: AssetPicList[i].worth,
           token_sym: AssetPicList[i].token_sym,
           payback_rate: AssetPicList[i].payback_rate,
-          payed_counter: 0,
-		  payed_balance: 0,
-          payer_list: [],
-		  like_list: [],
-		  comment_list: [],
           state: 'approved',
           createdAt: Date(),
         });
@@ -120,9 +118,6 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
             doc['description'] = e.description;
             doc['worth'] = e.worth;
             doc['token_sym'] = e.token_sym;
-            doc['payed_counter'] = e.payed_counter;
-			doc['payed_balance'] = e.payed_balance;
-            doc['payer_list'] = e.payer_list;
             return doc;
          });
          console.log(new_docs);
