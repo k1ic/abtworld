@@ -19,7 +19,8 @@ import {
   List,
   Select,
   Tabs,
-  Switch
+  Switch,
+  Divider
 } from "antd";
 import zh_CN from 'antd/lib/locale-provider/zh_CN'
 import reqwest from 'reqwest';
@@ -931,11 +932,13 @@ class App extends Component {
                   extra={null}
                   className="antd-list-item"
                 >
-                  <List.Item.Meta
-                    avatar={item.uavatar.length>0?<img src={item.uavatar} height="40" width="40"/>:<Avatar size={40} did={item.sender} />}
-                    title={<p className="antd-list-item-meta-title">{item.title}</p>}
-                    description={<a href={item.href} target="_blank" className="antd-list-item-meta-description"> 哈希@{item.time} </a>}
-                  />
+                  <span style={{ float: 'left', marginRight: 10 }}>
+                    {item.uavatar.length>0?
+                      <img src={item.uavatar} height="40" width="40"/>:
+                      <Avatar size={40} did={item.sender}/>}
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#3CB371' }}>{item.title}</span> <br/>
+                  <a href={item.href} target="_blank" style={{ fontSize: '12px', color: '#0000FF' }}>哈希@{item.time}</a> <br/>        
                   <div id={item.asset_did}>
                     <Paragraph ellipsis={{ rows: 6, expandable: true }}>
                       {item.content}
@@ -996,19 +999,30 @@ class App extends Component {
                       extra={null}
                       className="antd-list-item"
                     >
-                      <List.Item.Meta
-                        avatar={item.uavatar.length>0?<img src={item.uavatar} height="40" width="40"/>:<Avatar size={40} did={item.sender} />}
-                        title={<p style={{ fontSize: '12px', color: '#3CB371' }}>{item.title}</p>}
-                        description={<a href={item.href} target="_blank" style={{ fontSize: '12px', color: '#0000FF' }}> 哈希@{item.time} </a>}
-                      />
-                      <span id="shareNewsListItemContent" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all' }}>{item.content}</span>
+                      <span style={{ float: 'left', marginRight: 10 }}>
+                        {item.uavatar.length>0?
+                        <img src={item.uavatar} height="40" width="40"/>:
+                        <Avatar size={40} did={item.sender}/>}
+                      </span>
+                      <span style={{ fontSize: '12px', color: '#3CB371' }}>{item.title}</span> <br/>
+                      <a href={item.href} target="_blank" style={{ fontSize: '12px', color: '#0000FF' }}>哈希@{item.time}</a>
+                      <div>
+                        <br/>
+                        <span id="shareNewsListItemContent" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all' }}>{item.content}</span>
+                      </div>
                     </List.Item>
                   )}
                 />
-                <span style={{ fontSize: '14px', color: '#009966', marginLeft: 10,  marginRight: 30 }} >哈希快讯</span>
-                <QrCode value={"http://abtworld.cn/newsflash"} size={80} level={'M'} id="HashNewsQrCode" style={{ marginRight: 0 }} />
-                <span style={{fontSize: '14px', color: '#009966', marginLeft: 10 }} >http://abtworld.cn/newsflash</span> <br/>
-                <span style={{fontSize: '14px', color: '#009966', marginLeft: 10 }} >自主身份发布，资讯哈希可查！</span> <br/>
+                <hr style={{ height: '1px', border: 'none', borderTop: '1px solid #0000FF', marginTop: 0,  marginBottom: 10 }} />
+                <div style={{ marginLeft: 10,  marginRight: 10 }}>
+                  <QrCode value={"http://abtworld.cn/newsflash"} size={60} level={'M'} id="HashNewsQrCode" style={{ float: 'left', marginRight: 10 }} />
+                  <span style={{fontSize: '16px', fontWeight: 500, color: '#3CB371', marginLeft: 30,  marginRight: 0 }} >哈希快讯</span> <br/>
+                  <span style={{fontSize: '14px', color: '#000000', marginLeft: 0 }} >DID身份发布，</span>
+                  <span style={{fontSize: '14px', fontWeight: 500, color: '#0000FF' }} >内容公开、透明、不可篡改！</span> <br/>
+                </div>
+                <div style={{ marginLeft: 10,  marginRight: 10 }}>
+                  <span style={{fontSize: '14px', fontWeight: 200, color: '#3CB371' }} >http://www.abtworld.cn/newsflash</span>
+                </div>
               </div>
             </Modal>
             <Modal
