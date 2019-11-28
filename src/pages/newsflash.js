@@ -877,11 +877,11 @@ class App extends Component {
             </TabPane>
             <TabPane tab="广告" key="ads">
             </TabPane>
-            <TabPane tab="备忘" key="memos">
-            </TabPane>
             <TabPane tab={<span style={{ fontSize: '16px', color: '#0' }}>AMA</span>} key="amas">
             </TabPane>
             <TabPane tab="鸡汤" key="soups">
+            </TabPane>
+            <TabPane tab="备忘" key="memos">
             </TabPane>
             {!isProduction && <TabPane tab="测试" key="test">
               </TabPane>
@@ -1013,7 +1013,7 @@ class App extends Component {
                     </List.Item>
                   )}
                 />
-                <hr style={{ height: '1px', border: 'none', borderTop: '1px solid #0000FF', marginTop: 0,  marginBottom: 10 }} />
+                <hr style={{ height: '1px', border: 'none', borderTop: '1px solid #A9A9A9', marginTop: 0,  marginBottom: 10 }} />
                 <div style={{ marginLeft: 10,  marginRight: 10 }}>
                   <QrCode value={"http://abtworld.cn/newsflash"} size={60} level={'M'} id="HashNewsQrCode" style={{ float: 'left', marginRight: 10 }} />
                   <span style={{fontSize: '16px', fontWeight: 500, color: '#3CB371', marginLeft: 30,  marginRight: 0 }} >哈希快讯</span> <br/>

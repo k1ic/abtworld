@@ -64,7 +64,7 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
         picture.token_sym = AssetPicList[i].token_sym;
         picture.payback_rate = AssetPicList[i].payback_rate;
         if(picture.hot_index == 0){
-          picture.hot_index = picture.payed_counter;
+          picture.hot_index = picture.payed_counter*10;
         }
         picture.updatedAt = Date();
         await picture.save();

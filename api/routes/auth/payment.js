@@ -114,7 +114,8 @@ async function picturePaymentHook(hash, forgeState, userDid) {
           pic_asset.payed_counter += 1;
           pic_asset.payed_balance += tx_value;
           
-          pic_asset.hot_index = pic_asset.payed_counter;
+          // one pay counter value 10 hot index
+          pic_asset.hot_index += 10;
   
           const new_payer_info = {
             udid: tx_from,
