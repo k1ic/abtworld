@@ -512,9 +512,9 @@ async function getNewsForShow(module_para){
       temp_doc['href'] = e.hash_href;
       temp_doc['content'] = e.news_content;
       temp_doc['asset_did'] = e.asset_did;
-      temp_doc['uname'] = e.author_name;
+      temp_doc['uname'] = e.author_name+'('+getUserDidFragment(e.author_did)+')';
       temp_doc['uavatar'] = e.author_avatar;
-      temp_doc['title'] = e.author_name;
+      temp_doc['title'] = e.author_name+'('+getUserDidFragment(e.author_did)+')';
       temp_doc['comment_min_rem'] = forgeTxValueSecureConvert(e.remain_comment_minner_balance);
       temp_doc['like_min_rem'] = forgeTxValueSecureConvert(e.remain_like_minner_balance);
       temp_doc['forward_min_rem'] = forgeTxValueSecureConvert(e.remain_forward_minner_balance);

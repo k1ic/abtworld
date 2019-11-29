@@ -123,17 +123,23 @@ async function newsflashDappDbSync(){
           const cdid = HashString('sha1', memo.para.content);
           const asset_did = newsflashAssetDidGen(cdid, memo);
           const asset_local_time = utcToLocalTime(e.time);
-        
+          var author_name = '';
+          if(typeof(memo.para.uname) != "undefined" && memo.para.uname && memo.para.uname.length > 0){
+            author_name = memo.para.uname;
+          }else{
+            author_name = '匿名';
+          }
+          
           //console.log('newsflashDappDbSync V1 asset_did=', asset_did);
           var doc = await Newsflash.findOne({ news_content: memo.para.content });
           if(doc){
             console.log('newsflashDappDbSync V1 update doc item content=', doc.news_content.substring(0,10));
-          
+            
             /*update exist doc*/
             doc.asset_did = asset_did;
             doc.content_did = cdid;
             doc.author_did = e.sender;
-            doc.author_name = memo.para.uname+'('+getUserDidFragment(e.sender)+')';
+            doc.author_name = author_name;
             doc.news_hash = e.hash;
             doc.news_time = asset_local_time;
             doc.news_type = memo.para.type;
@@ -146,7 +152,7 @@ async function newsflashDappDbSync(){
               asset_did: asset_did,
               content_did: cdid,
               author_did: e.sender,
-              author_name: memo.para.uname+'('+getUserDidFragment(e.sender)+')',
+              author_name: author_name,
               author_avatar: '',
               news_hash: e.hash,
               news_time: asset_local_time,
@@ -181,7 +187,13 @@ async function newsflashDappDbSync(){
           const cdid = HashString('sha1', memo.para.content);
           const asset_did = newsflashAssetDidGen(cdid, memo);
           const asset_local_time = utcToLocalTime(e.time);
-        
+          var author_name = '';
+          if(typeof(memo.para.uname) != "undefined" && memo.para.uname && memo.para.uname.length > 0){
+            author_name = memo.para.uname;
+          }else{
+            author_name = '匿名';
+          }
+          
           //console.log('newsflashDappDbSync V2 asset_did=', asset_did);
           var doc = await Newsflash.findOne({ news_content: memo.para.content });
           if(doc){
@@ -191,7 +203,7 @@ async function newsflashDappDbSync(){
             doc.asset_did = asset_did;
             doc.content_did = cdid;
             doc.author_did = e.sender;
-            doc.author_name = memo.para.uname+'('+getUserDidFragment(e.sender)+')';
+            doc.author_name = author_name;
             doc.news_hash = e.hash;
             doc.news_time = asset_local_time;
             doc.news_type = memo.para.type;
@@ -204,7 +216,7 @@ async function newsflashDappDbSync(){
               asset_did: asset_did,
               content_did: cdid,
               author_did: e.sender,
-              author_name: memo.para.uname+'('+getUserDidFragment(e.sender)+')',
+              author_name: author_name,
               author_avatar: '',
               news_hash: e.hash,
               news_time: asset_local_time,
@@ -241,6 +253,13 @@ async function newsflashDappDbSync(){
           const asset_local_time = utcToLocalTime(e.genesisTime);
           const asset_hash = await getAssetGenesisHash(e.address);
         
+          var author_name = '';
+          if(typeof(memo.para.uname) != "undefined" && memo.para.uname && memo.para.uname.length > 0){
+            author_name = memo.para.uname;
+          }else{
+            author_name = '匿名';
+          }
+        
           //console.log('newsflashDappDbSync V2 asset_did=', asset_did);
           var doc = await Newsflash.findOne({ news_content: memo.para.content });
           if(doc){
@@ -250,7 +269,7 @@ async function newsflashDappDbSync(){
             doc.asset_did = e.address;
             doc.content_did = cdid;
             doc.author_did = memo.para.udid;
-            doc.author_name = memo.para.uname+'('+getUserDidFragment(memo.para.udid)+')';
+            doc.author_name = author_name;
             doc.author_avatar = memo.para.uavatar;
             doc.news_hash = asset_hash;
             doc.news_time = asset_local_time;
@@ -264,7 +283,7 @@ async function newsflashDappDbSync(){
               asset_did: e.address,
               content_did: cdid,
               author_did: memo.para.udid,
-              author_name: memo.para.uname+'('+getUserDidFragment(memo.para.udid)+')',
+              author_name: author_name,
               author_avatar: memo.para.uavatar,
               news_hash: asset_hash,
               news_time: asset_local_time,
