@@ -3,7 +3,7 @@
 # 1. mongo
 # 2. use admin
 # 3. db.auth('admin', '123456')
-# 4. db.grantRolesToUser( "admin" , [ { role: "restore", db: "admin" } ]);
+# 4. db.grantRolesToUser( "admin" , [ { role: "restore", db: "admin" } ])
 # restore manner
 # 1. default (without drop): restore the doc with _id not included on db
 # 2. drop: drop and create new doc
@@ -12,7 +12,7 @@
 # 2. remove collection: db.pictures.drop()
 # 3. remove db:         db.dropDatabase()
 
-restore_dir=mongodb-backup-2019-11-24-06-40-05
+restore_dir=mongodb-backup-2019-11-28-15-24-53
 if [ -f $restore_dir.tar.gz ]
 then
   sudo tar -xzvf ${restore_dir}.tar.gz

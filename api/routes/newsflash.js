@@ -64,21 +64,6 @@ async function NewsflashAdd(fields){
     hash_href: '',
     state: 'commit',
     minner_state: 'idle',
-    total_comment_minner_balance: 0,
-    total_like_minner_balance: 0,
-    total_forward_minner_balance: 0,
-    each_comment_minner_balance: 0,
-    each_like_minner_balance: 0,
-    each_forward_minner_balance: 0,
-    remain_comment_minner_balance: 0,
-    remain_like_minner_balance: 0,
-    remain_forward_minner_balance: 0,
-    comment_counter: 0,
-    like_counter: 0,
-    forward_counter: 0,
-    comment_list: [],
-    like_list: [],
-    forward_list: [],
     createdAt: Date(),
   });
   await new_doc.save();
@@ -223,6 +208,7 @@ async function NewsflashItemGiveLike(fields){
       
       /*increate like counter*/
       doc.like_counter += 1;
+      doc.hot_index += 1;
       
       /*like miner*/
       var miner_value = 0;
@@ -257,6 +243,7 @@ async function NewsflashItemGiveLike(fields){
       
       /*update doc*/
       //doc.minner_state = 'idle';
+      doc.updatedAt = Date();
       await doc.save();
     }
   }
@@ -285,6 +272,7 @@ async function NewsflashItemForward(fields){
       
       /*increate forward counter*/
       doc.forward_counter += 1;
+      doc.hot_index += 1;
       
       /*forward miner*/
       var miner_value = 0;
@@ -319,10 +307,13 @@ async function NewsflashItemForward(fields){
       
       /*update doc*/
       //doc.minner_state = 'idle';
+      doc.updatedAt = Date();
       await doc.save();
     }else{
       /*increate forward counter*/
       doc.forward_counter += 1;
+      doc.hot_index += 1;
+      doc.updatedAt = Date();
       await doc.save();
       
       forward_list_item = {
@@ -394,8 +385,10 @@ async function NewsflashItemAddComment(fields){
     /*update doc*/
     //doc.minner_state = 'idle';
     doc.comment_counter += 1;
+    doc.hot_index += 3;
     doc.comment_list.push(comment_list_item);
     doc.markModified('comment_list');
+    doc.updatedAt = Date();
     await doc.save();
     
     console.log('NewsflashItemAddComment comment add success');

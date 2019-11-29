@@ -21,6 +21,41 @@ function forgeTxValueSecureConvert(value){
   return Math.floor((value)*forgeTxDPointMaxPow)/forgeTxDPointMaxPow; /*round down*/
 }
 
+async function waitAndGetTxHash(hash){
+  var res = null;
+  var i = 0;
+  if (typeof(hash) == "undefined" || !hash || hash.length == 0) {
+    return null;
+  }
+  
+  try {
+    for(i=0;i<150;i++){
+      res = await ForgeSDK.doRawQuery(`{
+        getTx(hash: "${hash}") {
+          code
+          info {
+            time
+            tx {
+              from
+              itxJson
+            }
+          }
+        }
+      }`);
+      if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
+        break;
+      }else{
+        await sleep(100);
+      }
+    }
+    console.log('waitAndGetTxHash counter', i);    
+  } catch (err) {
+    console.error('waitAndGetTxHash error', err);
+  }
+  
+  return res;
+}
+
 function unique(arr) {
   return arr.filter(function(item, index, arr) {
     //当前元素，在原始数组中的第一个索引==当前索引值，否则返回当前元素
@@ -156,7 +191,11 @@ async function fetchForgeTransactions(module, module_para){
             } catch (err) {
             }
             if(memo && typeof(memo.module) != "undefined" && typeof(memo.para) != "undefined" && typeof(memo.para.type) != "undefined"){
-              return (memo.module === module && memo.para.type === news_type);
+              if(news_type === 'all'){
+                return (memo.module === module);
+              }else{
+                return (memo.module === module && memo.para.type === news_type);
+              }
             }else{
               return 0;
             }
@@ -229,7 +268,11 @@ async function fetchForgeTransactionsV2(module, module_para){
             } catch (err) {
             }
             if(memo && typeof(memo.module) != "undefined" && typeof(memo.para) != "undefined" && typeof(memo.para.type) != "undefined"){
-              return (memo.module === module && memo.para.type === news_type);
+              if(news_type === 'all'){
+                return (memo.module === module);
+              }else{
+                return (memo.module === module && memo.para.type === news_type);
+              }
             }else{
               return 0;
             }
@@ -289,7 +332,11 @@ async function fetchForgeTransactionsV3(module, module_para){
             } catch (err) {
             }
             if(memo && typeof(memo.module) != "undefined" && typeof(memo.para) != "undefined" && typeof(memo.para.type) != "undefined"){
-              return (memo.module === module && memo.para.type === news_type);
+              if(news_type === 'all'){
+                return (memo.module === module);
+              }else{
+                return (memo.module === module && memo.para.type === news_type);
+              }
             }else{
               return 0;
             }
@@ -410,6 +457,7 @@ if (env.chainHost) {
 
 module.exports = {
   forgeTxValueSecureConvert,
+  waitAndGetTxHash,
   fetchForgeTransactions,
   fetchForgeTransactionsV2,
   fetchForgeTransactionsV3,

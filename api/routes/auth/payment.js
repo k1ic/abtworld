@@ -12,6 +12,7 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 const { Picture } = require('../../models');
 const { getNewsForUploadToChain, cleanUserDeadNews } = require('../newsflash');
 const { createNewsflahAsset, listAssets } = require('../../libs/assets');
+const { forgeTxValueSecureConvert, waitAndGetTxHash } = require('../../libs/transactions');
 
 //const appWallet = fromJSON(wallet);
 //const newsflashAppWallet = fromJSON(newsflashWallet);
@@ -47,40 +48,6 @@ async function fetchPics(strAssetDid){
   //console.log(new_docs);
   
   return new_docs;
-}
-
-async function waitAndGetTxHash(hash){
-  var res = null;
-  var i = 0;
-  if (typeof(hash) == "undefined" || !hash || hash.length == 0) {
-    return null;
-  }
-  
-  try {
-    for(i=0;i<150;i++){
-      res = await ForgeSDK.doRawQuery(`{
-        getTx(hash: "${hash}") {
-          code
-          info {
-            tx {
-              from
-              itxJson
-            }
-          }
-        }
-      }`);
-      if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
-        break;
-      }else{
-        await sleep(100);
-      }
-    }
-    console.log('waitAndGetTxHash counter', i);    
-  } catch (err) {
-    console.error('waitAndGetTxHash error', err);
-  }
-  
-  return res;
 }
 
 async function picturePaymentHook(hash, forgeState, userDid) {

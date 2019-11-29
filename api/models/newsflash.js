@@ -1,5 +1,33 @@
 const mongoose = require('mongoose');
 
+/*
+Array item definition
+
+comment_list = [
+  {
+    uname: { type: String, default: '' },
+    udid: { type: String, default: '' },
+    time: { type: String, default: '' },
+    comment: { type: String, default: '' },
+    mbalance: { type: Number, default: 0 },
+  },
+];
+
+like_list = [
+  {
+    udid: { type: String, default: '' },
+    mbalance: { type: Number, default: 0 },
+  },
+];
+
+forward_list = [
+  {
+    udid: { type: String, default: '' },
+    mbalance: { type: Number, default: 0 },
+  },
+];
+*/
+
 const NewsflashSchema = new mongoose.Schema({
   asset_did: { type: String, default: '' },
   content_did: { type: String, required: true, default: '' },
@@ -7,6 +35,7 @@ const NewsflashSchema = new mongoose.Schema({
   author_name: { type: String, required: true, default: '' },
   author_avatar: { type: String, default: '' },
   news_hash: { type: String, default: '' },
+  news_time: { type: String, default: '' },
   news_type: { type: String, required: true, default: '' },
   news_content: { type: String, required: true, default: '' },
   hash_href: { type: String, default: '' },
@@ -24,6 +53,7 @@ const NewsflashSchema = new mongoose.Schema({
   comment_counter: { type: Number, default: 0 },
   like_counter: { type: Number, default: 0 },
   forward_counter: { type: Number, default: 0 },
+  hot_index: { type: Number, default: 0 },
   comment_list: { type: Array, default: [] },
   like_list: { type: Array, default: [] },
   forward_list: { type: Array, default: [] },
@@ -41,6 +71,15 @@ NewsflashSchema.query.byState = function(strState){
 
 NewsflashSchema.query.byNewsType = function(strType){
   return this.find({news_type: strType}).sort({"createdAt":-1});
+}
+
+NewsflashSchema.query.hotByHotIndex = function(){
+  var docs =  this.find({$and: [
+    {state: "chained"},
+    {hot_index: {$gt: 0}}
+  ]}).sort({"hot_index":-1, "updatedAt":-1});
+  
+  return docs;
 }
 
 NewsflashSchema.query.byAuthorDidAndState = function(strAutherDid, strState){

@@ -12,47 +12,14 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 const { Picture } = require('../../models');
 const { getNewsForUploadToChain, cleanUserDeadNews } = require('../newsflash');
 const { createNewsflahAsset, listAssets } = require('../../libs/assets');
-const { forgeTxValueSecureConvert } = require('../../libs/transactions');
+const { forgeTxValueSecureConvert, waitAndGetTxHash } = require('../../libs/transactions');
+const { utcToLocalTime } = require('../../libs/time');
 
 //const appWallet = fromJSON(wallet);
 //const newsflashAppWallet = fromJSON(newsflashWallet);
 
 const appWallet = fromSecretKey(process.env.APP_SK, type);
 const newsflashAppWallet = fromSecretKey(process.env.APP_NEWSFLASH_SK, type);
-
-async function waitAndGetTxHash(hash){
-  var res = null;
-  var i = 0;
-  if (typeof(hash) == "undefined" || !hash || hash.length == 0) {
-    return null;
-  }
-  
-  try {
-    for(i=0;i<150;i++){
-      res = await ForgeSDK.doRawQuery(`{
-        getTx(hash: "${hash}") {
-          code
-          info {
-            tx {
-              from
-              itxJson
-            }
-          }
-        }
-      }`);
-      if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
-        break;
-      }else{
-        await sleep(100);
-      }
-    }
-    console.log('waitAndGetTxHash counter', i);    
-  } catch (err) {
-    console.error('waitAndGetTxHash error', err);
-  }
-  
-  return res;
-}
 
 async function newsflashPaymentHookV2(hash, forgeState, userDid) {
   try {
@@ -65,12 +32,15 @@ async function newsflashPaymentHookV2(hash, forgeState, userDid) {
       const tx_value = parseFloat(fromUnitToToken(txRes.getTx.info.tx.itxJson.value, forgeState.token.decimal));
       const tx_from = txRes.getTx.info.tx.from;
       const tx_to = txRes.getTx.info.tx.itxJson.to;
+      const tx_local_time = utcToLocalTime(txRes.getTx.info.time);
       var transferHash = null;
       var res = null;
             
       console.log('Hook tx from:', tx_from, 'to: ', tx_to);
       console.log('Hook tx_value=', tx_value, 'tx_memo=', tx_memo);
       console.log('Hook tx_memo.module=', tx_memo.module);
+      //console.log('Hook tx_local_time=', tx_local_time);
+      
       if(tx_memo.module == 'newsflash'){
         console.log('newsflash tx hook');
               
@@ -107,6 +77,7 @@ async function newsflashPaymentHookV2(hash, forgeState, userDid) {
               
               console.log('update newsflash doc');
               newsflash_doc.news_hash = transferHash;
+              newsflash_doc.news_time = tx_local_time;
               newsflash_doc.hash_href = env.chainHost.replace('/api', '/node/explorer/txs/')+transferHash;
               newsflash_doc.total_comment_minner_balance = total_comment_minner_balance;
               newsflash_doc.total_like_minner_balance = total_like_minner_balance;
@@ -131,6 +102,7 @@ async function newsflashPaymentHookV2(hash, forgeState, userDid) {
               }
               newsflash_doc.state = 'chained';
               await newsflash_doc.save();
+              //console.log('newsflash_doc update to: ', newsflash_doc);
               
               try {
                 transferHash = await ForgeSDK.sendTransferTx({
