@@ -24,6 +24,27 @@ const { getAssetGenesisHash } = require('../api/libs/assets');
 const newsflashAppWallet = fromJSON(newsflashWallet);
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
+const newsflashBlockAssetList = [
+  'zjdyAw68PFnezMYDZYb5tS6Mx9SkXy4a6s1r',
+  'zje1cH1SDVe8zkd8R8PzFjgXrkuw93RgdXze',
+  'zjduEhpusean1TESEij891DgfvLSdmsgFca4',
+  'zjdpgxPuyXFY9siTn8rNLBeCg43snz2Ncr9v',
+  'zjdzA9n2L9hth3jwrne45BoAjRo6AvVeHwrN',
+];
+
+async function newsflashRemoveAssets(){
+  for (var asset_did of newsflashBlockAssetList) {
+    console.log('newsflashRemoveAssets check to remove ', asset_did);
+    var doc = await Newsflash.findOne({ asset_did: asset_did });
+    if(doc){
+      console.log('newsflashRemoveAssets removed doc.asset_did=', doc.asset_did);
+      await doc.remove();
+    }else{
+      console.log('newsflashRemoveAssets asset_did', asset_did, 'not found');
+    }
+  }
+}
+
 async function newsflashCleanDeadNews(){
   var new_docs = [];
   var found = 0;
@@ -267,6 +288,9 @@ async function newsflashDappDbSync(){
   }else{
     console.log('newsflashDappDbSync V3 empty chain tx');
   }
+  
+  /*remove some assets*/
+  await newsflashRemoveAssets();
 }
 
 (async () => {

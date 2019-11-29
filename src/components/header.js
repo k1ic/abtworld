@@ -142,6 +142,7 @@ const Nav = styled(Toolbar)`
     font-size: 1.0rem;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-weight: 500;
+    color: #000000;
     line-height: 1.6;
     letter-spacing: 0.0075em;
     margin-right: 10px;

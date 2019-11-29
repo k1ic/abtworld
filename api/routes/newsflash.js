@@ -438,19 +438,55 @@ async function getNewsForUploadToChain(strAssetDid){
   return doc;
 }
 
-async function getNewsForShow(strType){
+async function getNewsForShow(module_para){
   var new_docs = [];
   var found = 0;
   
-  Newsflash.find().byNewsType(strType).exec(function(err, docs){
-    if(docs && docs.length>0){
-      console.log('Found', docs.length, 'asset_did docs');
-      new_docs = docs;
+  if(module_para.news_type === 'hot'){
+    if(module_para.udid_to_show.length > 0){
+      Newsflash.find().hotByHotIndexAndAuthorDid(module_para.udid_to_show).exec(function(err, docs){
+        if(docs && docs.length>0){
+          console.log('Found', docs.length, module_para.news_type, module_para.udid_to_show, 'docs');
+          new_docs = docs;
+        }else{
+          console.log('getNewsForShow document not found!');
+        }
+        found = 1;
+      })
     }else{
-      console.log('getNewsForShow document not found!');
+      Newsflash.find().hotByHotIndex().exec(function(err, docs){
+        if(docs && docs.length>0){
+          console.log('Found', docs.length, module_para.news_type, 'docs');
+          new_docs = docs;
+        }else{
+          console.log('getNewsForShow document not found!');
+        }
+        found = 1;
+      })
     }
-    found = 1;
-  })
+  }else{
+    if(module_para.udid_to_show.length > 0){
+      Newsflash.find().byNewsTypeAuthorDidAndState(module_para.news_type, module_para.udid_to_show, 'chained').exec(function(err, docs){
+        if(docs && docs.length>0){
+          console.log('Found', docs.length, module_para.news_type, module_para.udid_to_show, 'docs');
+          new_docs = docs;
+        }else{
+          console.log('getNewsForShow document not found!');
+        }
+        found = 1;
+      })
+    }else{
+      Newsflash.find().byNewsTypeAndState(module_para.news_type, 'chained').exec(function(err, docs){
+        if(docs && docs.length>0){
+          console.log('Found', docs.length, module_para.news_type, 'docs');
+          new_docs = docs;
+        }else{
+          console.log('getNewsForShow document not found!');
+        }
+        found = 1;
+      })
+    }
+  }
   
   /*wait found result*/
   var wait_counter = 0;
@@ -464,6 +500,44 @@ async function getNewsForShow(strType){
   
   console.log('getNewsForShow wait counter', wait_counter);
   //console.log(new_docs);
+  
+  /*remap news for frontEnd UI show */
+  if(new_docs && new_docs.length > 0){
+    new_docs = await Promise.all(new_docs.map( async (e) => {
+      var temp_doc = {};
+      temp_doc['state'] = e.state;
+      temp_doc['time'] = e.news_time;
+      temp_doc['sender'] = e.author_did;
+      temp_doc['hash'] = e.news_hash;
+      temp_doc['href'] = e.hash_href;
+      temp_doc['content'] = e.news_content;
+      temp_doc['asset_did'] = e.asset_did;
+      temp_doc['uname'] = e.author_name;
+      temp_doc['uavatar'] = e.author_avatar;
+      temp_doc['title'] = e.author_name;
+      temp_doc['comment_min_rem'] = forgeTxValueSecureConvert(e.remain_comment_minner_balance);
+      temp_doc['like_min_rem'] = forgeTxValueSecureConvert(e.remain_like_minner_balance);
+      temp_doc['forward_min_rem'] = forgeTxValueSecureConvert(e.remain_forward_minner_balance);
+      temp_doc['comment_cnt'] = e.comment_counter;
+      temp_doc['like_cnt'] = e.like_counter;
+      temp_doc['forward_cnt'] = e.forward_counter;
+      temp_doc['comment_list'] = e.comment_list;
+      temp_doc['like_list'] = e.like_list;
+      temp_doc['forward_list'] = e.forward_list;
+      if(module_para.udid && module_para.udid.length > 0){
+        temp_doc['like_status'] = newsflashDocLikeStatusGet(e, module_para.udid);
+      }else{
+        temp_doc['like_status'] = false;
+      }
+      return temp_doc;
+    }));
+  
+    if(module_para.slice_end > module_para.slice_start){
+      new_docs = new_docs.slice(module_para.slice_start, module_para.slice_end);
+    }
+  }
+  
+  //console.log('getNewsForShow final new_docs.length=', new_docs.length);
   
   return new_docs;
 }
@@ -505,8 +579,8 @@ module.exports = {
         if(params){
           console.log('api.newsflashget params=', params);
           const dapp_module = req.query.module;
-          const news_type = req.query.news_type;
-          const news = await getNewsForShow(news_type);
+          const module_para = {news_type: req.query.news_type, udid: req.query.udid, udid_to_show: req.query.udid_to_show, slice_start: 0, slice_end: 500};
+          const news = await getNewsForShow(module_para);
           if(news && news.length > 0){
             console.log('api.newsflashget.ok - news.length', news.length);
             res.json(news);

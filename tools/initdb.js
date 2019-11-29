@@ -1,10 +1,106 @@
 ﻿require('dotenv').config();
 const mongoose = require('mongoose');
 const env = require('../api/libs/env');
-const { Picture } = require('../api/models');
+const { Picture, Newsflash } = require('../api/models');
 const AssetPicList = require('../src/libs/asset_pic');
+const { forgeTokenStateGet } = require('../api/routes/session');
 
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
+
+async function pictureDbInit(){
+  try {
+    const token = await forgeTokenStateGet();
+    
+    /*Import const picture data to database*/
+    console.log('[Start]Import const picture data to database');
+    for(var i=0;i<AssetPicList.length;i++){
+      var picture = await Picture.findOne({ asset_did: AssetPicList[i].asset_did });
+      if (picture) {
+        picture.category = AssetPicList[i].category;
+        picture.owner = AssetPicList[i].owner;
+        picture.contact = AssetPicList[i].contact;
+        picture.owner_did = AssetPicList[i].owner_did;
+        picture.blur_src = AssetPicList[i].blur_src;
+        picture.hd_src = AssetPicList[i].hd_src;
+        picture.asset_did = AssetPicList[i].asset_did;
+        picture.link = AssetPicList[i].link;
+        picture.title = AssetPicList[i].title;
+        picture.description = AssetPicList[i].description;
+        picture.worth = AssetPicList[i].worth;
+        picture.token_sym = token.symbol;
+        picture.payback_rate = AssetPicList[i].payback_rate;
+        if(picture.hot_index == 0){
+          picture.hot_index = picture.payed_counter*10;
+        }
+        await picture.save();
+        //console.log('update picture', picture);
+      }else{
+        var pic_new = new Picture({
+          category: AssetPicList[i].category,
+          owner: AssetPicList[i].owner,
+          contact: AssetPicList[i].contact,
+          owner_did: AssetPicList[i].owner_did,
+          blur_src: AssetPicList[i].blur_src,
+          hd_src: AssetPicList[i].hd_src,
+          asset_did: AssetPicList[i].asset_did,
+          link: AssetPicList[i].link,
+          title: AssetPicList[i].title,
+          description: AssetPicList[i].description,
+          worth: AssetPicList[i].worth,
+          token_sym: token.symbol,
+          payback_rate: AssetPicList[i].payback_rate,
+          state: 'approved',
+          createdAt: Date(),
+        });
+        await pic_new.save();
+        //console.log('create picture', pic_new);
+      }
+    }
+    console.log('[End]Import const picture data to database');
+  } catch (err) {
+    console.log('pictureDbInit err=', err);
+  }
+}
+
+async function newsflashDbInit(){
+  try {
+    var found = 0;
+    var found_docs = [];
+    
+    Newsflash.find().exec(function(err, docs){
+      if(docs && docs.length>0){
+        console.log('Found', docs.length, ' newsflash docs');
+        found_docs = docs;
+      }
+      found = 1;
+    });
+    
+    /*wait found result*/
+    var wait_counter = 0;
+    while(!found){
+      await sleep(1);
+      wait_counter++;
+      if(wait_counter > 15000){
+        break;
+      }
+    }
+    console.log('newsflashDbInit wait_counter=' + wait_counter);
+    
+    if(found_docs && found_docs.length>0){
+      for (var doc of found_docs) {
+        if(doc.hot_index == 0){
+          doc.hot_index = doc.like_counter*1 + doc.forward_counter*1 + doc.comment_counter*3;
+          if(doc.hot_index > 0){
+            await doc.save();
+            console.log('newsflashDbInit asset_did=', doc.asset_did, 'hot_index update to', doc.hot_index);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.log('newsflashDbInit err=', err);
+  }
+}
 
 (async () => {
   try {
@@ -43,94 +139,14 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
       }
     }
     
-    console.log('MongoDB collection Picture obj=', Picture);
-    console.log('[Start]Import const picture data to database');
+    /*picture db init*/
+    await pictureDbInit();
     
-    /*Import const picture data to database*/
-    for(var i=0;i<AssetPicList.length;i++){
-      var picture = await Picture.findOne({ asset_did: AssetPicList[i].asset_did });
-      if (picture) {
-        picture.category = AssetPicList[i].category;
-        picture.owner = AssetPicList[i].owner;
-        picture.contact = AssetPicList[i].contact;
-        picture.owner_did = AssetPicList[i].owner_did;
-        picture.blur_src = AssetPicList[i].blur_src;
-        picture.hd_src = AssetPicList[i].hd_src;
-        picture.asset_did = AssetPicList[i].asset_did;
-        picture.link = AssetPicList[i].link;
-        picture.title = AssetPicList[i].title;
-        picture.description = AssetPicList[i].description;
-        picture.worth = AssetPicList[i].worth;
-        picture.token_sym = AssetPicList[i].token_sym;
-        picture.payback_rate = AssetPicList[i].payback_rate;
-        if(picture.hot_index == 0){
-          picture.hot_index = picture.payed_counter*10;
-        }
-        picture.updatedAt = Date();
-        await picture.save();
-        //console.log('update picture', picture);
-      }else{
-        var pic_new = new Picture({
-          category: AssetPicList[i].category,
-          owner: AssetPicList[i].owner,
-          contact: AssetPicList[i].contact,
-          owner_did: AssetPicList[i].owner_did,
-          blur_src: AssetPicList[i].blur_src,
-          hd_src: AssetPicList[i].hd_src,
-          asset_did: AssetPicList[i].asset_did,
-          link: AssetPicList[i].link,
-          title: AssetPicList[i].title,
-          description: AssetPicList[i].description,
-          worth: AssetPicList[i].worth,
-          token_sym: AssetPicList[i].token_sym,
-          payback_rate: AssetPicList[i].payback_rate,
-          state: 'approved',
-          createdAt: Date(),
-        });
-        await pic_new.save();
-        //console.log('create picture', pic_new);
-      }
-    }
-    console.log('[End]Import const picture data to database');
+    /*newsflash db init*/
+    await newsflashDbInit();
     
-    /*Delete document test*/
-    //Picture.remove({asset_did: '7903c55df26dd063a45bc7639482bd7a860d6f6a'}).exec();
-    
-    /*MongoDB document query*/
-    Picture.find().byAssetDid('1f9e74713d20d04d48860685345952fde2e637c5').exec(function(err, docs){
-       if(docs && docs.length>0){
-         console.log('Found', docs.length, 'asset_did docs');
-         console.log(docs);
-       }else{
-         console.log('asset_did document not found!');
-       }
-    })
-    Picture.find().byState('approved').exec(function(err, docs){
-       if(docs && docs.length>0){
-         console.log('Found', docs.length, 'approved docs');
-         var new_docs = docs.map(function( e ) {
-            var doc = {};
-            doc['category'] = e.category;
-            doc['owner'] = e.owner;
-            doc['blur_src'] = e.blur_src;
-            doc['link'] = e.link;
-            doc['title'] = e.title;
-            doc['description'] = e.description;
-            doc['worth'] = e.worth;
-            doc['token_sym'] = e.token_sym;
-            return doc;
-         });
-         console.log(new_docs);
-       }else{
-         console.log('Approved document not found!');
-       }
-       
-       mongoose.disconnect();
-       process.exit(0);
-    })
-    
-    //mongoose.disconnect();
-    //process.exit(0);
+    mongoose.disconnect();
+    process.exit(0);
   } catch (err) {
     console.error(err);
     console.error(err.errors);

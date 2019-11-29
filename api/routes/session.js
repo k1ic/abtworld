@@ -1,25 +1,39 @@
 const ForgeSDK = require('@arcblock/forge-sdk');
+const env = require('../libs/env');
+
+const tba_token = {
+  decimal: 16,
+  symbol: 'TBA'
+};
+
+async function forgeTokenStateGet(){
+  var token = null;
+  if(env.chainHost === 'https://zinc.abtnetwork.io/api'){
+    token = tba_token;
+  }else{
+    const query_res = await ForgeSDK.doRawQuery(`{
+      getForgeState {
+        code
+        state {
+          token {
+            symbol
+            decimal
+          }
+        }
+      }
+    }`);
+    token = query_res.getForgeState.state.token;
+  }
+  
+  return token;
+}
 
 module.exports = {
   init(app) {
     app.get('/api/session', async (req, res) => {
-      //ForgeSDK.connect('https://zinc.abtnetwork.io/api');
-      (async () => {
-         const query_res = await ForgeSDK.doRawQuery(`{
-           getForgeState {
-             code
-             state {
-               token {
-                 symbol
-                 decimal
-               }
-             }
-           }
-         }`);
-
-         //console.log(query_res.getForgeState.state.token);
-         res.json({ user: req.user, token: query_res.getForgeState.state.token });
-      })();
+      console.log('api.get.session')
+      const token = await forgeTokenStateGet();
+      res.json({ user: req.user, token: token });
     });
     
     app.get('/api/session_user_only', async (req, res) => {
@@ -32,4 +46,6 @@ module.exports = {
       res.json({ user: null });
     });
   },
+  
+  forgeTokenStateGet,
 };

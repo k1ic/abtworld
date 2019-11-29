@@ -82,6 +82,31 @@ NewsflashSchema.query.hotByHotIndex = function(){
   return docs;
 }
 
+NewsflashSchema.query.hotByHotIndexAndAuthorDid = function(strAutherDid){
+  var docs =  this.find({$and: [
+    {state: "chained"},
+    {hot_index: {$gt: 0}},
+    {author_did: strAutherDid}
+  ]}).sort({"hot_index":-1, "updatedAt":-1});
+  
+  return docs;
+}
+
+NewsflashSchema.query.byNewsTypeAndState = function(strType, strState){
+  return this.find({$and: [
+    {news_type: strType},
+    {state: strState}
+  ]}).sort({"createdAt":-1});
+}
+
+NewsflashSchema.query.byNewsTypeAuthorDidAndState = function(strType, strAutherDid, strState){
+  return this.find({$and: [
+    {news_type: strType},
+    {author_did: strAutherDid},
+    {state: strState}
+  ]}).sort({"createdAt":-1});
+}
+
 NewsflashSchema.query.byAuthorDidAndState = function(strAutherDid, strState){
   return this.find({$and: [
     {author_did: strAutherDid},

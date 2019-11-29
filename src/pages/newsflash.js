@@ -58,6 +58,12 @@ const news_comment_max_length = 100;
 /*news type default value*/
 const news_type_default = 'chains';
 
+/*news fetch mode
+ *1.chainnode
+ *2.localdb
+ */
+const news_fetch_mode = 'localdb';
+
 /*pay valye*/
 const toPayEachChar = 0.001;
 const dPointNumMax = 6;
@@ -156,8 +162,13 @@ class App extends Component {
       }
     }
     
+    var api_url = '/api/payments';
+    if(news_fetch_mode === 'localdb'){
+      api_url = '/api/newsflashget';
+    }
+    
     reqwest({
-      url: '/api/payments',
+      url: api_url,
       method: 'get',
       data: {
         module: 'newsflash',
@@ -822,7 +833,14 @@ class App extends Component {
     var send_permission = false;
     if(user){
       if(-1 != admin_account.indexOf(user.did)){
-        send_permission = true;
+        switch(news_type){
+          case 'hot':
+            send_permission = false;
+            break;
+          default:
+            send_permission = true;
+            break;
+        }
       }else{
         switch(news_type){
           case 'amas':
@@ -831,6 +849,9 @@ class App extends Component {
             }else{
               send_permission = false;
             }
+            break;
+          case 'hot':
+            send_permission = false;
             break;
           default:
             send_permission = true;
@@ -869,21 +890,24 @@ class App extends Component {
             onChange={this.handleNewsTypeChange}
             tabBarStyle={{background:'#fff'}}
             tabPosition="top"
-            tabBarGutter={10}
+            tabBarGutter={15}
           >
-            {/*<TabPane tab={<span style={{ fontSize: '16px', color: '#FF0033' }}><Icon type="fire" theme="twoTone" twoToneColor="#FF0033" />热门</span>} key="hot">
-            </TabPane>*/}
-            <TabPane tab={<span style={{ fontSize: '14px', color: '#0' }}>快讯</span>} key="chains">
+            {<TabPane tab={<span style={{ fontSize: '16px', color: '#000000' }}><Icon type="fire" theme="twoTone" twoToneColor="#FF0033" />热门</span>} key="hot">
+            </TabPane>}
+            <TabPane tab={<span style={{ fontSize: '16px', color: '#000000' }}>快讯</span>} key="chains">
             </TabPane>
-            <TabPane tab="广告" key="ads">
+            <TabPane tab={<span style={{ fontSize: '16px', color: '#000000' }}>广告</span>} key="ads">
             </TabPane>
-            <TabPane tab={<span style={{ fontSize: '16px', color: '#0' }}>AMA</span>} key="amas">
+            <TabPane tab={<span style={{ fontSize: '16px', color: '#000000' }}>AMA</span>} key="amas">
             </TabPane>
-            <TabPane tab="鸡汤" key="soups">
+            <TabPane tab={<span style={{ fontSize: '16px', color: '#000000' }}>鸡汤</span>} key="soups">
             </TabPane>
-            <TabPane tab="备忘" key="memos">
+            <TabPane tab={<span style={{ fontSize: '16px', color: '#000000' }}>备忘</span>} key="memos">
             </TabPane>
             {!isProduction && <TabPane tab="测试" key="test">
+              </TabPane>
+            }
+            {!isProduction && <TabPane tab="测试2" key="test2">
               </TabPane>
             }
           </Tabs>
@@ -940,7 +964,7 @@ class App extends Component {
                   <span style={{ fontSize: '12px', color: '#3CB371' }}>{item.title}</span> <br/>
                   <a href={item.href} target="_blank" style={{ fontSize: '12px', color: '#0000FF' }}>哈希@{item.time}</a> <br/>        
                   <div id={item.asset_did}>
-                    <Paragraph ellipsis={{ rows: 6, expandable: true }}>
+                    <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#000000' }}>
                       {item.content}
                     </Paragraph>
                   </div>
