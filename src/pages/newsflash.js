@@ -52,7 +52,7 @@ const admin_account = env.appAdminAccounts;
 /*direct or indirect*/
 const news_to_chain_mode = 'indirect';
 var news_content_max_length = 0;
-const list_items_per_page = 20;
+const list_items_per_page = 10;
 const news_comment_max_length = 100;
 
 /*news type default value*/
@@ -106,9 +106,11 @@ class App extends Component {
       toPay: 0,
       asset_did: '',
       show_mode: 'all',
-      newsflash_list: [],
       sending: false,
+      newsflash_list: [],
       loading: false,
+      page_number: 1,
+      more_to_load: true,
       minning: false,
       comment_input_visible: false,
       comment_to_send: '',
@@ -175,6 +177,8 @@ class App extends Component {
         news_type: this.state.news_type,
         udid: udid,
         udid_to_show: udid_to_show,
+        page: this.state.page_number,
+        count: list_items_per_page,
         ...params,
       },
       type: 'json',
@@ -185,10 +189,44 @@ class App extends Component {
       //  console.log(data.slice(0, 9));
       //}
       
+      let newsflash_list = this.state.newsflash_list;
+      if(data && data.length > 0){
+        if(newsflash_list && newsflash_list.length > 0){
+          newsflash_list = newsflash_list.concat(data);
+        }else{
+          newsflash_list = data;
+        }
+      }
+      let more_to_load = false;
+      if(data && data.length >= list_items_per_page){
+        more_to_load = true;
+      }
+      
       this.setState({
-        newsflash_list: data,
+        newsflash_list: newsflash_list,
+        more_to_load: more_to_load,
         loading: false
       });
+    });
+  };
+  
+  /*Load more news flash */
+  onLoadMore = () => {
+    this.setState({
+      page_number: this.state.page_number+1,
+    },()=>{
+      this.fetchNewsFlash();
+    });
+  };
+  
+  onLoadMoreBack = () => {
+    this.setState({
+      newsflash_list: [],
+      loading: false,
+      more_to_load: true,
+      page_number: 1,
+    },()=>{
+      this.fetchNewsFlash();
     });
   };
   
@@ -207,8 +245,8 @@ class App extends Component {
     }
     
     if (! this.state.intervalIsSet) {
-      let interval = setInterval(this.fetchNewsFlash, 30000);
-      this.setState({ intervalIsSet: interval});
+      //let interval = setInterval(this.fetchNewsFlash, 30000);
+      //this.setState({ intervalIsSet: interval});
     }
   }
   
@@ -225,9 +263,12 @@ class App extends Component {
     
     this.setState({
       news_type: value,
-      newsflash_list: []
+      newsflash_list: [],
+      loading: false,
+      more_to_load: true,
+      page_number: 1,
     },()=>{
-       window.location.hash = `#${value}`;
+      window.location.hash = `#${value}`;
       this.fetchNewsFlash();
     });
   }
@@ -239,7 +280,13 @@ class App extends Component {
     }else{
       show_mode = 'mine';
     }
-    this.setState({show_mode: show_mode},()=>{
+    this.setState({
+      newsflash_list: [],
+      loading: false,
+      more_to_load: true,
+      page_number: 1,
+      show_mode: show_mode,
+    },()=>{
       console.log('show mode change to', this.state.show_mode);
       this.fetchNewsFlash();
     });
@@ -755,6 +802,10 @@ class App extends Component {
   onPaymentSuccess = async result => {
     console.log('onPaymentSuccess');
     this.setState({
+      newsflash_list: [],
+      loading: false,
+      more_to_load: true,
+      page_number: 1,
       news_to_send: '',
       toPay: 0,
       sending: false,
@@ -770,9 +821,36 @@ class App extends Component {
   };
 
   render() {
-    const { session, news_type, news_to_send, comment_to_send, toPay, sending } = this.state;
+    const { session, news_type, news_to_send, comment_to_send, toPay, sending, newsflash_list, more_to_load, loading } = this.state;
     //console.log('render session=', session);
     //console.log('render props=', this.props);
+    
+    const loadMore =
+      more_to_load && !loading ? (
+        <div
+          style={{
+            textAlign: 'center',
+            marginTop: 12,
+            height: 32,
+            lineHeight: '32px',
+          }}
+        >
+          <Button onClick={this.onLoadMore} style={{ fontSize: '18px', color: '#0000FF', marginRight: 10 }}><Icon type="caret-down" />加载更多</Button>
+          <Button onClick={this.onLoadMoreBack} style={{ fontSize: '18px', color: '#009933' }}><Icon type="caret-up" />返回</Button>
+        </div>
+      ) 
+      : (newsflash_list.length > 0?
+        <div
+          style={{
+            textAlign: 'center',
+            marginTop: 12,
+            height: 32,
+            lineHeight: '32px',
+          }}
+        >
+          <Button onClick={this.onLoadMoreBack} style={{ fontSize: '18px', color: '#009933' }}><Icon type="caret-up" />返回</Button>
+        </div>
+         :null);
     
     if (!session) {
       return (
@@ -939,12 +1017,7 @@ class App extends Component {
             <List
               itemLayout="vertical"
               size="large"
-              pagination={{
-                onChange: page => {
-                  console.log(page);
-                },
-                pageSize: list_items_per_page,
-              }}
+              loadMore={loadMore}
               dataSource={this.state.newsflash_list?this.state.newsflash_list:[]}
               footer={null}
               renderItem={item => (
@@ -1008,7 +1081,7 @@ class App extends Component {
              width = {posterWinWidth}
             >
               <div id="shareNewsContent">
-                <img src="/static/images/hashnews/banner.png" alt="HashNews"  width={posterWinWidth - 40} />
+                <img src="/static/images/hashnews/banner.png" alt="HashNews"  width={posterWinWidth - 40} /> <br/>
                 <List
                   style={{ marginLeft: 10,  marginRight: 10 }}
                   itemLayout="vertical"

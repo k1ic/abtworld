@@ -64,6 +64,7 @@ module.exports = {
                 var local_time = moment(e.genesisTime).local().format('YY/MM/DD HH:mm:ss');
                 //console.log('UTC=',e.genesisTime, 'local time=', local);
                 
+                temp_tx['loading'] = false;
                 var doc = await getNewsForUploadToChain(e.address);
                 if(doc){
                   if(doc.state === 'chained'){
@@ -160,6 +161,7 @@ module.exports = {
                 var local_time = moment(e.time).local().format('YY/MM/DD HH:mm:ss');
                 //console.log('UTC=',e.time, 'local time=', local);
                 
+                temp_tx['loading'] = false;
                 var doc = null;
                 if(memo && typeof(memo.para.content) != "undefined"){
                   asset_did = HashString('sha1', memo.para.content);
@@ -251,6 +253,7 @@ module.exports = {
                 }
                 var local_time = moment(e.time).local().format('YY/MM/DD HH:mm:ss');
                 //console.log('UTC=',e.time, 'local time=', local);
+                temp_tx['loading'] = false;
                 temp_tx['state'] = 'allowed';
                 temp_tx['time'] = local_time;
                 temp_tx['sender'] = e.sender;
