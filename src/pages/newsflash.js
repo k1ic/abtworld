@@ -378,7 +378,7 @@ class App extends Component {
       return null;
     }
     
-    if(!user){
+    if(isProduction && !user){
       window.location.href = '/newsflash?openLogin=true';
       return null;
     }
@@ -875,7 +875,7 @@ class App extends Component {
       <Layout title="HashNews">
         <Main>
           <Typography component="p" variant="h5" className="section-description" color="textSecondary">
-            自主身份发布，资讯哈希可查
+            DID身份发布，资讯哈希可查
             <Switch checked={this.state.show_mode === 'all'?true:false} onChange={this.onShowModeChange} disabled={user == null} size="small" className="antd-showmode-switch"/>
             {this.state.show_mode === 'all'?'全部':'我的'}
           </Typography>
@@ -890,19 +890,21 @@ class App extends Component {
             onChange={this.handleNewsTypeChange}
             tabBarStyle={{background:'#fff'}}
             tabPosition="top"
-            tabBarGutter={15}
+            tabBarGutter={8}
           >
-            {<TabPane tab={<span style={{ fontSize: '16px', color: '#000000' }}><Icon type="fire" theme="twoTone" twoToneColor="#FF0033" />热门</span>} key="hot">
-            </TabPane>}
-            <TabPane tab={<span style={{ fontSize: '16px', color: '#000000' }}>快讯</span>} key="chains">
+            <TabPane tab={<span style={{ fontSize: '15px', fontWeight: 300, color: '#000000' }}>热门</span>} key="hot">
             </TabPane>
-            <TabPane tab={<span style={{ fontSize: '16px', color: '#000000' }}>广告</span>} key="ads">
+            <TabPane tab={<span style={{ fontSize: '14px', color: '#000000' }}>快讯</span>} key="chains">
             </TabPane>
-            <TabPane tab={<span style={{ fontSize: '16px', color: '#000000' }}>AMA</span>} key="amas">
+            <TabPane tab={<span style={{ fontSize: '14px', color: '#000000' }}>问答</span>} key="qnas">
             </TabPane>
-            <TabPane tab={<span style={{ fontSize: '16px', color: '#000000' }}>鸡汤</span>} key="soups">
+            <TabPane tab={<span style={{ fontSize: '14px', color: '#000000' }}>广告</span>} key="ads">
             </TabPane>
-            <TabPane tab={<span style={{ fontSize: '16px', color: '#000000' }}>备忘</span>} key="memos">
+            <TabPane tab={<span style={{ fontSize: '14px', color: '#000000' }}>AMA</span>} key="amas">
+            </TabPane>
+            <TabPane tab={<span style={{ fontSize: '14px', color: '#000000' }}>鸡汤</span>} key="soups">
+            </TabPane>
+            <TabPane tab={<span style={{ fontSize: '14px', color: '#000000' }}>备忘</span>} key="memos">
             </TabPane>
             {!isProduction && <TabPane tab="测试" key="test">
               </TabPane>
@@ -1006,6 +1008,7 @@ class App extends Component {
              width = {posterWinWidth}
             >
               <div id="shareNewsContent">
+                <img src="/static/images/hashnews/banner.png" alt="HashNews"  width={posterWinWidth - 40} />
                 <List
                   style={{ marginLeft: 10,  marginRight: 10 }}
                   itemLayout="vertical"
@@ -1040,12 +1043,8 @@ class App extends Component {
                 <hr style={{ height: '1px', border: 'none', borderTop: '1px solid #A9A9A9', marginTop: 0,  marginBottom: 10 }} />
                 <div style={{ marginLeft: 10,  marginRight: 10 }}>
                   <QrCode value={"http://abtworld.cn/newsflash"} size={60} level={'M'} id="HashNewsQrCode" style={{ float: 'left', marginRight: 10 }} />
-                  <span style={{fontSize: '16px', fontWeight: 500, color: '#3CB371', marginLeft: 30,  marginRight: 0 }} >哈希快讯</span> <br/>
                   <span style={{fontSize: '14px', color: '#000000', marginLeft: 0 }} >DID身份发布，</span>
-                  <span style={{fontSize: '14px', fontWeight: 500, color: '#0000FF' }} >内容公开、透明、不可篡改！</span> <br/>
-                </div>
-                <div style={{ marginLeft: 10,  marginRight: 10 }}>
-                  <span style={{fontSize: '14px', fontWeight: 200, color: '#3CB371' }} >http://www.abtworld.cn/newsflash</span>
+                  <span style={{fontSize: '14px', fontWeight: 500, color: '#000000' }} >不只是快讯，内容公开、透明、不可篡改！</span> <br/>
                 </div>
               </div>
             </Modal>
