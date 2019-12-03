@@ -60,17 +60,17 @@ async function newsflashPaymentHookV2(hash, forgeState, userDid) {
               /********************************************************************************************
                *************************minner balance assignment******************************************
                ********************************************************************************************/
-              /*1. comment : 60% - for TOP20
-                2. like    : 20% - for TOP10
-                3. forward : 20% - for TOP10
+              /*1. comment : 60% - for TOP(20*news_weights)
+                2. like    : 20% - for TOP(10*news_weights)
+                3. forward : 20% - for TOP(10*news_weights)
                */
               const total_comment_minner_balance = forgeTxValueSecureConvert(remain_value_for_minner * 0.6);
               const total_like_minner_balance = forgeTxValueSecureConvert(remain_value_for_minner * 0.2);
               const total_forward_minner_balance = forgeTxValueSecureConvert(remain_value_for_minner * 0.2);
               
-              const each_comment_minner_balance = forgeTxValueSecureConvert(total_comment_minner_balance/20);
-              const each_like_minner_balance = forgeTxValueSecureConvert(total_like_minner_balance/10);
-              const each_forward_minner_balance = forgeTxValueSecureConvert(total_forward_minner_balance/10);
+              const each_comment_minner_balance = forgeTxValueSecureConvert(total_comment_minner_balance/(20*newsflash_doc.news_weights));
+              const each_like_minner_balance = forgeTxValueSecureConvert(total_like_minner_balance/(10*newsflash_doc.news_weights));
+              const each_forward_minner_balance = forgeTxValueSecureConvert(total_forward_minner_balance/(10*newsflash_doc.news_weights));
               console.log('hook pay minner balance assignment total comment='+total_comment_minner_balance+' like='+total_like_minner_balance+' forward='+total_forward_minner_balance);
               console.log('hook pay minner balance assignment each comment='+each_comment_minner_balance+' like='+each_like_minner_balance+' forward='+each_forward_minner_balance);
               

@@ -30,6 +30,7 @@ async function NewsflashAdd(fields){
     || typeof(fields.user) == "undefined"
     || typeof(fields.asset_did) == "undefined"
     || typeof(fields.news_type) == "undefined"
+    || typeof(fields.news_weights) == "undefined"
     || typeof(fields.news_content) == "undefined"){
     console.log('NewsflashAdd invalid fields');
     return false;
@@ -45,29 +46,35 @@ async function NewsflashAdd(fields){
     }else{
       console.log('NewsflashAdd asset_did=', fields.asset_did[0], 'already in db');
       
-      /*asset already in db, do nothing*/
-      return true;
+      /*asset already in db, update it*/
+      doc.asset_did = fields.asset_did[0];
+      doc.content_did = fields.asset_did[0];
+      doc.news_type = fields.news_type[0];
+      doc.news_content = fields.news_content[0];
+      doc.news_weights = fields.news_weights[0];
+      await doc.save();
     }
+  }else{
+    /*save newsflash to db when not exist*/
+    const user = JSON.parse(fields.user[0]);
+    var new_doc = new Newsflash({
+      asset_did: fields.asset_did[0],
+      content_did: fields.asset_did[0],
+      author_did: user.did,
+      author_name: user.name,
+      author_avatar: user.avatar_small,
+      news_hash: '',
+      news_type: fields.news_type[0],
+      news_content: fields.news_content[0],
+      news_weights: fields.news_weights[0],
+      hash_href: '',
+      state: 'commit',
+      minner_state: 'idle',
+      createdAt: Date(),
+    });
+    await new_doc.save();
+    console.log('NewsflashAdd saved to db');
   }
-  
-  /*save newsflash to db when not exist*/
-  const user = JSON.parse(fields.user[0]);
-  var new_doc = new Newsflash({
-    asset_did: fields.asset_did[0],
-    content_did: fields.asset_did[0],
-    author_did: user.did,
-    author_name: user.name,
-    author_avatar: user.avatar_small,
-    news_hash: '',
-    news_type: fields.news_type[0],
-    news_content: fields.news_content[0],
-    hash_href: '',
-    state: 'commit',
-    minner_state: 'idle',
-    createdAt: Date(),
-  });
-  await new_doc.save();
-  console.log('NewsflashAdd saved to db');
   
   return true;;
 }
@@ -208,7 +215,7 @@ async function NewsflashItemGiveLike(fields){
       
       /*increate like counter*/
       doc.like_counter += 1;
-      doc.hot_index += 1;
+      doc.hot_index += (1*doc.news_weights);
       
       /*like miner*/
       var miner_value = 0;
@@ -272,7 +279,7 @@ async function NewsflashItemForward(fields){
       
       /*increate forward counter*/
       doc.forward_counter += 1;
-      doc.hot_index += 1;
+      doc.hot_index += (1*doc.news_weights);
       
       /*forward miner*/
       var miner_value = 0;
@@ -312,7 +319,7 @@ async function NewsflashItemForward(fields){
     }else{
       /*increate forward counter*/
       doc.forward_counter += 1;
-      doc.hot_index += 1;
+      doc.hot_index += (1*doc.news_weights);
       doc.updatedAt = Date();
       await doc.save();
       
@@ -385,7 +392,7 @@ async function NewsflashItemAddComment(fields){
     /*update doc*/
     //doc.minner_state = 'idle';
     doc.comment_counter += 1;
-    doc.hot_index += 3;
+    doc.hot_index += (3*doc.news_weights);
     doc.comment_list.push(comment_list_item);
     doc.markModified('comment_list');
     doc.updatedAt = Date();
@@ -524,6 +531,7 @@ async function getNewsForShow(module_para){
       temp_doc['hash'] = e.news_hash;
       temp_doc['href'] = e.hash_href;
       temp_doc['content'] = e.news_content;
+      temp_doc['weights'] = e.news_weights;
       temp_doc['asset_did'] = e.asset_did;
       temp_doc['uname'] = e.author_name+'('+getUserDidFragment(e.author_did)+')';
       temp_doc['uavatar'] = e.author_avatar;

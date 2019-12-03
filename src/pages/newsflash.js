@@ -20,7 +20,11 @@ import {
   Select,
   Tabs,
   Switch,
-  Divider
+  Divider,
+  Slider,
+  InputNumber,
+  Row,
+  Col
 } from "antd";
 import zh_CN from 'antd/lib/locale-provider/zh_CN'
 import reqwest from 'reqwest';
@@ -66,7 +70,11 @@ const news_fetch_mode = 'localdb';
 
 /*pay valye*/
 const toPayEachChar = 0.001;
-const dPointNumMax = 6;
+
+/*news weights*/
+const news_weights_value_min = 1;
+const news_weights_value_max = 1000;
+const news_weights_value_step = 1;
 
 /*poster window width*/
 const posterWinWidth = 300;
@@ -104,6 +112,7 @@ class App extends Component {
       news_type: news_type_default,
       news_to_send: '',
       toPay: 0,
+      news_to_send_weight: 1,
       asset_did: '',
       show_mode: 'all',
       sending: false,
@@ -292,22 +301,26 @@ class App extends Component {
     });
   }
   
+  onNewsflashWeightChange = value => {
+    if(typeof(value) === 'number' && value <= news_weights_value_max && value >= news_weights_value_min){
+      console.log('onNewsflashWeightChange: ', value);
+      var toPay = 0;
+      if(this.state.news_to_send && this.state.news_to_send.length > 0){
+        toPay = forgeTxValueSecureConvert((toPayEachChar*value)*this.state.news_to_send.length);
+      }
+      this.setState({
+        news_to_send_weight: value,
+        toPay: toPay,
+      },()=>{
+      });
+    }
+  }
+
   onNewsToSendChange = ({ target: { value } }) => {
     //console.log('onNewsToSendChange value='+value+' length='+value.length);
     const contentLength = value.length;
     if(contentLength > 0){
-      var toPay = toPayEachChar*contentLength;
-      var dpoitNum = 0;
-      const toPaySplit = toPay.toString().split(".");
-      if(toPaySplit.length > 1){
-        dpoitNum = toPaySplit[1].length;
-      }else{
-        dpoitNum = 0;
-      }
-      
-      if(dpoitNum > dPointNumMax){
-        toPay = toPay.toFixed(dPointNumMax);
-      }
+      var toPay = forgeTxValueSecureConvert((toPayEachChar*this.state.news_to_send_weight)*contentLength);
       this.setState({ toPay: toPay });
     }else{
       this.setState({ toPay: 0 });
@@ -322,7 +335,7 @@ class App extends Component {
   
   /*Send news handler*/
   handleSendNews = () => {
-    const { session, news_type, news_to_send } = this.state;
+    const { session, news_type, news_to_send, news_to_send_weight } = this.state;
     const { user, token } = session;
     
     console.log('handleSendNews');
@@ -344,6 +357,7 @@ class App extends Component {
         formData.append('asset_did', asset_did);
         formData.append('news_type', news_type);
         formData.append('news_content', news_to_send);
+        formData.append('news_weights', news_to_send_weight);
         
         reqwest({
           url: '/api/newsflashset',
@@ -470,7 +484,7 @@ class App extends Component {
               if(parseFloat(result.response) > 0){
                 newsflashItem.like_min_rem -= parseFloat(result.response);
                 newsflashItem.like_min_rem = forgeTxValueSecureConvert(newsflashItem.like_min_rem);
-                const modal_content = '获得'+result.response+token.symbol+" 请到ABT钱包中查看!";
+                const modal_content = '获得'+result.response+token.symbol+"，请到ABT钱包中查看!";
                 Modal.success({title: modal_content});
               }else{
                 console.log('like minning poll is empty');
@@ -633,7 +647,7 @@ class App extends Component {
         if(parseFloat(result.response) > 0){
           newsflashItem.comment_min_rem -= parseFloat(result.response);
           newsflashItem.comment_min_rem = forgeTxValueSecureConvert(newsflashItem.comment_min_rem);
-          const modal_content = '获得'+result.response+token.symbol+" 请到ABT钱包中查看!";
+          const modal_content = '获得'+result.response+token.symbol+"，请到ABT钱包中查看!";
           Modal.success({title: modal_content});
         }else{
           console.log('comment minning poll is empty');
@@ -744,7 +758,7 @@ class App extends Component {
           if(parseFloat(result.response) > 0){
             newsflashItem.forward_min_rem -= parseFloat(result.response);
             newsflashItem.forward_min_rem = forgeTxValueSecureConvert(newsflashItem.forward_min_rem);
-            const modal_content = '获得'+result.response+token.symbol+" 请到ABT钱包中查看!";
+            const modal_content = '获得'+result.response+token.symbol+"，请到ABT钱包中查看!";
             Modal.success({title: modal_content});
           }else{
             console.log('forward minning poll is empty or already minned');
@@ -835,8 +849,8 @@ class App extends Component {
             lineHeight: '32px',
           }}
         >
-          <Button onClick={this.onLoadMore} style={{ fontSize: '18px', color: '#0000FF', marginRight: 10 }}><Icon type="caret-down" />加载更多</Button>
-          <Button onClick={this.onLoadMoreBack} style={{ fontSize: '18px', color: '#009933' }}><Icon type="caret-up" />返回</Button>
+          <Button onClick={this.onLoadMore} style={{ fontSize: '16px', color: '#0000FF', marginRight: 20 }}><Icon type="caret-down" />更多</Button>
+          <Button onClick={this.onLoadMoreBack} style={{ fontSize: '16px', color: '#009933' }}><Icon type="caret-up" />返回</Button>
         </div>
       ) 
       : (newsflash_list.length > 0?
@@ -848,7 +862,7 @@ class App extends Component {
             lineHeight: '32px',
           }}
         >
-          <Button onClick={this.onLoadMoreBack} style={{ fontSize: '18px', color: '#009933' }}><Icon type="caret-up" />返回</Button>
+          <Button onClick={this.onLoadMoreBack} style={{ fontSize: '16px', color: '#009933' }}><Icon type="caret-up" />返回</Button>
         </div>
          :null);
     
@@ -991,28 +1005,64 @@ class App extends Component {
               </TabPane>
             }
           </Tabs>
-          {/*<div style={{ margin: '24px 0' }} />*/}
-          {send_permission && (<TextArea
-            value={news_to_send}
-            onChange={this.onNewsToSendChange}
-            placeholder={"如: GoFun 出行推出 GoFun Connect 宣布与 ArcBlock 合作("+news_content_max_length+"字以内)"}
-            autoSize={{ minRows: 1, maxRows: 10 }}
-            maxLength={news_content_max_length}
-          />)}
-          {send_permission && (<div style={{ margin: '15px 0' }} /> )}
-          {send_permission && (<Button
-            key="submit"
-            type="primary"
-            size="large"
-            onClick={this.handleSendNews}
-            disabled={news_to_send === ''}
-            loading={sending}
-            className="antd-button-send"
-          >
-            发布 <br/>
-            {toPay}{token.symbol}
-          </Button> )}
-          {send_permission && <div style={{ margin: '24px 0' }} /> }
+          {send_permission && (
+            <Row>
+              <Col span={3}>
+                <span style={{fontSize: '16px', color: '#000000', margin: '15px 0' }} >权重</span>
+              </Col>
+              <Col span={14}>
+                <Slider 
+                  defaultValue={this.state.news_to_send_weight} 
+                  value={typeof this.state.news_to_send_weight === 'number' ? this.state.news_to_send_weight : 1}
+                  min={news_weights_value_min}
+                  max={news_weights_value_max}
+                  step={news_weights_value_step}
+                  onChange={this.onNewsflashWeightChange}
+                />
+              </Col>
+              <Col span={4}>
+                <InputNumber
+                  min={news_weights_value_min}
+                  max={news_weights_value_max}
+                  step={news_weights_value_step}
+                  style={{ marginLeft: 5,  marginRight: 0}}
+                  value={this.state.news_to_send_weight}
+                  onChange={this.onNewsflashWeightChange}
+                />
+             </Col>
+            </Row>
+          )}
+          {send_permission && (
+            <div style={{ margin: '5px 0' }}/>
+          )}
+          {send_permission && (
+            <TextArea
+              value={news_to_send}
+              onChange={this.onNewsToSendChange}
+              placeholder={"如: GoFun 出行推出 GoFun Connect 宣布与 ArcBlock 合作("+news_content_max_length+"字以内)"}
+              autoSize={{ minRows: 1, maxRows: 10 }}
+              maxLength={news_content_max_length}
+            />
+          )}
+          {send_permission && (
+            <div style={{ margin: '15px 0' }}/>
+          )}
+          {send_permission && (
+            <Button
+              key="submit"
+              type="primary"
+              size="large"
+              onClick={this.handleSendNews}
+              disabled={news_to_send === ''}
+              loading={sending}
+              className="antd-button-send"
+            >
+              发布({toPay}{token.symbol})
+            </Button>
+          )}
+          {send_permission && (
+            <div style={{ margin: '15px 0' }} />
+          )}
           <LocaleProvider locale={zh_CN}>
             <List
               itemLayout="vertical"
@@ -1039,9 +1089,13 @@ class App extends Component {
                   <span style={{ fontSize: '12px', color: '#3CB371' }}>{item.title}</span> <br/>
                   <a href={item.href} target="_blank" style={{ fontSize: '12px', color: '#0000FF' }}>哈希@{item.time}</a> <br/>        
                   <div id={item.asset_did}>
-                    <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#000000' }}>
-                      {item.content}
-                    </Paragraph>
+                    {item.weights > 1?
+                      <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#FF0000' }}>
+                        {item.content}
+                      </Paragraph> :
+                      <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#000000' }}>
+                        {item.content}
+                      </Paragraph>}
                   </div>
                   {(list_action_show && item.comment_list.length > 0) && 
                     <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />}
@@ -1108,7 +1162,9 @@ class App extends Component {
                       <a href={item.href} target="_blank" style={{ fontSize: '12px', color: '#0000FF' }}>哈希@{item.time}</a>
                       <div>
                         <br/>
-                        <span id="shareNewsListItemContent" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all' }}>{item.content}</span>
+                        {item.weights > 1?
+                          <span id="shareNewsListItemContent" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', color: '#FF0000' }}>{item.content}</span> :
+                          <span id="shareNewsListItemContent" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', color: '#000000' }}>{item.content}</span>}
                       </div>
                     </List.Item>
                   )}
@@ -1190,7 +1246,7 @@ const Main = styled.main`
   }
   
   .antd-button-send{
-    height: 50px;
+    height: 30px;
   }
   
   .antd-list-item{

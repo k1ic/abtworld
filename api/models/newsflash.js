@@ -38,6 +38,7 @@ const NewsflashSchema = new mongoose.Schema({
   news_time: { type: String, default: '' },
   news_type: { type: String, required: true, default: '' },
   news_content: { type: String, required: true, default: '' },
+  news_weights: { type: Number, default: 1 },
   hash_href: { type: String, default: '' },
   state: { type: String, required: true, default: 'commit' },
   minner_state: { type: String, required: true, default: 'idle' },

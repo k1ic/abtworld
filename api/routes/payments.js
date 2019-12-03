@@ -67,6 +67,7 @@ module.exports = {
                 temp_tx['loading'] = false;
                 var doc = await getNewsForUploadToChain(e.address);
                 if(doc){
+                  temp_tx['weights'] = doc.news_weights;
                   if(doc.state === 'chained'){
                     temp_tx['state'] = 'allowed';
                   }else{
@@ -74,6 +75,7 @@ module.exports = {
                   }
                   hash = doc.news_hash;
                 }else{
+                  temp_tx['weights'] = 1;
                   temp_tx['state'] = 'allowed';
                   if(!hash || hash.length == 0){
                     hash = await getAssetGenesisHash(e.address);
@@ -168,12 +170,15 @@ module.exports = {
                   //console.log('asset_did=',asset_did);
                   doc = await getNewsForUploadToChain(asset_did);
                   if(doc && doc.state === 'chained'){
+                    temp_tx['weights'] = doc.news_weights;
                     author_did = doc.author_did;
                     temp_tx['state'] = 'allowed';
                   }else{
+                    temp_tx['weights'] = 1;
                     temp_tx['state'] = 'prohibited';
                   }
                 }else{
+                  temp_tx['weights'] = 1;
                   temp_tx['state'] = 'prohibited';
                 }
                 
@@ -254,6 +259,7 @@ module.exports = {
                 var local_time = moment(e.time).local().format('YY/MM/DD HH:mm:ss');
                 //console.log('UTC=',e.time, 'local time=', local);
                 temp_tx['loading'] = false;
+                temp_tx['weights'] = 1;
                 temp_tx['state'] = 'allowed';
                 temp_tx['time'] = local_time;
                 temp_tx['sender'] = e.sender;

@@ -89,7 +89,7 @@ async function newsflashDbInit(){
     if(found_docs && found_docs.length>0){
       for (var doc of found_docs) {
         if(doc.hot_index == 0){
-          doc.hot_index = doc.like_counter*1 + doc.forward_counter*1 + doc.comment_counter*3;
+          doc.hot_index = doc.like_counter*(1*doc.news_weights) + doc.forward_counter*(1*doc.news_weights) + doc.comment_counter*(3*doc.news_weights);
           if(doc.hot_index > 0){
             await doc.save();
             console.log('newsflashDbInit asset_did=', doc.asset_did, 'hot_index update to', doc.hot_index);
