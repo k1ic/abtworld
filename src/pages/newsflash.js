@@ -1076,20 +1076,21 @@ class App extends Component {
             tabBarStyle={{background:'#fff'}}
             tabPosition="top"
             tabBarGutter={8}
+            animated={false}
           >
-            <TabPane tab={<span style={{ fontSize: '15px', fontWeight: 300, color: '#000000' }}>热门</span>} key="hot">
+            <TabPane tab={<span style={{ fontSize: '15px', fontWeight: 600}}>热门</span>} key="hot">
             </TabPane>
-            <TabPane tab={<span style={{ fontSize: '14px', color: '#000000' }}>快讯</span>} key="chains">
+            <TabPane tab={<span style={{ fontSize: '14px' }}>快讯</span>} key="chains">
             </TabPane>
-            <TabPane tab={<span style={{ fontSize: '14px', color: '#000000' }}>问答</span>} key="qnas">
+            <TabPane tab={<span style={{ fontSize: '14px' }}>问答</span>} key="qnas">
             </TabPane>
-            <TabPane tab={<span style={{ fontSize: '14px', color: '#000000' }}>广告</span>} key="ads">
+            <TabPane tab={<span style={{ fontSize: '14px' }}>广告</span>} key="ads">
             </TabPane>
-            <TabPane tab={<span style={{ fontSize: '14px', color: '#000000' }}>AMA</span>} key="amas">
+            <TabPane tab={<span style={{ fontSize: '14px' }}>AMA</span>} key="amas">
             </TabPane>
-            <TabPane tab={<span style={{ fontSize: '14px', color: '#000000' }}>鸡汤</span>} key="soups">
+            <TabPane tab={<span style={{ fontSize: '14px' }}>鸡汤</span>} key="soups">
             </TabPane>
-            <TabPane tab={<span style={{ fontSize: '14px', color: '#000000' }}>备忘</span>} key="memos">
+            <TabPane tab={<span style={{ fontSize: '14px' }}>备忘</span>} key="memos">
             </TabPane>
             {!isProduction && <TabPane tab="测试" key="test">
               </TabPane>
