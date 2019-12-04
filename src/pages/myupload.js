@@ -73,18 +73,18 @@ class App extends Component {
       width: '10%',
     },
     {
-      title: '提交时间',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      sorter: true,
-      width: '15%',
-    },
-    {
       title: '图片',
       dataIndex: 'hd_src',
       key: 'hd_src',
       width: '20%',
       render: (hd_src) => <img src={hd_src} alt="hd" height="50" width="50" onClick={() => {this.handlePreview(hd_src)}} style={{cursor: 'pointer'}}/>
+    },
+    {
+      title: '链接',
+      dataIndex: 'link',
+      key: 'link',
+      width: '15%',
+      render: (link) => <a href={link}>链接</a>
     },
     {
       title: '状态',

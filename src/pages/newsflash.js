@@ -132,6 +132,7 @@ class App extends Component {
       asset_did: '',
       show_mode: 'all',
       sending: false,
+      asset_sending: false,
       newsflash_list: [],
       loading: false,
       page_number: 1,
@@ -283,7 +284,20 @@ class App extends Component {
     }
   }
   
-  handleNewsTypeChange = value => {
+  updateToPayValue = () => {
+    const { news_type, news_to_send, news_to_send_weight } = this.state;
+    
+    var toPay = 0;
+    if(news_type != 'test2' && news_to_send && news_to_send.length > 0){
+      toPay = forgeTxValueSecureConvert((toPayEachChar*news_to_send_weight)*news_to_send.length);
+    }
+    this.setState({
+      toPay: toPay,
+    },()=>{
+    });
+  }
+  
+  handleNewsTypeChange = value => {    
     console.log('handleNewsTypeChange value=', value);
     
     this.setState({
@@ -293,6 +307,7 @@ class App extends Component {
       more_to_load: true,
       page_number: 1,
     },()=>{
+      this.updateToPayValue();
       window.location.hash = `#${value}`;
       this.fetchNewsFlash();
     });
@@ -317,13 +332,9 @@ class App extends Component {
     });
   }
   
-  onNewsflashWeightChange = value => {
+  onNewsflashWeightChange = value => {    
     if(typeof(value) === 'number' && value <= news_weights_value_max && value >= news_weights_value_min){
       console.log('onNewsflashWeightChange: ', value);
-      var toPay = 0;
-      if(this.state.news_to_send && this.state.news_to_send.length > 0){
-        toPay = forgeTxValueSecureConvert((toPayEachChar*value)*this.state.news_to_send.length);
-      }
       
       /*update minner number max*/
       news_comment_minner_number_max = news_comment_minner_number_default*value;
@@ -335,22 +346,20 @@ class App extends Component {
         news_comment_minner_number: news_comment_minner_number_max,
         news_like_minner_number: news_like_minner_number_max,
         news_forward_minner_number: news_forward_minner_number_max,
-        toPay: toPay,
       },()=>{
+        this.updateToPayValue();
       });
     }
   }
 
-  onNewsToSendChange = ({ target: { value } }) => {
+  onNewsToSendChange = ({ target: { value } }) => {    
     //console.log('onNewsToSendChange value='+value+' length='+value.length);
-    const contentLength = value.length;
-    if(contentLength > 0){
-      var toPay = forgeTxValueSecureConvert((toPayEachChar*this.state.news_to_send_weight)*contentLength);
-      this.setState({ toPay: toPay });
-    }else{
-      this.setState({ toPay: 0 });
-    }
-    this.setState({ news_to_send: value });
+    
+    this.setState({
+      news_to_send: value,
+    },()=>{
+      this.updateToPayValue();
+    });
   };
   
   onCommentToSendChange = ({ target: { value } }) => {
@@ -360,8 +369,8 @@ class App extends Component {
   
   /*send news button handler*/
   onSendNews = () => {
-    const { news_to_send_weight } = this.state;
-    if(news_to_send_weight > 1){
+    const { news_type, news_to_send_weight } = this.state;
+    if(news_type != 'test2' && news_to_send_weight > 1){
       this.setState({
         news_to_send_cfg_visible: true,
       },()=>{
@@ -443,7 +452,14 @@ class App extends Component {
         const formData = new FormData();
         
         formData.append('user', JSON.stringify(user));
-        formData.append('cmd', 'add');
+        if(news_type === 'test2'){
+          formData.append('cmd', 'create_asset_on_chain');
+          this.setState({
+            asset_sending: true,
+          });
+        }else{
+          formData.append('cmd', 'add');
+        }
         formData.append('asset_did', asset_did);
         formData.append('news_type', news_type);
         formData.append('news_content', news_to_send);
@@ -459,13 +475,44 @@ class App extends Component {
           data: formData,
           success: (result) => {
             //console.log('add newsflash success with response=', result.response);
-            this.setState({
-              asset_did: asset_did,
-              sending: true,
-            });
+            if(news_type === 'test2'){
+              this.setState({
+                news_to_send: '',
+                toPay: 0,
+                asset_sending: false,
+              });
+    
+              setTimeout(() => {
+                try {
+                  this.setState({
+                    newsflash_list: [],
+                    loading: false,
+                    more_to_load: true,
+                    page_number: 1,
+                  },()=>{
+                    this.fetchNewsFlash();
+                  });
+                } catch (err) {
+                  // Do nothing
+                }
+              }, 5000);
+              
+              Modal.success({title: '发布成功'});
+            }else{
+              this.setState({
+                asset_did: asset_did,
+                sending: true,
+              });
+            }
           },
           error: (result) => {
             console.log('add newsflash error with response=', result.response);
+            if(news_type === 'test2'){
+              this.setState({
+                asset_sending: false,
+              });
+            }
+            
             Modal.error({title: '发布失败'});
           },
         });
@@ -909,10 +956,6 @@ class App extends Component {
   onPaymentSuccess = async result => {
     console.log('onPaymentSuccess');
     this.setState({
-      newsflash_list: [],
-      loading: false,
-      more_to_load: true,
-      page_number: 1,
       news_to_send: '',
       toPay: 0,
       sending: false,
@@ -920,7 +963,14 @@ class App extends Component {
     
     setTimeout(() => {
       try {
-        this.fetchNewsFlash();
+        this.setState({
+          newsflash_list: [],
+          loading: false,
+          more_to_load: true,
+          page_number: 1,
+        },()=>{
+          this.fetchNewsFlash();
+        });
       } catch (err) {
         // Do nothing
       }
@@ -928,7 +978,7 @@ class App extends Component {
   };
 
   render() {
-    const { session, news_type, news_to_send, comment_to_send, toPay, sending, newsflash_list, more_to_load, loading } = this.state;
+    const { session, news_type, news_to_send, comment_to_send, toPay, sending, asset_sending, newsflash_list, more_to_load, loading } = this.state;
     //console.log('render session=', session);
     //console.log('render props=', this.props);
     
@@ -1142,6 +1192,19 @@ class App extends Component {
             <div style={{ margin: '15px 0' }}/>
           )}
           {send_permission && (
+            (news_type === 'test2')?
+            <Button
+              key="submit"
+              type="primary"
+              size="large"
+              onClick={this.onSendNews}
+              disabled={news_to_send === '' || (news_to_send && news_to_send.length < 6)}
+              loading={asset_sending}
+              className="antd-button-send"
+            >
+              发布
+            </Button>
+            :
             <Button
               key="submit"
               type="primary"

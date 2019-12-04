@@ -2,11 +2,14 @@
 const mongoose = require('mongoose');
 const { Newsflash } = require('../models');
 const multiparty = require('multiparty');
-const { 
+const {
+  waitAndGetTxHash,
   forgeTxValueSecureConvert,
   fetchForgeTransactions,
   getAssetPayDataFromTx
 } = require('../libs/transactions');
+const { createNewsflahAsset, listAssets } = require('../libs/assets');
+const { utcToLocalTime } = require('../libs/time');
 
 const ForgeSDK = require('@arcblock/forge-sdk');
 const { fromJSON } = require('@arcblock/forge-wallet');
@@ -96,6 +99,79 @@ async function NewsflashAdd(fields){
     });
     await new_doc.save();
     console.log('NewsflashAdd saved to db');
+  }
+  
+  return true;;
+}
+
+async function NewsflashCreateAssetOnChain(fields){
+  /*fields verify*/
+  if(!fields
+    || typeof(fields.user) == "undefined"
+    || typeof(fields.asset_did) == "undefined"
+    || typeof(fields.news_type) == "undefined"
+    || typeof(fields.news_weights) == "undefined"
+    || typeof(fields.news_content) == "undefined"){
+    console.log('NewsflashCreateAssetOnChain invalid fields');
+    return false;
+  }
+  
+  var doc = await Newsflash.findOne({ content_did: fields.asset_did[0] });
+  if(doc){
+    if(doc.state != 'commit'){
+      console.log('NewsflashCreateAssetOnChain asset_did=', fields.asset_did[0], 'already on chain');
+      
+      /*ignore dup news*/
+      return false;
+    }else{
+      console.log('NewsflashCreateAssetOnChain asset_did=', fields.asset_did[0], 'already in db');
+      
+      /*asset already in db, update it*/
+      doc.asset_did = fields.asset_did[0];
+      doc.content_did = fields.asset_did[0];
+      doc.news_type = fields.news_type[0];
+      doc.news_content = fields.news_content[0];
+      doc.news_weights = fields.news_weights[0];
+      await doc.save();
+    }
+  }else{    
+    /*save newsflash to db when not exist*/
+    const user = JSON.parse(fields.user[0]);
+    var new_doc = new Newsflash({
+      asset_did: fields.asset_did[0],
+      content_did: fields.asset_did[0],
+      author_did: user.did,
+      author_name: user.name,
+      author_avatar: user.avatar_small,
+      news_hash: '',
+      news_type: fields.news_type[0],
+      news_content: fields.news_content[0],
+      news_weights: fields.news_weights[0],
+      hash_href: '',
+      state: 'commit',
+      minner_state: 'idle',
+      createdAt: Date(),
+    });
+    await new_doc.save();
+    console.log('NewsflashCreateAssetOnChain saved to db');
+    
+    /*create asset on chain*/
+    var transferHash = await createNewsflahAsset(fields.asset_did[0]);
+    const txRes = await waitAndGetTxHash(transferHash);
+    if(transferHash && transferHash.length > 0
+      && txRes && txRes.getTx && txRes.getTx.code === 'OK' && txRes.getTx.info){
+      const tx_local_time = utcToLocalTime(txRes.getTx.info.time);
+       
+      console.log('NewsflashCreateAssetOnChain create asset success, update doc');
+      new_doc.news_hash = transferHash;
+      new_doc.news_time = tx_local_time;
+      new_doc.hash_href = env.chainHost.replace('/api', '/node/explorer/txs/')+transferHash;
+      new_doc.state = 'chained';
+      await new_doc.save();
+    }else{
+      console.log('NewsflashCreateAssetOnChain create asset on chain failed, remove doc');
+      await new_doc.remove();
+    }
   }
   
   return true;;
@@ -684,13 +760,17 @@ module.exports = {
             
             /*cmd list
              *1. add:  add news to db
-             *2. give_like: give like to newsflash
-             *3. add_comment: add comment to newsflash
-             *4. share: share newsflash
+             *2. create_asset_on_chain: create news asset on chain
+             *3. give_like: give like to newsflash
+             *4. add_comment: add comment to newsflash
+             *5. share: share newsflash
              */
             switch (cmd) {
               case 'add':
                 result = await NewsflashAdd(fields);
+                break;
+              case 'create_asset_on_chain':
+                result = await NewsflashCreateAssetOnChain(fields);
                 break;
               case 'give_like':
                 result = await NewsflashItemGiveLike(fields);
