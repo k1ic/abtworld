@@ -76,6 +76,18 @@ const news_weights_value_min = 1;
 const news_weights_value_max = 1000;
 const news_weights_value_step = 1;
 
+/*minner numbers*/
+const newsSendCfgWinWidth = 300;
+const news_comment_minner_number_default = 10;
+const news_like_minner_number_default = 10;
+const news_forward_minner_number_default = 10;
+var news_comment_minner_number_min = news_comment_minner_number_default;
+var news_comment_minner_number_max = news_comment_minner_number_default;
+var news_like_minner_number_min = news_comment_minner_number_default;
+var news_like_minner_number_max = news_comment_minner_number_default;
+var news_forward_minner_number_min = news_comment_minner_number_default;
+var news_forward_minner_number_max = news_comment_minner_number_default;
+
 /*poster window width*/
 const posterWinWidth = 300;
 var share_news_pic_data = '';
@@ -113,6 +125,10 @@ class App extends Component {
       news_to_send: '',
       toPay: 0,
       news_to_send_weight: 1,
+      news_comment_minner_number: news_comment_minner_number_default,
+      news_like_minner_number: news_like_minner_number_default,
+      news_forward_minner_number: news_forward_minner_number_default,
+      news_to_send_cfg_visible: false,
       asset_did: '',
       show_mode: 'all',
       sending: false,
@@ -308,8 +324,17 @@ class App extends Component {
       if(this.state.news_to_send && this.state.news_to_send.length > 0){
         toPay = forgeTxValueSecureConvert((toPayEachChar*value)*this.state.news_to_send.length);
       }
+      
+      /*update minner number max*/
+      news_comment_minner_number_max = news_comment_minner_number_default*value;
+      news_like_minner_number_max = news_like_minner_number_default*value;
+      news_forward_minner_number_max = news_forward_minner_number_default*value;
+      
       this.setState({
         news_to_send_weight: value,
+        news_comment_minner_number: news_comment_minner_number_max,
+        news_like_minner_number: news_like_minner_number_max,
+        news_forward_minner_number: news_forward_minner_number_max,
         toPay: toPay,
       },()=>{
       });
@@ -333,9 +358,74 @@ class App extends Component {
     this.setState({ comment_to_send: value });
   };
   
+  /*send news button handler*/
+  onSendNews = () => {
+    const { news_to_send_weight } = this.state;
+    if(news_to_send_weight > 1){
+      this.setState({
+        news_to_send_cfg_visible: true,
+      },()=>{
+      });
+    }else{
+      this.handleSendNews();
+    }
+  }
+
+  onNewsSendCommentMinnerNumberCfgChange = value => {
+    if(typeof(value) === 'number' && value <= news_comment_minner_number_max && value >= news_comment_minner_number_min){
+      console.log('onNewsSendCommentMinnerNumberCfgChange: ', value);
+
+      this.setState({
+        news_comment_minner_number: value,
+      },()=>{
+      });
+    }
+  }
+  
+  onNewsSendLikeMinnerNumberCfgChange = value => {
+    if(typeof(value) === 'number' && value <= news_like_minner_number_max && value >= news_like_minner_number_min){
+      console.log('onNewsSendLikeMinnerNumberCfgChange: ', value);
+
+      this.setState({
+        news_like_minner_number: value,
+      },()=>{
+      });
+    }
+  }
+  
+  onNewsSendForwardMinnerNumberCfgChange = value => {
+    if(typeof(value) === 'number' && value <= news_forward_minner_number_max && value >= news_forward_minner_number_min){
+      console.log('onNewsSendForwardMinnerNumberCfgChange: ', value);
+
+      this.setState({
+        news_forward_minner_number: value,
+      },()=>{
+      });
+    }
+  }
+
+  handleNewsSendCfgOk = e => {
+    console.log('handleNewsSendCfgOk');
+   
+    this.setState({
+      news_to_send_cfg_visible: false
+    },()=>{
+      this.handleSendNews();
+    });
+  };
+  
+  handleNewsSendCfgCancel = e => {
+    console.log('handleNewsSendCfgCancel');
+    
+    this.setState({
+      news_to_send_cfg_visible: false
+    },()=>{
+    });
+  };
+  
   /*Send news handler*/
   handleSendNews = () => {
-    const { session, news_type, news_to_send, news_to_send_weight } = this.state;
+    const { session, news_type, news_to_send, news_to_send_weight, news_comment_minner_number, news_like_minner_number, news_forward_minner_number } = this.state;
     const { user, token } = session;
     
     console.log('handleSendNews');
@@ -358,6 +448,9 @@ class App extends Component {
         formData.append('news_type', news_type);
         formData.append('news_content', news_to_send);
         formData.append('news_weights', news_to_send_weight);
+        formData.append('comment_minner_number', news_comment_minner_number);
+        formData.append('like_minner_number', news_like_minner_number);
+        formData.append('forward_minner_number', news_forward_minner_number);
         
         reqwest({
           url: '/api/newsflashset',
@@ -1052,8 +1145,8 @@ class App extends Component {
               key="submit"
               type="primary"
               size="large"
-              onClick={this.handleSendNews}
-              disabled={news_to_send === ''}
+              onClick={this.onSendNews}
+              disabled={news_to_send === '' || (news_to_send && news_to_send.length < 6)}
               loading={sending}
               className="antd-button-send"
             >
@@ -1089,7 +1182,7 @@ class App extends Component {
                   <span style={{ fontSize: '12px', color: '#3CB371' }}>{item.title}</span> <br/>
                   <a href={item.href} target="_blank" style={{ fontSize: '12px', color: '#0000FF' }}>哈希@{item.time}</a> <br/>        
                   <div id={item.asset_did}>
-                    {item.weights > 1?
+                    {item.weights > 5?
                       <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#FF0000' }}>
                         {item.content}
                       </Paragraph> :
@@ -1102,6 +1195,51 @@ class App extends Component {
                 </List.Item>
               )}
             />
+            <Modal
+             title="发布参数配置"
+             closable={false}
+             visible={this.state.news_to_send_cfg_visible}
+             okText='确认'
+             onOk={this.handleNewsSendCfgOk}
+             onCancel={this.handleNewsSendCfgCancel}
+             okButtonProps={{ disabled: false }}
+             destroyOnClose={true}
+             forceRender={true}
+             width = {newsSendCfgWinWidth}
+            >
+              <span style={{ fontSize: '15px', color: '#000000' }}>点赞挖矿个数</span>
+              <InputNumber
+                min={news_like_minner_number_min}
+                max={news_like_minner_number_max}
+                step={1}
+                style={{ marginLeft: 10,  marginRight: 10}}
+                value={this.state.news_like_minner_number}
+                onChange={this.onNewsSendLikeMinnerNumberCfgChange}
+              />
+              <span style={{ fontSize: '15px', color: '#000000' }}>个</span>
+              <br/>
+              <span style={{ fontSize: '15px', color: '#000000' }}>评论挖矿个数</span>
+              <InputNumber
+                min={news_comment_minner_number_min}
+                max={news_comment_minner_number_max}
+                step={1}
+                style={{ marginLeft: 10,  marginRight: 10}}
+                value={this.state.news_comment_minner_number}
+                onChange={this.onNewsSendCommentMinnerNumberCfgChange}
+              />
+              <span style={{ fontSize: '15px', color: '#000000' }}>个</span>
+              <br/>
+              <span style={{ fontSize: '15px', color: '#000000' }}>分享挖矿个数</span>
+              <InputNumber
+                min={news_forward_minner_number_min}
+                max={news_forward_minner_number_max}
+                step={1}
+                style={{ marginLeft: 10,  marginRight: 10}}
+                value={this.state.news_forward_minner_number}
+                onChange={this.onNewsSendForwardMinnerNumberCfgChange}
+              />
+              <span style={{ fontSize: '15px', color: '#000000' }}>个</span>
+            </Modal>
             <Modal
              style={{ top: commentInpuTopOffset }}
              title={null}
@@ -1162,7 +1300,7 @@ class App extends Component {
                       <a href={item.href} target="_blank" style={{ fontSize: '12px', color: '#0000FF' }}>哈希@{item.time}</a>
                       <div>
                         <br/>
-                        {item.weights > 1?
+                        {item.weights > 5?
                           <span id="shareNewsListItemContent" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', color: '#FF0000' }}>{item.content}</span> :
                           <span id="shareNewsListItemContent" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', color: '#000000' }}>{item.content}</span>}
                       </div>

@@ -42,9 +42,13 @@ const NewsflashSchema = new mongoose.Schema({
   hash_href: { type: String, default: '' },
   state: { type: String, required: true, default: 'commit' },
   minner_state: { type: String, required: true, default: 'idle' },
+  total_payed_balance: { type: Number, default: 0 },
   total_comment_minner_balance: { type: Number, default: 0 },
   total_like_minner_balance: { type: Number, default: 0 },
   total_forward_minner_balance: { type: Number, default: 0 },
+  total_comment_minner_number: { type: Number, default: 10 },
+  total_like_minner_number: { type: Number, default: 10 },
+  total_forward_minner_number: { type: Number, default: 10 },
   each_comment_minner_balance: { type: Number, default: 0 },
   each_like_minner_balance: { type: Number, default: 0 },
   each_forward_minner_balance: { type: Number, default: 0 },
@@ -79,6 +83,24 @@ NewsflashSchema.query.hotByHotIndex = function(){
     {state: "chained"},
     {hot_index: {$gt: 0}}
   ]}).sort({"hot_index":-1, "updatedAt":-1});
+  
+  return docs;
+}
+
+NewsflashSchema.query.hotByNewsWeigths = function(){
+  var docs =  this.find({$and: [
+    {state: "chained"},
+    {news_weights: {$gt: 1}}
+  ]}).sort({"news_weights":-1, "updatedAt":-1});
+  
+  return docs;
+}
+
+NewsflashSchema.query.hotTotalPayed = function(){
+  var docs =  this.find({$and: [
+    {state: "chained"},
+    {total_payed_balance: {$gt: 0}}
+  ]}).sort({"total_payed_balance":-1, "updatedAt":-1});
   
   return docs;
 }

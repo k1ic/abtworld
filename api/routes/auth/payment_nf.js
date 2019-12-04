@@ -60,17 +60,17 @@ async function newsflashPaymentHookV2(hash, forgeState, userDid) {
               /********************************************************************************************
                *************************minner balance assignment******************************************
                ********************************************************************************************/
-              /*1. comment : 60% - for TOP(20*news_weights)
-                2. like    : 20% - for TOP(10*news_weights)
-                3. forward : 20% - for TOP(10*news_weights)
+              /*1. comment : 60% - for TOP(total_comment_minner_number*news_weights)
+                2. like    : 20% - for TOP(total_like_minner_number*news_weights)
+                3. forward : 20% - for TOP(total_forward_minner_number*news_weights)
                */
               const total_comment_minner_balance = forgeTxValueSecureConvert(remain_value_for_minner * 0.6);
               const total_like_minner_balance = forgeTxValueSecureConvert(remain_value_for_minner * 0.2);
               const total_forward_minner_balance = forgeTxValueSecureConvert(remain_value_for_minner * 0.2);
               
-              const each_comment_minner_balance = forgeTxValueSecureConvert(total_comment_minner_balance/(20*newsflash_doc.news_weights));
-              const each_like_minner_balance = forgeTxValueSecureConvert(total_like_minner_balance/(10*newsflash_doc.news_weights));
-              const each_forward_minner_balance = forgeTxValueSecureConvert(total_forward_minner_balance/(10*newsflash_doc.news_weights));
+              const each_comment_minner_balance = forgeTxValueSecureConvert(total_comment_minner_balance/(newsflash_doc.total_comment_minner_number*newsflash_doc.news_weights));
+              const each_like_minner_balance = forgeTxValueSecureConvert(total_like_minner_balance/(newsflash_doc.total_like_minner_number*newsflash_doc.news_weights));
+              const each_forward_minner_balance = forgeTxValueSecureConvert(total_forward_minner_balance/(newsflash_doc.total_forward_minner_number*newsflash_doc.news_weights));
               console.log('hook pay minner balance assignment total comment='+total_comment_minner_balance+' like='+total_like_minner_balance+' forward='+total_forward_minner_balance);
               console.log('hook pay minner balance assignment each comment='+each_comment_minner_balance+' like='+each_like_minner_balance+' forward='+each_forward_minner_balance);
               
@@ -79,6 +79,7 @@ async function newsflashPaymentHookV2(hash, forgeState, userDid) {
               newsflash_doc.news_hash = transferHash;
               newsflash_doc.news_time = tx_local_time;
               newsflash_doc.hash_href = env.chainHost.replace('/api', '/node/explorer/txs/')+transferHash;
+              newsflash_doc.total_payed_balance = tx_value;
               newsflash_doc.total_comment_minner_balance = total_comment_minner_balance;
               newsflash_doc.total_like_minner_balance = total_like_minner_balance;
               newsflash_doc.total_forward_minner_balance = total_forward_minner_balance;

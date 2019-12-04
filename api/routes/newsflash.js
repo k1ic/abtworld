@@ -31,9 +31,25 @@ async function NewsflashAdd(fields){
     || typeof(fields.asset_did) == "undefined"
     || typeof(fields.news_type) == "undefined"
     || typeof(fields.news_weights) == "undefined"
-    || typeof(fields.news_content) == "undefined"){
+    || typeof(fields.news_content) == "undefined"
+    || typeof(fields.comment_minner_number) == "undefined"
+    || typeof(fields.like_minner_number) == "undefined"
+    || typeof(fields.forward_minner_number) == "undefined" ){
     console.log('NewsflashAdd invalid fields');
     return false;
+  }
+  
+  var total_comment_minner_number = 10;
+  var total_like_minner_number = 10;
+  var total_forward_minner_number = 10;
+  if(fields.comment_minner_number[0] > 0){
+    total_comment_minner_number = fields.comment_minner_number[0];
+  }
+  if(fields.like_minner_number[0] > 0){
+    total_like_minner_number = fields.like_minner_number[0];
+  }
+  if(fields.forward_minner_number[0] > 0){
+    total_forward_minner_number = fields.forward_minner_number[0];
   }
   
   var doc = await Newsflash.findOne({ content_did: fields.asset_did[0] });
@@ -52,6 +68,9 @@ async function NewsflashAdd(fields){
       doc.news_type = fields.news_type[0];
       doc.news_content = fields.news_content[0];
       doc.news_weights = fields.news_weights[0];
+      doc.total_comment_minner_number = total_comment_minner_number;
+      doc.total_like_minner_number = total_like_minner_number;
+      doc.total_forward_minner_number = total_forward_minner_number;
       await doc.save();
     }
   }else{
@@ -67,6 +86,9 @@ async function NewsflashAdd(fields){
       news_type: fields.news_type[0],
       news_content: fields.news_content[0],
       news_weights: fields.news_weights[0],
+      total_comment_minner_number: total_comment_minner_number,
+      total_like_minner_number: total_like_minner_number,
+      total_forward_minner_number: total_forward_minner_number,
       hash_href: '',
       state: 'commit',
       minner_state: 'idle',
