@@ -110,7 +110,6 @@ async function NewsflashCreateAssetOnChain(fields){
     || typeof(fields.user) == "undefined"
     || typeof(fields.asset_did) == "undefined"
     || typeof(fields.news_type) == "undefined"
-    || typeof(fields.news_weights) == "undefined"
     || typeof(fields.news_content) == "undefined"){
     console.log('NewsflashCreateAssetOnChain invalid fields');
     return false;
@@ -131,7 +130,6 @@ async function NewsflashCreateAssetOnChain(fields){
       doc.content_did = fields.asset_did[0];
       doc.news_type = fields.news_type[0];
       doc.news_content = fields.news_content[0];
-      doc.news_weights = fields.news_weights[0];
       await doc.save();
     }
   }else{    
@@ -146,7 +144,6 @@ async function NewsflashCreateAssetOnChain(fields){
       news_hash: '',
       news_type: fields.news_type[0],
       news_content: fields.news_content[0],
-      news_weights: fields.news_weights[0],
       hash_href: '',
       state: 'commit',
       minner_state: 'idle',
