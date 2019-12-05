@@ -13,14 +13,18 @@ export default function Footer() {
           link: 'https://www.arcblockio.cn/zh/',
         },
         {
-          title: 'ABT链网',
-          link: 'https://www.abtnetwork.io/',
+          title: '链网',
+          link: 'https://explorer.abtnetwork.io/',
         },
         {
-          title: 'ABT钱包',
+          title: '钱包',
           link: 'https://abtwallet.io/',
         },
-		{
+        {
+          title: '文档',
+          link: 'https://docs.arcblockio.cn/zh/docs/intro/quickstart',
+        },
+        {
           title: '周报',
           link: 'https://github.com/ArcBlock/weekly-digest',
         },

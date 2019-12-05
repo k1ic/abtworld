@@ -660,6 +660,7 @@ class App extends Component {
           var opts = {
             dpi: window.devicePixelRatio * 4,
             scale: 4,
+            letterRendering: true,
             useCORS: true
           };
           
@@ -1243,7 +1244,9 @@ class App extends Component {
                       <img src={item.uavatar} height="40" width="40"/>:
                       <Avatar size={40} did={item.sender}/>}
                   </span>
-                  <span style={{ fontSize: '12px', color: '#3CB371' }}>{item.title}</span> <br/>
+                  <span style={{ fontSize: '15px', color: '#000000', marginRight: 0 }}>{item.uname}@</span>
+                  <img src="/static/images/abtwallet/drawable-xhdpi-v4/public_did_icon_with_gold.png" width="25" style={{ marginRight: 0 }}/>                  
+                  <span style={{ fontSize: '13px', color: '#000000' }}>{item.sender}</span> <br/>
                   <a href={item.href} target="_blank" style={{ fontSize: '12px', color: '#0000FF' }}>哈希@{item.time}</a> <br/>        
                   <div id={item.asset_did}>
                     {item.weights > 5?
@@ -1360,13 +1363,15 @@ class App extends Component {
                         <img src={item.uavatar} height="40" width="40"/>:
                         <Avatar size={40} did={item.sender}/>}
                       </span>
-                      <span style={{ fontSize: '12px', color: '#3CB371' }}>{item.title}</span> <br/>
-                      <a href={item.href} target="_blank" style={{ fontSize: '12px', color: '#0000FF' }}>哈希@{item.time}</a>
+                      <span style={{ fontSize: '12px', fontVariant: 'normal', color: '#000000', marginRight: 0 }}>{item.uname}@</span>
+                      <img src="/static/images/abtwallet/drawable-xhdpi-v4/public_did_icon_with_gold.png" width="25" style={{ marginRight: 0 }}/>                  
+                      <span style={{ fontSize: '10px', fontVariant: 'normal', color: '#000000' }}>{item.sender}</span> <br/>
+                      <a href={item.href} target="_blank" style={{ fontSize: '12px', fontVariant: 'normal', color: '#0000FF' }}>哈希@{item.time}</a>
                       <div>
                         <br/>
                         {item.weights > 5?
-                          <span id="shareNewsListItemContent" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', color: '#FF0000' }}>{item.content}</span> :
-                          <span id="shareNewsListItemContent" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', color: '#000000' }}>{item.content}</span>}
+                          <span id="shareNewsListItemContent" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', fontVariant: 'normal', letterSpacing: '1px', wordSpacing: '1px', color: '#FF0000' }}>{item.content}</span> :
+                          <span id="shareNewsListItemContent" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', fontVariant: 'normal', letterSpacing: '1px', wordSpacing: '1px', color: '#000000' }}>{item.content}</span>}
                       </div>
                     </List.Item>
                   )}
@@ -1374,8 +1379,8 @@ class App extends Component {
                 <hr style={{ height: '1px', border: 'none', borderTop: '1px solid #A9A9A9', marginTop: 0,  marginBottom: 10 }} />
                 <div style={{ marginLeft: 10,  marginRight: 10 }}>
                   <QrCode value={"http://abtworld.cn/newsflash"} size={60} level={'M'} id="HashNewsQrCode" style={{ float: 'left', marginRight: 10 }} />
-                  <span style={{fontSize: '14px', color: '#000000', marginLeft: 0 }} >DID身份发布，</span>
-                  <span style={{fontSize: '14px', fontWeight: 500, color: '#000000' }} >不只是快讯，内容公开、透明、不可篡改！</span> <br/>
+                  <span style={{fontSize: '14px', fontVariant: 'normal', color: '#000000', marginLeft: 0 }} >DID身份发布</span> <br/>
+                  <span style={{fontSize: '15px', fontVariant: 'normal', fontWeight: 600, color: '#000000' }} >不只是资讯，想要的资讯你说了算！</span> <br/>
                 </div>
               </div>
             </Modal>
