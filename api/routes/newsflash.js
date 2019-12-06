@@ -634,6 +634,22 @@ async function getNewsForShow(module_para){
       temp_doc['comment_min_rem'] = forgeTxValueSecureConvert(e.remain_comment_minner_balance);
       temp_doc['like_min_rem'] = forgeTxValueSecureConvert(e.remain_like_minner_balance);
       temp_doc['forward_min_rem'] = forgeTxValueSecureConvert(e.remain_forward_minner_balance);
+      if(e.remain_comment_minner_balance > 0 && e.each_comment_minner_balance > 0){
+        temp_doc['comment_min_rem_number'] = Math.round(e.remain_comment_minner_balance/e.each_comment_minner_balance);
+      }else{
+        temp_doc['comment_min_rem_number'] = 0;
+      }
+      if(e.remain_like_minner_balance > 0 && e.each_like_minner_balance > 0){
+        temp_doc['like_min_rem_number'] = Math.round(e.remain_like_minner_balance/e.each_like_minner_balance);
+      }else{
+        temp_doc['like_min_rem_number'] = 0;
+      }
+      if(e.remain_forward_minner_balance > 0 && e.each_forward_minner_balance > 0){
+        temp_doc['forward_min_rem_number'] = Math.round(e.remain_forward_minner_balance/e.each_forward_minner_balance);
+      }else{
+        temp_doc['forward_min_rem_number'] = 0;
+      }
+      temp_doc['total_min_rem'] = temp_doc.comment_min_rem + temp_doc.like_min_rem + temp_doc.forward_min_rem;
       temp_doc['comment_cnt'] = e.comment_counter;
       temp_doc['like_cnt'] = e.like_counter;
       temp_doc['forward_cnt'] = e.forward_counter;

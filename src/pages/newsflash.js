@@ -49,7 +49,6 @@ const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
 const { TabPane } = Tabs;
 
-
 const isProduction = process.env.NODE_ENV === 'production';
 const admin_account = env.appAdminAccounts;
 
@@ -89,7 +88,7 @@ var news_forward_minner_number_min = news_comment_minner_number_default;
 var news_forward_minner_number_max = news_comment_minner_number_default;
 
 /*poster window width*/
-const posterWinWidth = 300;
+const posterWinWidth = 320;
 var share_news_pic_data = '';
 
 /*send permistion list*/
@@ -655,18 +654,20 @@ class App extends Component {
         
         this.setState({
           gen_share_news_visible: true
-        },()=>{
+        }, async ()=>{
           share_news_pic_data = '';
           var opts = {
-            dpi: window.devicePixelRatio * 4,
+            dpi: window.devicePixelRatio * 8,
             scale: 4,
             letterRendering: true,
-            useCORS: true
+            useCORS: true,
+            scrollY: 0,
           };
           
           //document.getElementById('shareNewsListItemContent').style.whiteSpace = 'pre-wrap';
           //document.getElementById('shareNewsListItemContent').style.wordWrap = 'break-word';
           //document.getElementById('shareNewsListItemContent').style.wordBreak = 'break-all';
+          await sleep(500);
           html2canvas(document.getElementById('shareNewsContent'), opts).then(function(canvas) {
             share_news_pic_data = canvas.toDataURL("image/jpg");            
           });
@@ -711,17 +712,19 @@ class App extends Component {
     
   };
   
-  IconText = ({ type, text, token_symbol, balance, action_type, like_status, asset_did }) => (
-    <span className="antd-list-action-icon-text">
-      <span style={{ fontSize: '10px', color: '#FF6600' }}>{balance}</span>
+  IconText = ({ type, text, token_symbol, total_min_rem, balance, minner_num, action_type, like_status, asset_did }) => (
+    <span>
       {/*<img className="list-item-action-img" src="/static/images/hashnews/ABT.png" alt="ABT" height="25" width="25" />*/}
       <a onClick={e => {
           this.onListItemActionClick(action_type, asset_did);
         }}
       > 
         {action_type=='like'&&like_status==true?<Icon type={type} theme="twoTone" twoToneColor="#0000FF" style={{ marginLeft: 4, marginRight: 4 }} />:<Icon type={type} style={{ marginLeft: 8, marginRight: 8 }} />}
-        {text}
+        <span>{text}</span>
       </a>
+      {total_min_rem>0 && (<br/>)}
+      {total_min_rem>0 && (<span style={{ fontSize: '10px', color: '#FF6600' }}>{balance}</span>)}
+      {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>({minner_num}个)</span>)}
     </span>
   );
   
@@ -1184,7 +1187,7 @@ class App extends Component {
             <TextArea
               value={news_to_send}
               onChange={this.onNewsToSendChange}
-              placeholder={"如: GoFun 出行推出 GoFun Connect 宣布与 ArcBlock 合作("+news_content_max_length+"字以内)"}
+              placeholder={"请输入...("+news_content_max_length+"字以内)"}
               autoSize={{ minRows: 1, maxRows: 10 }}
               maxLength={news_content_max_length}
             />
@@ -1232,22 +1235,24 @@ class App extends Component {
                 <List.Item
                   key={item.hash}
                   actions={list_action_show?[
-                    <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} balance={item.like_min_rem} asset_did={item.asset_did} key={"list-item-like"+item.hash} />,
-                    <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} balance={item.comment_min_rem} asset_did={item.asset_did}  key={"list-item-message"+item.hash} />,
-                    <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' like_status={item.like_status} token_symbol={token.symbol} balance={item.forward_min_rem} asset_did={item.asset_did}  key={"list-item-share"+item.hash} />,
+                    <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.like_min_rem} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like"+item.hash} />,
+                    <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.comment_min_rem} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message"+item.hash} />,
+                    <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.forward_min_rem} minner_num={item.forward_min_rem_number} asset_did={item.asset_did}  key={"list-item-share"+item.hash} />,
                   ]:[]}
                   extra={null}
                   className="antd-list-item"
                 >
                   <span style={{ float: 'left', marginRight: 10 }}>
                     {item.uavatar.length>0?
-                      <img src={item.uavatar} height="40" width="40"/>:
-                      <Avatar size={40} did={item.sender}/>}
+                      <img src={item.uavatar} height="65" width="65"/>:
+                      <Avatar size={65} did={item.sender}/>}
                   </span>
-                  <span style={{ fontSize: '15px', color: '#000000', marginRight: 0 }}>{item.uname}@</span>
-                  <img src="/static/images/abtwallet/drawable-xhdpi-v4/public_did_icon_with_gold.png" width="25" style={{ marginRight: 0 }}/>                  
-                  <span style={{ fontSize: '13px', color: '#000000' }}>{item.sender}</span> <br/>
-                  <a href={item.href} target="_blank" style={{ fontSize: '12px', color: '#0000FF' }}>哈希@{item.time}</a> <br/>        
+                  <span style={{ fontSize: '15px', color: '#000000', marginRight: 0 }}>{item.uname}</span>
+                  {item.weights > 1&&(<span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>)}
+                  <br/>
+                  <img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>                  
+                  <span style={{ fontSize: '11px', color: '#000000' }}>: {item.sender}</span> <br/>
+                  <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>哈希@{item.time}</a> <br/>        
                   <div id={item.asset_did}>
                     {item.weights > 5?
                       <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#FF0000' }}>
@@ -1352,26 +1357,28 @@ class App extends Component {
                     <List.Item
                       key={"share"+item.hash}
                       actions={list_action_show?[
-                        <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} balance={item.like_min_rem} asset_did={item.asset_did} key={"list-item-like-share"+item.hash} />,
-                        <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} balance={item.comment_min_rem} asset_did={item.asset_did}  key={"list-item-message-share"+item.hash} />,
+                        <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.like_min_rem} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like-share"+item.hash} />,
+                        <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.comment_min_rem} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message-share"+item.hash} />,
                       ]:[]}
                       extra={null}
                       className="antd-list-item"
                     >
                       <span style={{ float: 'left', marginRight: 10 }}>
                         {item.uavatar.length>0?
-                        <img src={item.uavatar} height="40" width="40"/>:
-                        <Avatar size={40} did={item.sender}/>}
+                        <img src={item.uavatar} height="60" width="60"/>:
+                        <Avatar size={60} did={item.sender}/>}
                       </span>
-                      <span style={{ fontSize: '12px', fontVariant: 'normal', color: '#000000', marginRight: 0 }}>{item.uname}@</span>
-                      <img src="/static/images/abtwallet/drawable-xhdpi-v4/public_did_icon_with_gold.png" width="25" style={{ marginRight: 0 }}/>                  
-                      <span style={{ fontSize: '10px', fontVariant: 'normal', color: '#000000' }}>{item.sender}</span> <br/>
-                      <a href={item.href} target="_blank" style={{ fontSize: '12px', fontVariant: 'normal', color: '#0000FF' }}>哈希@{item.time}</a>
+                      <span style={{ fontSize: '12px', fontVariant: 'normal', color: '#000000', marginRight: 0 }}>{item.uname}</span>
+                      {item.weights > 1&&(<span style={{ fontSize: '9px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>)}
+                      <br/>
+                      <img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>                  
+                      <span style={{ fontSize: '11px', fontVariant: 'normal', color: '#000000' }}>: {item.sender}</span> <br/>
+                      <a href={item.href} target="_blank" style={{ fontSize: '11px', fontVariant: 'normal', color: '#000000' }}>20{item.time}</a>
                       <div>
                         <br/>
                         {item.weights > 5?
-                          <span id="shareNewsListItemContent" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', fontVariant: 'normal', letterSpacing: '1px', wordSpacing: '1px', color: '#FF0000' }}>{item.content}</span> :
-                          <span id="shareNewsListItemContent" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', fontVariant: 'normal', letterSpacing: '1px', wordSpacing: '1px', color: '#000000' }}>{item.content}</span>}
+                          <span id="shareNewsListItemContent" style={{ fontSize: '11px', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', fontVariant: 'normal', letterSpacing: '1px', wordSpacing: '1px', color: '#FF0000' }}>{item.content}</span> :
+                          <span id="shareNewsListItemContent" style={{ fontSize: '11px', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', fontVariant: 'normal', letterSpacing: '1px', wordSpacing: '1px', color: '#000000' }}>{item.content}</span>}
                       </div>
                     </List.Item>
                   )}
@@ -1379,8 +1386,8 @@ class App extends Component {
                 <hr style={{ height: '1px', border: 'none', borderTop: '1px solid #A9A9A9', marginTop: 0,  marginBottom: 10 }} />
                 <div style={{ marginLeft: 10,  marginRight: 10 }}>
                   <QrCode value={"http://abtworld.cn/newsflash"} size={60} level={'M'} id="HashNewsQrCode" style={{ float: 'left', marginRight: 10 }} />
-                  <span style={{fontSize: '14px', fontVariant: 'normal', color: '#000000', marginLeft: 0 }} >DID身份发布</span> <br/>
-                  <span style={{fontSize: '15px', fontVariant: 'normal', fontWeight: 600, color: '#000000' }} >不只是资讯，想要的资讯你说了算！</span> <br/>
+                  <span style={{fontSize: '13px', fontVariant: 'normal', color: '#000000', marginLeft: 0 }} >DID身份发布</span> <br/>
+                  <span style={{fontSize: '13px', fontVariant: 'normal', fontWeight: 600, color: '#000000' }} >不只是资讯，想要的资讯你说了算！</span> <br/>
                 </div>
               </div>
             </Modal>
@@ -1478,15 +1485,6 @@ const Main = styled.main`
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-weight: 200;
     color: #0000FF;
-  }
-  
-  .antd-list-action-icon-text{
-    .antd-list-action-icon-text-balance{
-      font-size: 0.6rem;
-      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-      font-weight: 200;
-      color: #FF6600;
-    }
   }
   
   .antd-list-comment-list-text{
