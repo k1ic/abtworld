@@ -94,6 +94,42 @@ var share_news_pic_data = '';
 /*send permistion list*/
 const ama_send_perm_udid = [ 'z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo' ];
 
+const limit0Decimals = (value) => {
+  const reg = /^(\-)*(\d+)\.().*$/;
+  //console.log(value);
+  if(typeof value === 'string') {
+    return !isNaN(Number(value)) ? value.replace(reg, '$1') : ''
+  } else if (typeof value === 'number') {
+    return !isNaN(value) ? String(value).replace(reg, '$1') : ''
+  } else {
+    return ''
+  }
+};
+
+const limit1Decimals = (value) => {
+  const reg = /^(\-)*(\d+)\.(\d).*$/;
+  //console.log(value);
+  if(typeof value === 'string') {
+    return !isNaN(Number(value)) ? value.replace(reg, '$1.$2') : ''
+  } else if (typeof value === 'number') {
+    return !isNaN(value) ? String(value).replace(reg, '$1.$2') : ''
+  } else {
+    return ''
+  }
+};
+
+const limit2Decimals = (value) => {
+  const reg = /^(\-)*(\d+)\.(\d\d).*$/;
+  //console.log(value);
+  if(typeof value === 'string') {
+    return !isNaN(Number(value)) ? value.replace(reg, '$1$2.$3') : ''
+  } else if (typeof value === 'number') {
+    return !isNaN(value) ? String(value).replace(reg, '$1$2.$3') : ''
+  } else {
+    return ''
+  }
+};
+
 const renderCommentList = (x, token) => (
   <span className="antd-list-comment-list-item-text">
     <span style={{ fontSize: '14px', color: '#3CB371' }}>{x.uname}：</span>
@@ -336,9 +372,9 @@ class App extends Component {
       console.log('onNewsflashWeightChange: ', value);
       
       /*update minner number max*/
-      news_comment_minner_number_max = news_comment_minner_number_default*value;
-      news_like_minner_number_max = news_like_minner_number_default*value;
-      news_forward_minner_number_max = news_forward_minner_number_default*value;
+      news_comment_minner_number_max = Math.floor(news_comment_minner_number_default*value);
+      news_like_minner_number_max = Math.floor(news_like_minner_number_default*value);
+      news_forward_minner_number_max = Math.floor(news_forward_minner_number_default*value);
       
       this.setState({
         news_to_send_weight: value,
@@ -1173,6 +1209,8 @@ class App extends Component {
                   min={news_weights_value_min}
                   max={news_weights_value_max}
                   step={news_weights_value_step}
+                  formatter={limit2Decimals}
+                  parser={limit2Decimals}
                   style={{ marginLeft: 5,  marginRight: 0}}
                   value={this.state.news_to_send_weight}
                   onChange={this.onNewsflashWeightChange}
@@ -1284,6 +1322,8 @@ class App extends Component {
                 min={news_like_minner_number_min}
                 max={news_like_minner_number_max}
                 step={1}
+                formatter={limit0Decimals}
+                parser={limit0Decimals}
                 style={{ marginLeft: 10,  marginRight: 10}}
                 value={this.state.news_like_minner_number}
                 onChange={this.onNewsSendLikeMinnerNumberCfgChange}
@@ -1295,6 +1335,8 @@ class App extends Component {
                 min={news_comment_minner_number_min}
                 max={news_comment_minner_number_max}
                 step={1}
+                formatter={limit0Decimals}
+                parser={limit0Decimals}
                 style={{ marginLeft: 10,  marginRight: 10}}
                 value={this.state.news_comment_minner_number}
                 onChange={this.onNewsSendCommentMinnerNumberCfgChange}
@@ -1306,6 +1348,8 @@ class App extends Component {
                 min={news_forward_minner_number_min}
                 max={news_forward_minner_number_max}
                 step={1}
+                formatter={limit0Decimals}
+                parser={limit0Decimals}
                 style={{ marginLeft: 10,  marginRight: 10}}
                 value={this.state.news_forward_minner_number}
                 onChange={this.onNewsSendForwardMinnerNumberCfgChange}
