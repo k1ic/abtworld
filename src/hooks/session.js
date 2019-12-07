@@ -12,7 +12,7 @@ async function fetchSession() {
 
     return data;
   } catch (err) {
-    removeToken();
+    //removeToken();
   }
 
   return {};
@@ -28,7 +28,7 @@ export async function fetchSessionUserOnly() {
 
     return data;
   } catch (err) {
-    removeToken();
+    //removeToken();
   }
 
   return {};

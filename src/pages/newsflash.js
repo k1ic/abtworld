@@ -33,6 +33,7 @@ import Auth from '@arcblock/did-react/lib/Auth';
 //import moment from 'moment';
 import * as QrCode from 'qrcode.react';
 import * as html2canvas from 'html2canvas';
+import AutoLinkText from 'react-autolink-text2';
 
 import Layout from '../components/layout';
 import useSession from '../hooks/session';
@@ -1292,13 +1293,26 @@ class App extends Component {
                   <span style={{ fontSize: '11px', color: '#000000' }}>: {item.sender}</span> <br/>
                   <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>哈希@{item.time}</a> <br/>        
                   <div id={item.asset_did}>
-                    {item.weights > 5?
-                      <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#FF0000' }}>
-                        {item.content}
-                      </Paragraph> :
-                      <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#000000' }}>
-                        {item.content}
-                      </Paragraph>}
+                    {(item.content.length > 400)
+                      ?
+                      (item.weights > 5
+                        ?
+                        <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#FF0000' }}>
+                          {item.content}
+                        </Paragraph> 
+                        :
+                        <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#000000' }}>
+                          {item.content}
+                        </Paragraph>
+                      )
+                      :
+                      (item.weights > 5
+                        ?
+                        <span style={{ fontSize: '16px', color: '#FF0000' }}> <AutoLinkText text={item.content} linkProps={{ target: '_blank' }}/> </span>
+                        :
+                        <span style={{ fontSize: '16px', color: '#000000' }}> <AutoLinkText text={item.content} linkProps={{ target: '_blank' }}/> </span>
+                      )
+                    }
                   </div>
                   {(list_action_show && item.comment_list.length > 0) && 
                     <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />}

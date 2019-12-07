@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 const cors = require('cors');
+const compression = require('compression');
 const morgan = require('morgan');
 const express = require('express');
 const serverless = require('serverless-http');
@@ -8,22 +9,6 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const bearerToken = require('express-bearer-token');
 const ForgeSDK = require('@arcblock/forge-sdk');
-
-// ------------------------------------------------------------------------------
-// Routes: due to limitations of netlify functions, we need to import routes here
-// ------------------------------------------------------------------------------
-const { decode } = require('../libs/jwt');
-const { handlers, wallet } = require('../libs/auth');
-const loginAuth = require('../routes/auth/login');
-const paymentAuth = require('../routes/auth/payment');
-const paymentNfAuth = require('../routes/auth/payment_nf');
-const checkinAuth = require('../routes/auth/checkin');
-const sessionRoutes = require('../routes/session');
-const paymentsRoutes = require('../routes/payments');
-const picturesRoutes = require('../routes/pictures');
-const uploadRoutes = require('../routes/upload');
-const newsflashRoutes = require('../routes/newsflash');
-const didChatRoutes = require('../routes/chats');
 
 //const isProduction = process.env.NODE_ENV === 'production';
 const isProduction = 0;
@@ -52,6 +37,7 @@ mongoose.connection.on('reconnected', () => {
 
 // Create and config express application
 const server = express();
+server.use(compression());
 server.use(cookieParser());
 server.use(bodyParser.json({limit: '1mb'}));
 server.use(bodyParser.urlencoded({ extended: true }));
@@ -95,6 +81,22 @@ server.use((req, res, next) => {
       next();
     });
 });
+
+// ------------------------------------------------------------------------------
+// Routes: due to limitations of netlify functions, we need to import routes here
+// ------------------------------------------------------------------------------
+const { decode } = require('../libs/jwt');
+const { handlers, wallet } = require('../libs/auth');
+const loginAuth = require('../routes/auth/login');
+const paymentAuth = require('../routes/auth/payment');
+const paymentNfAuth = require('../routes/auth/payment_nf');
+const checkinAuth = require('../routes/auth/checkin');
+const sessionRoutes = require('../routes/session');
+const paymentsRoutes = require('../routes/payments');
+const picturesRoutes = require('../routes/pictures');
+const uploadRoutes = require('../routes/upload');
+const newsflashRoutes = require('../routes/newsflash');
+const didChatRoutes = require('../routes/chats');
 
 const router = express.Router();
 

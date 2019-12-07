@@ -3,7 +3,12 @@ const ForgeSDK = require('@arcblock/forge-sdk');
 const MongoStorage = require('@arcblock/did-auth-storage-mongo');
 const { fromSecretKey, WalletType } = require('@arcblock/forge-wallet');
 // eslint-disable-next-line object-curly-newline
-const { WalletAuthenticator, AppAuthenticator, AppHandlers, WalletHandlers } = require('@arcblock/did-auth');
+const {
+  WalletAuthenticator,
+  AppAuthenticator,
+  AppHandlers,
+  WalletHandlers,
+} = require('@arcblock/did-auth');
 const env = require('./env');
 
 const type = WalletType({
@@ -13,9 +18,16 @@ const type = WalletType({
 });
 
 if (env.chainHost) {
-  ForgeSDK.connect(env.chainHost, { chainId: env.chainId, name: env.chainId, default: true });
+  ForgeSDK.connect(env.chainHost, {
+    chainId: env.chainId,
+    name: env.chainId,
+    default: true,
+  });
   if (env.assetChainHost) {
-    ForgeSDK.connect(env.assetChainHost, { chainId: env.assetChainId, name: env.assetChainId });
+    ForgeSDK.connect(env.assetChainHost, {
+      chainId: env.assetChainId,
+      name: env.assetChainId,
+    });
   }
 }
 
@@ -29,6 +41,8 @@ const walletAuth = new WalletAuthenticator({
     name: env.appName,
     description: env.appDescription,
     icon: 'https://arcblock.oss-cn-beijing.aliyuncs.com/images/wallet-round.png',
+    path: 'https://abtwallet.io/i/',
+    publisher: `did:abt:${wallet.address}`,
   },
   chainInfo: {
     host: env.chainHost,

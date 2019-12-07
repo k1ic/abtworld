@@ -295,16 +295,23 @@ class App extends Component {
     var show_upload_permistion = false;
     if(isProduction){
       if( user && (-1 != admin_account.indexOf(user.did)) ){
-        show_upload_permistion = true;
+        switch(category){
+          case pics_category_list[0]:
+            show_upload_permistion = false;
+          break;
+          default:
+            show_upload_permistion = true;
+            break;
+        }
       }else{
         show_upload_permistion = false;
       }
     }else{
       show_upload_permistion = true;
     }
-	
-	var show_hot_permistion = false;
-	if(isProduction){
+
+    var show_hot_permistion = false;
+    if(isProduction){
       if( user && (-1 != admin_account.indexOf(user.did)) ){
         show_hot_permistion = true;
       }else{
