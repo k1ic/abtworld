@@ -5,7 +5,7 @@ import useAsyncFn from 'react-use/lib/useAsyncFn';
 import useToggle from 'react-use/lib/useToggle';
 import { fromUnitToToken } from '@arcblock/forge-util';
 import Avatar from '@arcblock/did-react/lib/Avatar';
-import DidLogo from '@arcblock/did-react/lib/Logo';
+//import DidLogo from '@arcblock/did-react/lib/Logo';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { 
   LocaleProvider, 
@@ -1196,6 +1196,11 @@ class App extends Component {
     return (
       <Layout title="HashNews">
         <Main>
+          <link
+            rel="stylesheet"
+            type="text/css"
+            href="https://cdn.jsdelivr.net/npm/@arcblock/did-logo@latest/style.css"
+          />
           <Typography component="p" variant="h5" className="section-description" color="textSecondary">
             DID身份发布，资讯哈希可查
             <Switch checked={this.state.show_mode === 'all'?true:false} onChange={this.onShowModeChange} disabled={user == null} size="small" className="antd-showmode-switch"/>
@@ -1353,8 +1358,9 @@ class App extends Component {
                   <span style={{ fontSize: '15px', color: '#000000', marginRight: 0 }}>{item.uname}</span>
                   {item.weights > 1&&(<span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>)}
                   <br/>
-                  <img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>                  
-                  <span style={{ fontSize: '11px', color: '#000000' }}>: {item.sender}</span> <br/>
+                  {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
+                  <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
+                  <span style={{ fontSize: '15px', color: '#000000' }}> {item.sender}</span> <br/>
                   <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>哈希@{item.time}</a> <br/>        
                   <div id={item.asset_did}>
                     {(item.news_title.length > 0) && 
@@ -1500,8 +1506,9 @@ class App extends Component {
                       <span style={{ fontSize: '12px', fontVariant: 'normal', color: '#000000', marginRight: 0 }}>{item.uname}</span>
                       {item.weights > 1&&(<span style={{ fontSize: '9px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>)}
                       <br/>
-                      <img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>                  
-                      <span style={{ fontSize: '11px', fontVariant: 'normal', color: '#000000' }}>: {item.sender}</span> <br/>
+                      {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
+                      <i class="icon-did-abt-logo" style={{fontSize: '12px', color: '#000000'}}></i>
+                      <span style={{ fontSize: '12px', fontVariant: 'normal', color: '#000000' }}> {item.sender}</span> <br/>
                       <a href={item.href} target="_blank" style={{ fontSize: '11px', fontVariant: 'normal', color: '#000000' }}>20{item.time}</a>
                       <div>
                         <br/>
