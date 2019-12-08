@@ -91,12 +91,14 @@ module.exports = {
                 temp_tx['hash'] = hash;
                 temp_tx['href'] = env.chainHost.replace('/api', '/node/explorer/txs/')+hash;
                 if(memo){
-                  temp_tx['content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
+                  temp_tx['news_title'] = (typeof(memo.para.title) != "undefined")?memo.para.title:'';
+                  temp_tx['news_content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
                   temp_tx['asset_did'] = e.address;
                   temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';
                   temp_tx['uavatar'] = (typeof(memo.para.uavatar) != "undefined")?memo.para.uavatar:'';
                 }else{
-                  temp_tx['content'] = '';
+                  temp_tx['news_title'] = '';
+                  temp_tx['news_content'] = '';
                   temp_tx['asset_did'] = e.address;
                   temp_tx['uname'] = '匿名';
                   temp_tx['uavatar'] = '';
@@ -187,12 +189,14 @@ module.exports = {
                 temp_tx['hash'] = e.hash;
                 temp_tx['href'] = env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash;
                 if(memo){
-                  temp_tx['content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
+                  temp_tx['news_title'] = '';
+                  temp_tx['news_content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
                   temp_tx['asset_did'] = asset_did;
                   temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';
                   temp_tx['uavatar'] = '';
                 }else{
-                  temp_tx['content'] = '';
+                  temp_tx['news_title'] = '';
+                  temp_tx['news_content'] = '';
                   temp_tx['asset_did'] = asset_did;
                   temp_tx['uname'] = '匿名';
                   temp_tx['uavatar'] = '';
@@ -266,12 +270,14 @@ module.exports = {
                 temp_tx['hash'] = e.hash;
                 temp_tx['href'] = env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash;
                 if(memo){
-                  temp_tx['content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
+                  temp_tx['news_title'] = '';
+                  temp_tx['news_content'] = (typeof(memo.para.content) != "undefined")?memo.para.content:'';
                   temp_tx['asset_did'] = (typeof(memo.para.content) != "undefined")?HashString('sha1', memo.para.content):'';
                   temp_tx['uname'] = (typeof(memo.para.uname) != "undefined")?memo.para.uname:'匿名';
                   temp_tx['uavatar'] = '';
                 }else{
-                  temp_tx['content'] = '';
+                  temp_tx['news_title'] = '';
+                  temp_tx['news_content'] = '';
                   temp_tx['asset_did'] = '';
                   temp_tx['uname'] = '匿名';
                   temp_tx['uavatar'] = '';

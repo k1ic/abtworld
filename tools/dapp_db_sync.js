@@ -129,6 +129,12 @@ async function newsflashDappDbSync(){
           }else{
             author_name = '匿名';
           }
+          var news_title = '';
+          if(typeof(memo.para.title) != "undefined" && memo.para.title && memo.para.title.length > 0){
+            news_title = memo.para.title;
+          }else{
+            news_title = '';
+          }
           
           //console.log('newsflashDappDbSync V1 asset_did=', asset_did);
           var doc = await Newsflash.findOne({ news_content: memo.para.content });
@@ -143,6 +149,7 @@ async function newsflashDappDbSync(){
             doc.news_hash = e.hash;
             doc.news_time = asset_local_time;
             doc.news_type = memo.para.type;
+            doc.news_title = news_title;
             doc.news_content = memo.para.content;
             doc.hash_href = env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash;
             await doc.save();
@@ -157,6 +164,7 @@ async function newsflashDappDbSync(){
               news_hash: e.hash,
               news_time: asset_local_time,
               news_type: memo.para.type,
+              news_title: news_title,
               news_content: memo.para.content,
               hash_href: env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash,
               state: 'chained',

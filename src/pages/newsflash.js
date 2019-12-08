@@ -20,6 +20,7 @@ import {
   Select,
   Tabs,
   Switch,
+  Checkbox,
   Divider,
   Slider,
   InputNumber,
@@ -55,6 +56,7 @@ const admin_account = env.appAdminAccounts;
 
 /*direct or indirect*/
 const news_to_chain_mode = 'indirect';
+const news_title_max_length = 100;
 var news_content_max_length = 0;
 const list_items_per_page = 10;
 const news_comment_max_length = 100;
@@ -158,13 +160,15 @@ class App extends Component {
       session: null,
       intervalIsSet: false,
       news_type: news_type_default,
-      news_to_send: '',
+      news_title_to_send: '',
+      news_content_to_send: '',
       toPay: 0,
       news_to_send_weight: 1,
       news_comment_minner_number: news_comment_minner_number_default,
       news_like_minner_number: news_like_minner_number_default,
       news_forward_minner_number: news_forward_minner_number_default,
       news_to_send_cfg_visible: false,
+      news_title_enabled: false,
       asset_did: '',
       show_mode: 'all',
       sending: false,
@@ -321,11 +325,19 @@ class App extends Component {
   }
   
   updateToPayValue = () => {
-    const { news_type, news_to_send, news_to_send_weight } = this.state;
+    const { news_type, news_title_to_send, news_content_to_send, news_to_send_weight } = this.state;
     
     var toPay = 0;
-    if(news_type != 'test2' && news_to_send && news_to_send.length > 0){
-      toPay = forgeTxValueSecureConvert((toPayEachChar*news_to_send_weight)*news_to_send.length);
+    var newsLength = 0;
+    if(news_title_to_send && news_title_to_send.length > 0){
+      newsLength += news_title_to_send.length;
+    }
+    if(news_content_to_send && news_content_to_send.length > 0){
+      newsLength += news_content_to_send.length;
+    }
+    
+    if(news_type != 'test2' && newsLength > 0){
+      toPay = forgeTxValueSecureConvert((toPayEachChar*news_to_send_weight)*newsLength);
     }
     this.setState({
       toPay: toPay,
@@ -387,12 +399,31 @@ class App extends Component {
       });
     }
   }
+  
+  onNewsTitleCheckBoxChange = (e) => {
+    //console.log(`checked = ${e.target.checked}`);
+    this.setState({
+      news_title_to_send: '',
+      news_title_enabled: e.target.checked,
+    },()=>{
+    });
+  }
 
-  onNewsToSendChange = ({ target: { value } }) => {    
-    //console.log('onNewsToSendChange value='+value+' length='+value.length);
+  onNewsTitleToSendChange = ({ target: { value } }) => {    
+    //console.log('onNewsTitleToSendChange value='+value+' length='+value.length);
     
     this.setState({
-      news_to_send: value,
+      news_title_to_send: value,
+    },()=>{
+      this.updateToPayValue();
+    });
+  };
+  
+  onNewsContentToSendChange = ({ target: { value } }) => {    
+    //console.log('onNewsContentToSendChange value='+value+' length='+value.length);
+    
+    this.setState({
+      news_content_to_send: value,
     },()=>{
       this.updateToPayValue();
     });
@@ -470,13 +501,13 @@ class App extends Component {
   
   /*Send news handler*/
   handleSendNews = () => {
-    const { session, news_type, news_to_send, news_to_send_weight, news_comment_minner_number, news_like_minner_number, news_forward_minner_number } = this.state;
+    const { session, news_type, news_title_to_send, news_content_to_send, news_to_send_weight, news_comment_minner_number, news_like_minner_number, news_forward_minner_number } = this.state;
     const { user, token } = session;
     
     console.log('handleSendNews');
     
-    if(news_to_send.length > 0){
-      const asset_did = HashString('sha1', news_to_send);
+    if(news_content_to_send.length > 0){
+      const asset_did = HashString('sha1', news_content_to_send);
       console.log('asset_did=', asset_did);
       
       if(news_to_chain_mode === 'direct'){
@@ -498,7 +529,8 @@ class App extends Component {
         }
         formData.append('asset_did', asset_did);
         formData.append('news_type', news_type);
-        formData.append('news_content', news_to_send);
+        formData.append('news_title', news_title_to_send);
+        formData.append('news_content', news_content_to_send);
         formData.append('news_weights', news_to_send_weight);
         formData.append('comment_minner_number', news_comment_minner_number);
         formData.append('like_minner_number', news_like_minner_number);
@@ -513,7 +545,8 @@ class App extends Component {
             //console.log('add newsflash success with response=', result.response);
             if(news_type === 'test2'){
               this.setState({
-                news_to_send: '',
+              	news_title_to_send: '',
+                news_content_to_send: '',
                 toPay: 0,
                 asset_sending: false,
               });
@@ -997,7 +1030,8 @@ class App extends Component {
   onPaymentSuccess = async result => {
     console.log('onPaymentSuccess');
     this.setState({
-      news_to_send: '',
+      news_title_to_send: '',
+      news_content_to_send: '',
       toPay: 0,
       sending: false,
     });
@@ -1019,7 +1053,18 @@ class App extends Component {
   };
 
   render() {
-    const { session, news_type, news_to_send, comment_to_send, toPay, sending, asset_sending, newsflash_list, more_to_load, loading } = this.state;
+    const { 
+      session, 
+      news_type, 
+      news_title_to_send, 
+      news_content_to_send, 
+      comment_to_send, 
+      toPay, 
+      sending, 
+      asset_sending, 
+      newsflash_list, 
+      more_to_load, 
+      loading } = this.state;
     //console.log('render session=', session);
     //console.log('render props=', this.props);
     
@@ -1090,9 +1135,9 @@ class App extends Component {
     
     if(news_to_chain_mode === 'direct'){
       if(user){
-         para_obj = {type: news_type, uname: user.name, content: news_to_send};
+         para_obj = {type: news_type, uname: user.name, content: news_content_to_send};
       }else{
-         para_obj = {type: news_type, uname: '匿名', content: news_to_send};
+         para_obj = {type: news_type, uname: '匿名', content: news_content_to_send};
       }
       para = JSON.stringify(para_obj);
     }else{
@@ -1219,14 +1264,26 @@ class App extends Component {
              </Col>
             </Row>
           )}
+          {send_permission && this.state.news_title_enabled && (
+            <div style={{ margin: '5px 0' }}/>
+          )}
+          {send_permission && this.state.news_title_enabled && (
+            <TextArea
+              value={news_title_to_send}
+              onChange={this.onNewsTitleToSendChange}
+              placeholder={"(可选)请输入标题...("+news_title_max_length+"字以内)"}
+              autoSize={{ minRows: 1, maxRows: 3 }}
+              maxLength={news_title_max_length}
+            />
+          )}
           {send_permission && (
             <div style={{ margin: '5px 0' }}/>
           )}
           {send_permission && (
             <TextArea
-              value={news_to_send}
-              onChange={this.onNewsToSendChange}
-              placeholder={"请输入...("+news_content_max_length+"字以内)"}
+              value={news_content_to_send}
+              onChange={this.onNewsContentToSendChange}
+              placeholder={"请输入内容...("+news_content_max_length+"字以内)"}
               autoSize={{ minRows: 1, maxRows: 10 }}
               maxLength={news_content_max_length}
             />
@@ -1235,13 +1292,19 @@ class App extends Component {
             <div style={{ margin: '15px 0' }}/>
           )}
           {send_permission && (
-            (news_type === 'test2')?
+            <span style={{ marginRight: 20 }}>
+              <Checkbox checked={this.state.news_title_enabled} onChange={this.onNewsTitleCheckBoxChange}>标题</Checkbox>
+            </span>
+          )}
+          {send_permission && (
+            (news_type === 'test2')
+            ?
             <Button
               key="submit"
               type="primary"
               size="large"
               onClick={this.onSendNews}
-              disabled={news_to_send === '' || (news_to_send && news_to_send.length < 6)}
+              disabled={news_content_to_send === '' || (news_content_to_send && news_content_to_send.length < 6)}
               loading={asset_sending}
               className="antd-button-send"
             >
@@ -1253,7 +1316,7 @@ class App extends Component {
               type="primary"
               size="large"
               onClick={this.onSendNews}
-              disabled={news_to_send === '' || (news_to_send && news_to_send.length < 6)}
+              disabled={news_content_to_send === '' || (news_content_to_send && news_content_to_send.length < 6)}
               loading={sending}
               className="antd-button-send"
             >
@@ -1293,24 +1356,28 @@ class App extends Component {
                   <span style={{ fontSize: '11px', color: '#000000' }}>: {item.sender}</span> <br/>
                   <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>哈希@{item.time}</a> <br/>        
                   <div id={item.asset_did}>
-                    {(item.content.length > 400)
+                    {(item.news_title.length > 0) && 
+                      <span style={{ fontSize: '16px', fontWeight: 800, color: '#000000' }}> {item.news_title} </span>
+                    }
+                    {(item.news_title.length > 0) && <br/>}
+                    {(item.news_content.length > 400)
                       ?
                       (item.weights > 5
                         ?
                         <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#FF0000' }}>
-                          {item.content}
+                          {item.news_content}
                         </Paragraph> 
                         :
                         <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#000000' }}>
-                          {item.content}
+                          {item.news_content}
                         </Paragraph>
                       )
                       :
                       (item.weights > 5
                         ?
-                        <span style={{ fontSize: '16px', color: '#FF0000' }}> <AutoLinkText text={item.content} linkProps={{ target: '_blank' }}/> </span>
+                        <span style={{ fontSize: '16px', color: '#FF0000' }}> <AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/> </span>
                         :
-                        <span style={{ fontSize: '16px', color: '#000000' }}> <AutoLinkText text={item.content} linkProps={{ target: '_blank' }}/> </span>
+                        <span style={{ fontSize: '16px', color: '#000000' }}> <AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/> </span>
                       )
                     }
                   </div>
@@ -1434,9 +1501,13 @@ class App extends Component {
                       <a href={item.href} target="_blank" style={{ fontSize: '11px', fontVariant: 'normal', color: '#000000' }}>20{item.time}</a>
                       <div>
                         <br/>
+                        {(item.news_title.length > 0) && 
+                          <span style={{ fontSize: '13px', fontWeight: 800, color: '#000000' }}> {item.news_title} </span>
+                        }
+                        {(item.news_title.length > 0) && <br/>}
                         {item.weights > 5?
-                          <span id="shareNewsListItemContent" style={{ fontSize: '11px', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', fontVariant: 'normal', letterSpacing: '1px', wordSpacing: '1px', color: '#FF0000' }}>{item.content}</span> :
-                          <span id="shareNewsListItemContent" style={{ fontSize: '11px', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', fontVariant: 'normal', letterSpacing: '1px', wordSpacing: '1px', color: '#000000' }}>{item.content}</span>}
+                          <span id="shareNewsListItemContent" style={{ fontSize: '11px', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', fontVariant: 'normal', letterSpacing: '1px', wordSpacing: '1px', color: '#FF0000' }}>{item.news_content}</span> :
+                          <span id="shareNewsListItemContent" style={{ fontSize: '11px', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', fontVariant: 'normal', letterSpacing: '1px', wordSpacing: '1px', color: '#000000' }}>{item.news_content}</span>}
                       </div>
                     </List.Item>
                   )}

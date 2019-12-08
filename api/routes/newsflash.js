@@ -34,6 +34,7 @@ async function NewsflashAdd(fields){
     || typeof(fields.asset_did) == "undefined"
     || typeof(fields.news_type) == "undefined"
     || typeof(fields.news_weights) == "undefined"
+    || typeof(fields.news_title) == "undefined"
     || typeof(fields.news_content) == "undefined"
     || typeof(fields.comment_minner_number) == "undefined"
     || typeof(fields.like_minner_number) == "undefined"
@@ -69,6 +70,7 @@ async function NewsflashAdd(fields){
       doc.asset_did = fields.asset_did[0];
       doc.content_did = fields.asset_did[0];
       doc.news_type = fields.news_type[0];
+      doc.news_title = fields.news_title[0];
       doc.news_content = fields.news_content[0];
       doc.news_weights = fields.news_weights[0];
       doc.total_comment_minner_number = total_comment_minner_number;
@@ -87,6 +89,7 @@ async function NewsflashAdd(fields){
       author_avatar: user.avatar_small,
       news_hash: '',
       news_type: fields.news_type[0],
+      news_title: fields.news_title[0],
       news_content: fields.news_content[0],
       news_weights: fields.news_weights[0],
       total_comment_minner_number: total_comment_minner_number,
@@ -110,6 +113,7 @@ async function NewsflashCreateAssetOnChain(fields){
     || typeof(fields.user) == "undefined"
     || typeof(fields.asset_did) == "undefined"
     || typeof(fields.news_type) == "undefined"
+    || typeof(fields.news_title) == "undefined"
     || typeof(fields.news_content) == "undefined"){
     console.log('NewsflashCreateAssetOnChain invalid fields');
     return false;
@@ -129,6 +133,7 @@ async function NewsflashCreateAssetOnChain(fields){
       doc.asset_did = fields.asset_did[0];
       doc.content_did = fields.asset_did[0];
       doc.news_type = fields.news_type[0];
+      doc.news_title = fields.news_title[0];
       doc.news_content = fields.news_content[0];
       await doc.save();
     }
@@ -143,6 +148,7 @@ async function NewsflashCreateAssetOnChain(fields){
       author_avatar: user.avatar_small,
       news_hash: '',
       news_type: fields.news_type[0],
+      news_title: fields.news_title[0],
       news_content: fields.news_content[0],
       hash_href: '',
       state: 'commit',
@@ -625,7 +631,8 @@ async function getNewsForShow(module_para){
       temp_doc['sender'] = getUserDidFragment(e.author_did);
       temp_doc['hash'] = e.news_hash;
       temp_doc['href'] = e.hash_href;
-      temp_doc['content'] = e.news_content;
+      temp_doc['news_title'] = e.news_title;
+      temp_doc['news_content'] = e.news_content;
       temp_doc['weights'] = e.news_weights;
       temp_doc['asset_did'] = e.asset_did;
       temp_doc['uname'] = e.author_name;

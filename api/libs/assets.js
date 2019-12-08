@@ -37,7 +37,7 @@ const genNewsFlashAsset = async (cdid) => {
   var newsflash_tx_memo = {};
   var para_obj = null;
   newsflash_tx_memo['module'] = 'newsflash';
-  para_obj = {type: news.news_type, uname: news.author_name, udid: news.author_did, uavatar: news.author_avatar, content: news.news_content, images: []};
+  para_obj = {type: news.news_type, uname: news.author_name, udid: news.author_did, uavatar: news.author_avatar, title: news.news_title, content: news.news_content, images: []};
   newsflash_tx_memo['para'] = para_obj;
   
   //console.log('genNewsFlashAsset newsflash_tx_memo=', JSON.stringify(newsflash_tx_memo));
