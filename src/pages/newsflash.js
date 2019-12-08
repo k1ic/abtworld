@@ -1357,8 +1357,9 @@ class App extends Component {
                   <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>哈希@{item.time}</a> <br/>        
                   <div id={item.asset_did}>
                     {(item.news_title.length > 0) && 
-                      <span style={{ fontSize: '16px', fontWeight: 800, color: '#000000' }}> {item.news_title} </span>
+                      <span style={{ fontSize: '17px', fontWeight: 600, color: '#000000' }}> {item.news_title} </span>
                     }
+                    {(item.news_title.length > 0) && <br/>}
                     {(item.news_title.length > 0) && <br/>}
                     {(item.news_content.length > 400)
                       ?
@@ -1381,8 +1382,10 @@ class App extends Component {
                       )
                     }
                   </div>
+                  {(list_action_show && item.comment_list.length > 0) && <br/> }
                   {(list_action_show && item.comment_list.length > 0) && 
-                    <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />}
+                    <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />
+                  }
                 </List.Item>
               )}
             />
@@ -1502,8 +1505,9 @@ class App extends Component {
                       <div>
                         <br/>
                         {(item.news_title.length > 0) && 
-                          <span style={{ fontSize: '13px', fontWeight: 800, color: '#000000' }}> {item.news_title} </span>
+                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#000000' }}> {item.news_title} </span>
                         }
+                        {(item.news_title.length > 0) && <br/>}
                         {(item.news_title.length > 0) && <br/>}
                         {item.weights > 5?
                           <span id="shareNewsListItemContent" style={{ fontSize: '11px', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'break-all', fontVariant: 'normal', letterSpacing: '1px', wordSpacing: '1px', color: '#FF0000' }}>{item.news_content}</span> :
