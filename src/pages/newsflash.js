@@ -5,6 +5,7 @@ import useAsyncFn from 'react-use/lib/useAsyncFn';
 import useToggle from 'react-use/lib/useToggle';
 import { fromUnitToToken } from '@arcblock/forge-util';
 import Avatar from '@arcblock/did-react/lib/Avatar';
+import DidLogo from '@arcblock/did-react/lib/Logo';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { 
   LocaleProvider, 
@@ -1352,12 +1353,12 @@ class App extends Component {
                   <span style={{ fontSize: '15px', color: '#000000', marginRight: 0 }}>{item.uname}</span>
                   {item.weights > 1&&(<span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>)}
                   <br/>
-                  <img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>                  
+                  <img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>                  
                   <span style={{ fontSize: '11px', color: '#000000' }}>: {item.sender}</span> <br/>
                   <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>哈希@{item.time}</a> <br/>        
                   <div id={item.asset_did}>
                     {(item.news_title.length > 0) && 
-                      <span style={{ fontSize: '17px', fontWeight: 600, color: '#000000' }}> {item.news_title} </span>
+                      <span style={{ fontSize: '17px', fontWeight: 600, color: '#000000' }}>{item.news_title}</span>
                     }
                     {(item.news_title.length > 0) && <br/>}
                     {(item.news_title.length > 0) && <br/>}
@@ -1376,9 +1377,9 @@ class App extends Component {
                       :
                       (item.weights > 5
                         ?
-                        <span style={{ fontSize: '16px', color: '#FF0000' }}> <AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/> </span>
+                        <span style={{ fontSize: '16px', color: '#FF0000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
                         :
-                        <span style={{ fontSize: '16px', color: '#000000' }}> <AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/> </span>
+                        <span style={{ fontSize: '16px', color: '#000000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
                       )
                     }
                   </div>
@@ -1499,13 +1500,13 @@ class App extends Component {
                       <span style={{ fontSize: '12px', fontVariant: 'normal', color: '#000000', marginRight: 0 }}>{item.uname}</span>
                       {item.weights > 1&&(<span style={{ fontSize: '9px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>)}
                       <br/>
-                      <img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>                  
+                      <img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>                  
                       <span style={{ fontSize: '11px', fontVariant: 'normal', color: '#000000' }}>: {item.sender}</span> <br/>
                       <a href={item.href} target="_blank" style={{ fontSize: '11px', fontVariant: 'normal', color: '#000000' }}>20{item.time}</a>
                       <div>
                         <br/>
                         {(item.news_title.length > 0) && 
-                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#000000' }}> {item.news_title} </span>
+                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#000000' }}>{item.news_title}</span>
                         }
                         {(item.news_title.length > 0) && <br/>}
                         {(item.news_title.length > 0) && <br/>}
