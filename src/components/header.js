@@ -74,13 +74,14 @@ export default function Header() {
         >
           <Menu.ItemGroup title="">
           </Menu.ItemGroup>
-          <Menu.Item key="more:1"><a href={env.chainHost.replace('/api', '/node/explorer/txs')} target="_blank">区块浏览器</a></Menu.Item>
+          <Menu.Item key="more:1"><a href={env.chainHost.replace('/api', '/node/explorer/txs')} target="_blank">资产链</a></Menu.Item>
+          <Menu.Item key="more:2"><a href={env.assetChainHost.replace('/api', '/node/explorer/txs')} target="_blank">应用链</a></Menu.Item>
           <Menu.ItemGroup title="应用">
-            <Menu.Item key="more:2"><a href="/didchat" target="_parent">DID Chat</a></Menu.Item>
-            <Menu.Item key="more:3"><a href="http://abtworld.cn:3080/" target="_blank">充电桩</a></Menu.Item>
-            <Menu.Item key="more:4"><a href="/wools" target="_parent">薅羊毛</a></Menu.Item>
+            <Menu.Item key="more:3"><a href="/didchat" target="_parent">DID Chat</a></Menu.Item>
+            <Menu.Item key="more:4"><a href="http://abtworld.cn:3080/" target="_blank">充电桩</a></Menu.Item>
+            <Menu.Item key="more:5"><a href="/wools" target="_parent">薅羊毛</a></Menu.Item>
           </Menu.ItemGroup>
-          <Menu.Item key="more:5"><a href="/about" target="_parent">关于我们</a></Menu.Item>
+          <Menu.Item key="more:6"><a href="/about" target="_parent">关于我们</a></Menu.Item>
         </SubMenu>
        </Menu>
       </div>

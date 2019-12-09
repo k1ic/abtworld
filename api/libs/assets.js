@@ -55,7 +55,7 @@ const genNewsFlashAsset = async (cdid) => {
     },
   };
 
-  asset.address = ForgeSDK.Util.toAssetAddress(asset, newsflashAppWallet.toAddress());
+  asset.address = ForgeSDK.Util.toAssetAddress(asset, newsflashAppWallet.toAddress(), { conn: env.assetChainId });
   console.log('genNewsFlashAsset new asset.address=', asset.address);
 
   news.asset_did = asset.address;
@@ -64,7 +64,7 @@ const genNewsFlashAsset = async (cdid) => {
   return asset;
 };
 
-const waitAndGetTxHash = async hash => {
+const waitAndGetAssetTxHash = async hash => {
   var res = null;
   var i = 0;
   if (typeof(hash) == "undefined" || !hash || hash.length == 0) {
@@ -74,25 +74,27 @@ const waitAndGetTxHash = async hash => {
   try {
     for(i=0;i<150;i++){
       res = await ForgeSDK.doRawQuery(`{
-        getTx(hash: "${hash}") {
-          code
-          info {
-            tx {
-              from
-              itxJson
+          getTx(hash: "${hash}") {
+            code
+            info {
+              tx {
+                from
+                itxJson
+              }
             }
           }
-        }
-      }`);
+        }`, 
+        { conn: env.assetChainId }
+      );
       if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
         break;
       }else{
         await sleep(100);
       }
     }
-    console.log('waitAndGetTxHash counter', i);    
+    console.log('waitAndGetAssetTxHash counter', i);    
   } catch (err) {
-    console.error('waitAndGetTxHash error', err);
+    console.error('waitAndGetAssetTxHash error', err);
   }
   
   return res;
@@ -106,7 +108,7 @@ const createNewsflahAsset = async cdid => {
   //console.log('asset=', asset);
   if(asset){
     // Create asset if not exists
-    var { state } = await ForgeSDK.getAssetState({ address: asset.address });
+    var { state } = await ForgeSDK.getAssetState({ address: asset.address }, { conn: env.assetChainId });
     if (state) {
       console.log('asset exist', asset.address);
       //console.log('asset state=', state);
@@ -116,16 +118,16 @@ const createNewsflahAsset = async cdid => {
       //console.log('newsflashAppWallet = ', newsflashAppWallet);
       //console.log('newsflashAppWallet.toAddress() = ', newsflashAppWallet.toAddress());
         
-      hash = await ForgeSDK.sendCreateAssetTx({ tx: { itx: asset }, wallet: newsflashAppWallet });
+      hash = await ForgeSDK.sendCreateAssetTx({ tx: { itx: asset }, wallet: newsflashAppWallet}, { conn: env.assetChainId });
       //console.log('asset created', { hash });
 
       /*wait asset created*/
-      const res = await waitAndGetTxHash(hash);
+      const res = await waitAndGetAssetTxHash(hash);
       if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
         //const tx_memo = JSON.parse(res.getTx.info.tx.itxJson.data.value);
         //console.log('tx_memo = ', tx_memo);
       }
-      var { state } = await ForgeSDK.getAssetState({ address: asset.address });
+      var { state } = await ForgeSDK.getAssetState({ address: asset.address }, { conn: env.assetChainId });
       //console.log('asset created hash=', hash, 'state=', state);
       console.log('asset created hash=', hash);
       result = true;
@@ -145,17 +147,19 @@ const getAssetGenesisHash = async asset_addr => {
   //console.log('getAssetGenesisHash asset_addr=', asset_addr);
   
   res = await ForgeSDK.doRawQuery(`{
-    getAssetState(address: "${asset_addr}") {
-      code
-      state {
-        context {
-          genesisTx {
-            hash
+      getAssetState(address: "${asset_addr}") {
+        code
+        state {
+          context {
+            genesisTx {
+              hash
+            }
           }
         }
       }
-    }
-  }`); 
+    }`,
+    { conn: env.assetChainId }
+  ); 
   
   if(res && res.getAssetState 
     && res.getAssetState.code === 'OK' 
@@ -170,25 +174,27 @@ const getAssetGenesisHash = async asset_addr => {
   return hash;
 }
 
-const listAssets= async (ower_did, pages) => {
+const listAssets= async (ower_did, pages, connId) => {
   var res = null;
   var assets = null;
   
-  console.log('listAssets ower_did=', ower_did, 'pages=', pages);
+  console.log('listAssets ower_did=', ower_did, 'pages=', pages, 'connId=', connId);
   
   res = await ForgeSDK.doRawQuery(`{
-    listAssets(ownerAddress: "${ower_did}", paging: {size: ${pages}}) {
-      assets {
-        genesisTime
-        data {
-          typeUrl
-          value
+      listAssets(ownerAddress: "${ower_did}", paging: {size: ${pages}}) {
+        assets {
+          genesisTime
+          data {
+            typeUrl
+            value
+          }
+          address
         }
-        address
+        code
       }
-      code
-    }
-  }`); 
+    }`,
+    { conn: connId }
+  ); 
   
   if(res && res.listAssets && res.listAssets.code === 'OK' && res.listAssets.assets && res.listAssets.assets.length > 0){
     assets = res.listAssets.assets;
@@ -244,7 +250,7 @@ const listAssets= async (ower_did, pages) => {
     await createNewsflahAsset(cdid);
     
     // show assets
-    const assets = await listAssets(newsflashAppWallet.toAddress(), 1000);
+    const assets = await listAssets(newsflashAppWallet.toAddress(), 1000, env.chainId);
     if(assets && assets.length > 0){
       console.log('The assets of ower', newsflashAppWallet.toAddress(), 'num', assets.length);
       console.log(assets);

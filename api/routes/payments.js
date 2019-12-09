@@ -50,7 +50,7 @@ module.exports = {
               break;
             case 'newsflash':
               /*on chain asset style v3 newsflash*/
-              tx = await fetchForgeTransactionsV3(dapp_module, module_para);
+              tx = await fetchForgeTransactionsV3(dapp_module, module_para, env.chainId);
               final_tx = await Promise.all(tx.map( async (e) => {
                 var temp_tx = {};
                 var memo = null;

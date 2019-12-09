@@ -249,8 +249,8 @@ async function newsflashDappDbSync(){
     console.log('newsflashDappDbSync V2 empty chain tx');
   }
   
-  /*V3 style newsflash*/
-  tx = await fetchForgeTransactionsV3(dapp_module, module_para);
+  /*V3 default chain style newsflash*/
+  tx = await fetchForgeTransactionsV3(dapp_module, module_para, env.chainId);
   if(tx && tx.length > 0){
     await Promise.all(tx.map( async (e) => {
       try {
@@ -314,6 +314,73 @@ async function newsflashDappDbSync(){
     }));
   }else{
     console.log('newsflashDappDbSync V3 empty chain tx');
+  }
+  
+  /*V3 asset chain style newsflash*/
+  tx = await fetchForgeTransactionsV3(dapp_module, module_para, env.assetChainId);
+  if(tx && tx.length > 0){
+    await Promise.all(tx.map( async (e) => {
+      try {
+        var memo = JSON.parse(e.data.value);
+        if(memo){
+          const cdid = HashString('sha1', memo.para.content);
+          const asset_did = newsflashAssetDidGen(cdid, memo);
+          const asset_local_time = utcToLocalTime(e.genesisTime);
+          const asset_hash = await getAssetGenesisHash(e.address);
+        
+          var author_name = '';
+          if(typeof(memo.para.uname) != "undefined" && memo.para.uname && memo.para.uname.length > 0){
+            author_name = memo.para.uname;
+          }else{
+            author_name = '匿名';
+          }
+        
+          //console.log('newsflashDappDbSync V3 assetChain asset_did=', asset_did);
+          var doc = await Newsflash.findOne({ news_content: memo.para.content });
+          if(doc){
+            console.log('newsflashDappDbSync V3 assetChain update doc item content=', doc.news_content.substring(0,10));
+          
+            /*update exist doc*/
+            doc.asset_did = e.address;
+            doc.content_did = cdid;
+            doc.author_did = memo.para.udid;
+            doc.author_name = author_name;
+            doc.author_avatar = memo.para.uavatar;
+            doc.news_hash = asset_hash;
+            doc.news_time = asset_local_time;
+            doc.news_type = memo.para.type;
+            doc.news_content = memo.para.content;
+            doc.hash_href = env.assetChainHost.replace('/api', '/node/explorer/txs/')+asset_hash;
+            await doc.save();
+          }else{
+            /*create new doc*/
+            var new_doc = new Newsflash({
+              asset_did: e.address,
+              content_did: cdid,
+              author_did: memo.para.udid,
+              author_name: author_name,
+              author_avatar: memo.para.uavatar,
+              news_hash: asset_hash,
+              news_time: asset_local_time,
+              news_type: memo.para.type,
+              news_content: memo.para.content,
+              hash_href: env.assetChainHost.replace('/api', '/node/explorer/txs/')+asset_hash,
+              state: 'chained',
+              minner_state: 'idle',
+              createdAt: e.genesisTime,
+            });
+            await new_doc.save();
+            console.log('newsflashDappDbSync V3 assetChain create new_doc.asset_did=', new_doc.asset_did);
+          }
+        }else{
+          console.log('newsflashDappDbSync V3 assetChain empty memo');
+        }
+      } catch (err) {
+        console.log('newsflashDappDbSync V3 assetChain err=', err);
+      }
+    }));
+  }else{
+    console.log('newsflashDappDbSync V3 assetChain empty chain tx');
   }
   
   /*remove some assets*/

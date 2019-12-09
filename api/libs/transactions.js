@@ -21,7 +21,7 @@ function forgeTxValueSecureConvert(value){
   return Math.floor((value)*forgeTxDPointMaxPow)/forgeTxDPointMaxPow; /*round down*/
 }
 
-async function waitAndGetTxHash(hash){
+async function waitAndGetTxHash(hash, connId){
   var res = null;
   var i = 0;
   if (typeof(hash) == "undefined" || !hash || hash.length == 0) {
@@ -31,17 +31,19 @@ async function waitAndGetTxHash(hash){
   try {
     for(i=0;i<150;i++){
       res = await ForgeSDK.doRawQuery(`{
-        getTx(hash: "${hash}") {
-          code
-          info {
-            time
-            tx {
-              from
-              itxJson
+          getTx(hash: "${hash}") {
+            code
+            info {
+              time
+              tx {
+                from
+                itxJson
+              }
             }
           }
-        }
-      }`);
+        }`,
+        { conn: connId }
+      );
       if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
         break;
       }else{
@@ -293,7 +295,7 @@ async function fetchForgeTransactionsV2(module, module_para){
   return tx;
 }
 
-async function fetchForgeTransactionsV3(module, module_para){
+async function fetchForgeTransactionsV3(module, module_para, connId){
   var tx = [];
   var transactions = [];
   
@@ -317,7 +319,7 @@ async function fetchForgeTransactionsV3(module, module_para){
       }
       console.log('fetchForgeTransactionsV3 newsflash type=', news_type);
       
-      tx = await listAssets(newsflashAppWallet.toAddress(), 1000);
+      tx = await listAssets(newsflashAppWallet.toAddress(), 1000, connId);
       //console.log('tx value', tx);
       //console.log('tx array number', tx.length);
          
@@ -356,7 +358,6 @@ async function fetchForgeTransactionsV3(module, module_para){
   
   return tx;
 }
-
 
 async function getAssetPayDataFromTx(tx){  
   var arrMyPaymentData = new Array();
@@ -428,11 +429,18 @@ async function getAssetPayDataFromTx(tx){
 
 /*
 if (env.chainHost) {
-  console.log('Connect to chain host', env.chainHost);
-  ForgeSDK.connect(env.chainHost, { chainId: env.chainId, name: env.chainId, default: true });
+  console.log('Connect to app chain host', env.chainHost);
+  ForgeSDK.connect(env.chainHost, { 
+    chainId: env.chainId, 
+    name: env.chainId, 
+    default: true 
+  });
   if (env.assetChainHost) {
     console.log('Connect to asset chain host', env.assetChainHost);
-    ForgeSDK.connect(env.assetChainHost, { chainId: env.assetChainId, name: env.assetChainId });
+    ForgeSDK.connect(env.assetChainHost, { 
+      chainId: env.assetChainId, 
+      name: env.assetChainId 
+    });
   }
 }else{
   console.log('chainHost not define');

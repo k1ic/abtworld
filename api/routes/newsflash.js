@@ -160,7 +160,7 @@ async function NewsflashCreateAssetOnChain(fields){
     
     /*create asset on chain*/
     var transferHash = await createNewsflahAsset(fields.asset_did[0]);
-    const txRes = await waitAndGetTxHash(transferHash);
+    const txRes = await waitAndGetTxHash(transferHash, env.assetChainId);
     if(transferHash && transferHash.length > 0
       && txRes && txRes.getTx && txRes.getTx.code === 'OK' && txRes.getTx.info){
       const tx_local_time = utcToLocalTime(txRes.getTx.info.time);
@@ -168,7 +168,7 @@ async function NewsflashCreateAssetOnChain(fields){
       console.log('NewsflashCreateAssetOnChain create asset success, update doc');
       new_doc.news_hash = transferHash;
       new_doc.news_time = tx_local_time;
-      new_doc.hash_href = env.chainHost.replace('/api', '/node/explorer/txs/')+transferHash;
+      new_doc.hash_href = env.assetChainHost.replace('/api', '/node/explorer/txs/')+transferHash;
       new_doc.state = 'chained';
       await new_doc.save();
     }else{

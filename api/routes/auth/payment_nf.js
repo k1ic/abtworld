@@ -25,7 +25,7 @@ async function newsflashPaymentHookV2(hash, forgeState, userDid) {
   try {
     console.log('newsflashPaymentHookV2');
     
-    const txRes = await waitAndGetTxHash(hash);
+    const txRes = await waitAndGetTxHash(hash, env.chainId);
     
     if(txRes && txRes.getTx && txRes.getTx.code === 'OK' && txRes.getTx.info){
       const tx_memo = JSON.parse(txRes.getTx.info.tx.itxJson.data.value);
@@ -78,7 +78,7 @@ async function newsflashPaymentHookV2(hash, forgeState, userDid) {
               console.log('update newsflash doc');
               newsflash_doc.news_hash = transferHash;
               newsflash_doc.news_time = tx_local_time;
-              newsflash_doc.hash_href = env.chainHost.replace('/api', '/node/explorer/txs/')+transferHash;
+              newsflash_doc.hash_href = env.assetChainHost.replace('/api', '/node/explorer/txs/')+transferHash;
               newsflash_doc.total_payed_balance = tx_value;
               newsflash_doc.total_comment_minner_balance = total_comment_minner_balance;
               newsflash_doc.total_like_minner_balance = total_like_minner_balance;

@@ -54,7 +54,7 @@ async function picturePaymentHook(hash, forgeState, userDid) {
   try {
     console.log('picturePaymentHook');
     
-    const txRes = await waitAndGetTxHash(hash);
+    const txRes = await waitAndGetTxHash(hash, env.chainId);
     
     if(txRes && txRes.getTx && txRes.getTx.code === 'OK' && txRes.getTx.info){
       const tx_memo = JSON.parse(txRes.getTx.info.tx.itxJson.data.value);

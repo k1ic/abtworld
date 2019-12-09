@@ -29,6 +29,8 @@ module.exports = withPlugins(
           apiPrefix: process.env.NF_API_PREFIX || process.env.API_PREFIX || '',
           chainHost: process.env.CHAIN_HOST,
           chainId: process.env.CHAIN_ID,
+          assetChainHost: process.env.ASSET_CHAIN_HOST,
+          assetChainId: process.env.ASSET_CHAIN_ID,
         },
 
         webpack: config => {

@@ -5,6 +5,12 @@ module.exports = {
     process.env.GATSBY_CHAIN_HOST ||
     process.env.CHAIN_HOST ||
     process.env.chainHost,
+  assetChainId: process.env.REACT_ASSET_CHAIN_ID || process.env.GATSBY_ASSET_CHAIN_ID || process.env.ASSET_CHAIN_ID || process.env.assetChainId,
+  assetChainHost:
+    process.env.REACT_ASSET_CHAIN_HOST ||
+    process.env.GATSBY_ASSET_CHAIN_HOST ||
+    process.env.ASSET_CHAIN_HOST ||
+    process.env.assetChainHost,
   appId: process.env.REACT_APP_APP_ID || process.env.GATSBY_APP_ID || process.env.APP_ID || process.env.appId,
   appOwnerAccount: process.env.APP_OWNER_ACCOUNT || process.env.appOwnerAccount,
   appAdminAccounts: process.env.APP_ADMIN_ACCOUNTS  || process.env.appAdminAccounts,

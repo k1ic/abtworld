@@ -21,14 +21,17 @@ if (env.chainHost) {
   ForgeSDK.connect(env.chainHost, {
     chainId: env.chainId,
     name: env.chainId,
-    default: true,
+    default: true
   });
-  if (env.assetChainHost) {
-    ForgeSDK.connect(env.assetChainHost, {
-      chainId: env.assetChainId,
-      name: env.assetChainId,
-    });
-  }
+  console.log(`connected to app chain host:${env.chainHost} id: ${env.chainId}`);
+}
+
+if (env.assetChainHost) {
+  ForgeSDK.connect(env.assetChainHost, {
+    chainId: env.assetChainId,
+    name: env.assetChainId
+  });
+  console.log(`connected to asset chain host:${env.assetChainHost} id: ${env.assetChainId}`);
 }
 
 const wallet = fromSecretKey(process.env.APP_SK, type).toJSON();
