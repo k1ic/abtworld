@@ -2,7 +2,7 @@
 cd ~/tbawool/tbawool
 git pull
 cd ~/tbawool
-for((i=1;i<=11;i++));
+for((i=1;i<=12;i++));
 do
 let tbawoolport=3030;
 let tbawoolport+=$i;

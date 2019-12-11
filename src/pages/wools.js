@@ -88,9 +88,9 @@ class App extends Component {
   render() {    
     //init TBA wool list
     var TBAWoolList=new Array();
-    for(var i=0;i<12;i++) {
+    for(var i=1;i<13;i++) {
       TBAWoolList[i]={};
-      TBAWoolList[i]['title'] = `羊毛${i+1}号`;
+      TBAWoolList[i]['title'] = `羊毛${i}号`;
       TBAWoolList[i]['login'] = `http://abtworld.cn:${3030+i}/?openLogin=true`;
       //console.log("TBAWoolList[", i, "][login]=", TBAWoolList[i].login);
       TBAWoolList[i]['checkin'] = `http://abtworld.cn:${3030+i}/checkin`;
