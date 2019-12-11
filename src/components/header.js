@@ -58,10 +58,10 @@ export default function Header() {
       <div className="nav-left">
         <Typography href="/" component="a" variant="h6" color="inherit" noWrap className="brand">
           {/*<img className="logo" src="/static/images/logo.png" alt="world" />*/}
-          首页
+          图片
         </Typography>
         <Typography href="/newsflash" component="a" variant="h6" color="inherit" className="text">
-          哈希资讯
+          资讯
         </Typography>
         <Menu onClick={handleMoreClick} selectedKeys={[state.current]} mode="horizontal" theme="light" className="antd-menu" >
         <SubMenu

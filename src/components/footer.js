@@ -55,7 +55,7 @@ export default function Footer() {
         },
         {
           title: '无涯社区',
-          link: '/',
+          link: 'http://www.ourea.top/',
         },
         {
           title: '熵湾科技',

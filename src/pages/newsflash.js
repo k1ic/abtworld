@@ -1224,9 +1224,9 @@ class App extends Component {
             </TabPane>
             <TabPane tab={<span style={{ fontSize: '14px' }}>快讯</span>} key="chains">
             </TabPane>
-            <TabPane tab={<span style={{ fontSize: '14px' }}>问答</span>} key="qnas">
-            </TabPane>
             <TabPane tab={<span style={{ fontSize: '14px' }}>广告</span>} key="ads">
+            </TabPane>
+            <TabPane tab={<span style={{ fontSize: '14px' }}>问答</span>} key="qnas">
             </TabPane>
             <TabPane tab={<span style={{ fontSize: '14px' }}>AMA</span>} key="amas">
             </TabPane>
