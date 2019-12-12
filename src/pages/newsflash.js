@@ -727,18 +727,36 @@ class App extends Component {
           gen_share_news_visible: true
         }, async ()=>{
           share_news_pic_data = '';
-          var opts = {
-            dpi: window.devicePixelRatio * 8,
-            scale: 4,
-            letterRendering: true,
-            useCORS: true,
-            scrollY: 0,
-          };
+          
+          await sleep(1000);
           
           //document.getElementById('shareNewsListItemContent').style.whiteSpace = 'pre-wrap';
           //document.getElementById('shareNewsListItemContent').style.wordWrap = 'break-word';
           //document.getElementById('shareNewsListItemContent').style.wordBreak = 'break-all';
-          await sleep(500);
+          
+          var shareContent = document.getElementById('shareNewsContent');
+          //shareContent.style.position = 'fixed';
+          
+          var canvas = document.createElement("canvas"); //创建一个canvas节点
+          var scale = 4; //定义任意放大倍数 支持小数
+          var width = shareContent.offsetWidth; //获取dom 宽度
+          var height = shareContent.offsetHeight; //获取dom 高度
+          canvas.width = width * scale; //定义canvas 宽度 * 缩放
+          canvas.height = height * scale; //定义canvas高度 *缩放
+          //canvas.getContext("2d").scale(scale,scale); //获取context,设置scale
+          var opts = {
+            scale: scale,
+            canvas:canvas, //自定义 canvas
+            logging: false,
+            width: width, //dom 原始宽度
+            height: height, //dom 原始高度
+            dpi: window.devicePixelRatio * 8,
+            letterRendering: true,
+            useCORS: true,
+            scrollX: 0,
+            scrollY: 0,
+          };
+
           html2canvas(document.getElementById('shareNewsContent'), opts).then(function(canvas) {
             share_news_pic_data = canvas.toDataURL("image/jpg");            
           });
@@ -1467,7 +1485,7 @@ class App extends Component {
               />
             </Modal>
             <Modal
-             style={{ top: 10 }}
+             style={{ top: 80 }}
              title={null}
              closable={false}
              footer={null}
