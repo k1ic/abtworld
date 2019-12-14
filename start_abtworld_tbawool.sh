@@ -5,6 +5,7 @@ yarn start
 
 # start nginx
 sudo killall nginx
+sudo cp -f ./nginx/nginx.conf /usr/local/nginx/conf/
 sudo /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
 
 #start tbawool

@@ -84,29 +84,37 @@ class App extends Component {
     return (
       <Layout title="About">
         <Main>
-          <Typography component="h2" variant="h4" className="page-header" color="primary">
+          {/*<Typography component="h2" variant="h4" className="page-header" color="primary">
             关于ABT世界 - <a href='/'>abtworld.cn</a>
           </Typography>
           <Typography component="p" variant="h6" className="page-description" color="textSecondary">
             欢迎进入ABT世界，这里是链网世界的入口，用于收录和展示ABT生态产品。
+          </Typography>*/}
+          <Typography component="h2" variant="h5" className="page-header" color="primary" style={{ fontSize: '16px' }}>
+            图片
           </Typography>
-          <Typography component="h2" variant="h5" className="page-header" color="primary">
-            关于付费资产
+          <Typography component="p" variant="h6" className="page-description" color="textSecondary" style={{ fontSize: '15px' }}>
+            1. 每个付费图片拥有唯一的DID，支付数据上链不可篡改，支付后用户拥有该资产的永久浏览权; <br/>
+            2. 用户付费后，资产拥有者的DID账户中将实时收到60%收益; <br/>
+            3. 资产的所有权归属于用户，和平台无关，如发现侵权，可联系下架！<br/>
           </Typography>
-          <Typography component="p" variant="h6" className="page-description" color="textSecondary">
-            每个付费资产拥有唯一的DID，支付数据上链不可篡改，支付后用户拥有该资产的永久浏览权; <br/>
-            用户付费后，资产拥有者的DID账户中将实时收到60%收益; <br/>
-            资产的所有权归属于用户，和平台无关，如发现侵权，可联系下架！<br/>
+          <Typography component="h2" variant="h5" className="page-header" color="primary" style={{ fontSize: '16px' }}>
+            资讯
           </Typography>
-          <Typography component="h2" variant="h5" className="page-header" color="primary">
+          <Typography component="p" variant="h6" className="page-description" color="textSecondary" style={{ fontSize: '15px' }}>
+            1. 使用DID身份发布，数据上链不可篡改，内容全球可见，请谨慎发布；<br/>
+            2. 转发的内容请备注来源，尊重原创；<br/>
+            3. 用户有权勒令管理员对侵犯其隐私或著作权的内容采取屏蔽显示措施（链上数据无法删除）；<br/>
+            4. DID身份言论自由，但自由的前提是承认他人自由，被尊重的同时要也尊重他人；<br/>
+            5. 禁止黄赌毒，政治，极端、激进、攻击或侮辱性的言论。
+          </Typography>
+          <Typography component="h2" variant="h5" className="page-header" color="primary" style={{ fontSize: '16px' }}>
             联系方式
           </Typography>
-          <Typography component="p" variant="h6" className="page-description" color="textSecondary">
+          <Typography component="p" variant="h6" className="page-description" color="textSecondary" style={{ fontSize: '15px' }}>
             QQ：2439897034 <br/>
             邮箱：2439897034@qq.com <br/>
-            <QrCode value={"http://abtworld.cn"} size={200} level={'L'} fgColor={"#339966"} bgColor={"#D3D3D3"} includeMargin={true} id="AbworldQrCode" style={{ marginRight: 30 }} />
-            <QrCode value={"http://abtworld.cn/newsflash"} size={200} level={'L'} fgColor={"#006699"} bgColor={"#D3D3D3"} includeMargin={true} id="HashNewsQrCode" style={{ marginRight: 30 }} />
-            <QrCode value={"http://abtworld.cn/didchat"} size={200} level={'L'} fgColor={"#339966"} bgColor={"#D3D3D3"} includeMargin={true} id="DIDChatQrCode"/>
+            <QrCode value={"https://abtworld.cn"} size={200} level={'L'} includeMargin={true} id="AbworldQrCode" style={{ marginRight: 30 }} />
           </Typography>
         </Main>
       </Layout>
@@ -115,7 +123,7 @@ class App extends Component {
 }
 
 const Main = styled.main`
-  margin: 50px 0 0;
+  margin: 30px 0 0;
 
   .page-header {
     margin-bottom: 20px;

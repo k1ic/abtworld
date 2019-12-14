@@ -649,7 +649,7 @@ class App extends Component {
       return null;
     }
     
-    if(isProduction && !user){
+    if(isProduction && !user && action_type != 'share'){
       window.location.href = '/newsflash?openLogin=true';
       return null;
     }
@@ -808,12 +808,12 @@ class App extends Component {
           this.onListItemActionClick(action_type, asset_did);
         }}
       > 
-        {action_type=='like'&&like_status==true?<Icon type={type} theme="twoTone" twoToneColor="#0000FF" style={{ marginLeft: 4, marginRight: 4 }} />:<Icon type={type} style={{ marginLeft: 8, marginRight: 8 }} />}
+        {action_type=='like'&&like_status==true?<Icon type={type} theme="twoTone" twoToneColor="#0000FF" style={{ fontSize: '16px', marginLeft: 0, marginRight: 4 }} />:<Icon type={type} style={{ fontSize: '16px', marginLeft: 0, marginRight: 8 }} />}
         <span>{text}</span>
       </a>
       {total_min_rem>0 && (<br/>)}
       {total_min_rem>0 && (<span style={{ fontSize: '10px', color: '#FF6600' }}>{balance}</span>)}
-      {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>({minner_num}个)</span>)}
+      {total_min_rem>0 && (<span style={{ fontSize: '10px', color: '#FF6600' }}>({minner_num}个)</span>)}
     </span>
   );
   
@@ -963,7 +963,7 @@ class App extends Component {
     console.log('handleShareNewsPicOk share_news_pic_data.length=', share_news_pic_data.length);
    
     var newsflashItem = this.newsflashListItemFind(this.share_asset_did);
-    if(newsflashItem){
+    if(newsflashItem && user){
       newsflashItem.forward_cnt += 1;
       const forward_list_item = {
         udid: user.did,
@@ -1008,7 +1008,7 @@ class App extends Component {
         },
       });
     }else{
-      console.log('handleShareNewsPicOk unknown news item.');
+      console.log('handleShareNewsPicOk unknown news item or not login.');
     }
    
     this.setState({
@@ -1498,7 +1498,9 @@ class App extends Component {
              width = {posterWinWidth}
             >
               <div id="shareNewsContent">
-                <img src="/static/images/hashnews/banner.png" alt="HashNews"  width={posterWinWidth - 40} /> <br/>
+                <div style={{ backgroundColor: '#3079D0' }}>
+                  <img src="/static/images/hashnews/banner.png" alt="HashNews"  width={posterWinWidth-40} />
+                </div>
                 <List
                   style={{ marginLeft: 10,  marginRight: 10 }}
                   itemLayout="vertical"
@@ -1545,7 +1547,7 @@ class App extends Component {
                 <hr style={{ height: '1px', border: 'none', borderTop: '1px solid #A9A9A9', marginTop: 0,  marginBottom: 10 }} />
                 <div style={{ marginLeft: 10,  marginRight: 10 }}>
                   <QrCode value={"http://abtworld.cn/newsflash"} size={60} level={'M'} id="HashNewsQrCode" style={{ float: 'left', marginRight: 10 }} />
-                  <span style={{fontSize: '13px', fontVariant: 'normal', color: '#000000', marginLeft: 0 }} >DID身份发布</span> <br/>
+                  <span style={{fontSize: '13px', fontVariant: 'normal', color: '#000000', marginLeft: 0 }} >ArcBlock DID身份发布</span> <br/>
                   <span style={{fontSize: '13px', fontVariant: 'normal', fontWeight: 600, color: '#000000' }} >不只是资讯，想要的资讯你说了算！</span> <br/>
                 </div>
               </div>

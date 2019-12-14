@@ -12,7 +12,7 @@
 # 2. remove collection: db.pictures.drop()
 # 3. remove db:         db.dropDatabase()
 
-restore_dir=mongodb-backup-2019-12-08-15-10-26
+restore_dir=mongodb-backup-2019-12-14-17-19-47
 if [ -f $restore_dir.tar.gz ]
 then
   sudo tar -xzvf ${restore_dir}.tar.gz
