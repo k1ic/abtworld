@@ -60,27 +60,7 @@ sudo vim /usr/local/nginx/conf/nginx.conf
     server {
       listen       80;
       server_name  abtworld.cn hashnews.cn;
-  
-      charset utf-8;
-  
-      return 301 https://$host$request_uri;
-
-      access_log      /var/log/nginx/www.abtworld.cn.access.log;
-      error_log       /var/log/nginx/www.abtworld.cn.error.log;
-      location / {
-        # default port, could be changed if you use next with custom server
-        proxy_pass http://localhost:3030;
-
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-
-        # if you have try_files like this, remove it from our block
-        # otherwise next app will not work properly
-        # try_files $uri $uri/ =404;
-      }
+      rewrite ^(.*)$ https://$host$1 permanent;
     }
 
 4.关闭80/443端口转发
@@ -88,8 +68,7 @@ sudo vim /usr/local/nginx/conf/nginx.conf
 sudo iptables -t nat -L -n --line-numbers
 (2)根据序号删除(假如删除序号1)
 sudo iptables -t nat -D PREROUTING 1
-备注：
-对应的添加端口转发命令
+同时关闭~/.bashrc中的端口转发配置命令
 sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 3030
 
 5.启动nginx

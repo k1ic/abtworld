@@ -4,9 +4,9 @@ killall /usr/bin/node
 yarn start
 
 # disable port redirect
-sudo iptables -t nat -D PREROUTING 1
-sudo iptables -t nat -D PREROUTING 2
-sudo iptables -t nat -D PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 3030
+# sudo iptables -t nat -D PREROUTING 1
+# sudo iptables -t nat -D PREROUTING 2
+# sudo iptables -t nat -D PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 3030
 
 # start nginx
 sudo killall nginx
