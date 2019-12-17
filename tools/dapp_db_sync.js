@@ -8,6 +8,7 @@ const { fromSecretKey, WalletType } = require('@arcblock/forge-wallet');
 
 const env = require('../api/libs/env');
 const { Picture, Newsflash } = require('../api/models');
+const { getDatachainList } = require('../api/routes/datachains');
 const AssetPicList = require('../src/libs/asset_pic');
 const { HashString } = require('../api/libs/crypto');
 const { 
@@ -23,6 +24,7 @@ const { getAssetGenesisHash } = require('../api/libs/assets');
 
 const newsflashAppWallet = fromJSON(newsflashWallet);
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
+
 
 const newsflashBlockAssetList = [
   'zjdyAw68PFnezMYDZYb5tS6Mx9SkXy4a6s1r',
@@ -315,72 +317,81 @@ async function newsflashDappDbSync(){
   }else{
     console.log('newsflashDappDbSync V3 empty chain tx');
   }
-  
-  /*V3 asset chain style newsflash*/
-  tx = await fetchForgeTransactionsV3(dapp_module, module_para, env.assetChainId);
-  if(tx && tx.length > 0){
-    await Promise.all(tx.map( async (e) => {
-      try {
-        var memo = JSON.parse(e.data.value);
-        if(memo){
-          const cdid = HashString('sha1', memo.para.content);
-          const asset_did = newsflashAssetDidGen(cdid, memo);
-          const asset_local_time = utcToLocalTime(e.genesisTime);
-          const asset_hash = await getAssetGenesisHash(e.address);
+
+  /*V3 data chain style newsflash*/
+  const dataChainList = await getDatachainList(); 
+  for(var i=0;i<dataChainList.length;i++){
+    ForgeSDK.connect(dataChainList[i].chain_host, {
+      chainId: dataChainList[i].chain_id,
+      name: dataChainList[i].chain_id
+    });
+    console.log(`connected to app ${dataChainList[i].name} data chain host:${dataChainList[i].chain_host} id: ${dataChainList[i].chain_id}`);
+    
+    tx = await fetchForgeTransactionsV3(dapp_module, module_para, dataChainList[i].chain_id);
+    if(tx && tx.length > 0){
+      await Promise.all(tx.map( async (e) => {
+        try {
+          var memo = JSON.parse(e.data.value);
+          if(memo){
+            const cdid = HashString('sha1', memo.para.content);
+            const asset_did = newsflashAssetDidGen(cdid, memo);
+            const asset_local_time = utcToLocalTime(e.genesisTime);
+            const asset_hash = await getAssetGenesisHash(e.address);
         
-          var author_name = '';
-          if(typeof(memo.para.uname) != "undefined" && memo.para.uname && memo.para.uname.length > 0){
-            author_name = memo.para.uname;
-          }else{
-            author_name = '匿名';
-          }
+            var author_name = '';
+            if(typeof(memo.para.uname) != "undefined" && memo.para.uname && memo.para.uname.length > 0){
+              author_name = memo.para.uname;
+            }else{
+              author_name = '匿名';
+            }
         
-          //console.log('newsflashDappDbSync V3 assetChain asset_did=', asset_did);
-          var doc = await Newsflash.findOne({ news_content: memo.para.content });
-          if(doc){
-            console.log('newsflashDappDbSync V3 assetChain update doc item content=', doc.news_content.substring(0,10));
+            //console.log('newsflashDappDbSync V3 assetChain asset_did=', asset_did);
+            var doc = await Newsflash.findOne({ news_content: memo.para.content });
+            if(doc){
+              console.log('newsflashDappDbSync V3 assetChain update doc item content=', doc.news_content.substring(0,10));
           
-            /*update exist doc*/
-            doc.asset_did = e.address;
-            doc.content_did = cdid;
-            doc.author_did = memo.para.udid;
-            doc.author_name = author_name;
-            doc.author_avatar = memo.para.uavatar;
-            doc.news_hash = asset_hash;
-            doc.news_time = asset_local_time;
-            doc.news_type = memo.para.type;
-            doc.news_content = memo.para.content;
-            doc.hash_href = env.assetChainHost.replace('/api', '/node/explorer/txs/')+asset_hash;
-            await doc.save();
+              /*update exist doc*/
+              doc.asset_did = e.address;
+              doc.content_did = cdid;
+              doc.author_did = memo.para.udid;
+              doc.author_name = author_name;
+              doc.author_avatar = memo.para.uavatar;
+              doc.news_hash = asset_hash;
+              doc.news_time = asset_local_time;
+              doc.news_type = memo.para.type;
+              doc.news_content = memo.para.content;
+              doc.hash_href = dataChainList[i].chain_host.replace('/api', '/node/explorer/txs/')+asset_hash;
+              await doc.save();
+            }else{
+              /*create new doc*/
+              var new_doc = new Newsflash({
+                asset_did: e.address,
+                content_did: cdid,
+                author_did: memo.para.udid,
+                author_name: author_name,
+                author_avatar: memo.para.uavatar,
+                news_hash: asset_hash,
+                news_time: asset_local_time,
+                news_type: memo.para.type,
+                news_content: memo.para.content,
+                hash_href: dataChainList[i].chain_host.replace('/api', '/node/explorer/txs/')+asset_hash,
+                state: 'chained',
+                minner_state: 'idle',
+                createdAt: e.genesisTime,
+              });
+              await new_doc.save();
+              console.log('newsflashDappDbSync V3 assetChain create new_doc.asset_did=', new_doc.asset_did);
+            }
           }else{
-            /*create new doc*/
-            var new_doc = new Newsflash({
-              asset_did: e.address,
-              content_did: cdid,
-              author_did: memo.para.udid,
-              author_name: author_name,
-              author_avatar: memo.para.uavatar,
-              news_hash: asset_hash,
-              news_time: asset_local_time,
-              news_type: memo.para.type,
-              news_content: memo.para.content,
-              hash_href: env.assetChainHost.replace('/api', '/node/explorer/txs/')+asset_hash,
-              state: 'chained',
-              minner_state: 'idle',
-              createdAt: e.genesisTime,
-            });
-            await new_doc.save();
-            console.log('newsflashDappDbSync V3 assetChain create new_doc.asset_did=', new_doc.asset_did);
+            console.log('newsflashDappDbSync V3 assetChain empty memo');
           }
-        }else{
-          console.log('newsflashDappDbSync V3 assetChain empty memo');
+        } catch (err) {
+          console.log('newsflashDappDbSync V3 assetChain err=', err);
         }
-      } catch (err) {
-        console.log('newsflashDappDbSync V3 assetChain err=', err);
-      }
-    }));
-  }else{
-    console.log('newsflashDappDbSync V3 assetChain empty chain tx');
+      }));
+    }else{
+      console.log('newsflashDappDbSync V3 assetChain empty chain tx');
+    }
   }
   
   /*remove some assets*/

@@ -1,5 +1,6 @@
 ﻿/* eslint-disable no-console */
 require('dotenv').config();
+const mongoose = require('mongoose');
 const multibase = require('multibase');
 const Mcrypto = require('@arcblock/mcrypto');
 const ForgeSDK = require('@arcblock/forge-sdk');
@@ -8,6 +9,7 @@ const { fromTokenToUnit, fromUnitToToken } = require('@arcblock/forge-util');
 const { fromAddress } = require('@arcblock/forge-wallet');
 const { fromSecretKey, WalletType } = require('@arcblock/forge-wallet');
 const env = require('../api/libs/env');
+const { getDatachainList } = require('../api/routes/datachains');
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
 const type = WalletType({
@@ -18,46 +20,8 @@ const type = WalletType({
 const wallet = fromSecretKey(process.env.APP_SK, type).toJSON();
 const appWallet = fromJSON(wallet);
 
-/*Chain Host and ID definition*/
-const dataChainList = [
-  {
-    name: 'argon',
-    chain_host: 'https://argon.abtnetwork.io/api',
-    chain_id: 'argon-2019-11-07',
-  },
-  {
-    name: 'bromine',
-    chain_host: 'https://bromine.abtnetwork.io/api',
-    chain_id: 'bromine-2019-11-04',
-  },
-  {
-    name: 'titanium',
-    chain_host: 'https://titanium.abtnetwork.io/api',
-    chain_id: 'titanium-2019-11-07',
-  },
-  {
-    name: 'zinc',
-    chain_host: 'https://zinc.abtnetwork.io/api',
-    chain_id: 'zinc-2019-05-17',
-  },
-  {
-    name: 'tpb',
-    chain_host: 'http://47.99.39.186:8210/api',
-    chain_id: 'tp-chain',
-  },
-  {
-    name: 'playground',
-    chain_host: 'https://playground.network.arcblockio.cn/api',
-    chain_id: 'playground',
-  },
-  {
-    name: 'test',
-    chain_host: 'https://test.abtnetwork.io/api',
-    chain_id: 'test-2048-05-15',
-  },
-];
-const defaultChainHost = 'https://zinc.abtnetwork.io/api';
-const defaultChainId = 'zinc-2019-05-17';
+const defaultChainHost = env.chainHost;
+const defaultChainId = env.chainId;
 
 async function getForgeState(connId = defaultChainId){
   var res = null;
@@ -169,27 +133,66 @@ async function forgeTxMemoTest(connId = defaultChainId){
   }
 }
 
-/*Connect to data chains*/
-for(var i=0; i<dataChainList.length; i++){
-  ForgeSDK.connect(dataChainList[i].chain_host, {
-    chainId: dataChainList[i].chain_id,
-    name: dataChainList[i].chain_id
-  });
-  console.log(`connected to app ${dataChainList[i].name} data chain host:${dataChainList[i].chain_host} id: ${dataChainList[i].chain_id}`);
-}
 
-/*Connect to app default chain*/
-if (defaultChainHost) {
-  ForgeSDK.connect(defaultChainHost, {
-    chainId: defaultChainId,
-    name: defaultChainId,
-    default: true
-  });
-  console.log(`connected to app default chain host:${defaultChainHost} id: ${defaultChainId}`);
-}
 
 (async () => {
   try {
+    
+    if (!process.env.MONGO_URI) {
+      throw new Error('Cannot start application without process.env.MONGO_URI');
+    }else{
+      console.log('MONGO_URI=', process.env.MONGO_URI);
+    }
+    
+    // Connect to database
+    let isConnectedBefore = false;
+    mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, autoReconnect: true });
+    mongoose.connection.on('error', console.error.bind(console, 'MongoDB connection error:'));
+    mongoose.connection.on('disconnected', () => {
+      console.log('Lost MongoDB connection...');
+      if (!isConnectedBefore) {
+        mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, autoReconnect: true });
+      }
+    });
+    mongoose.connection.on('connected', () => {
+      isConnectedBefore = true;
+      console.log('Connection established to MongoDB');
+    });
+    mongoose.connection.on('reconnected', () => {
+      console.log('Reconnected to MongoDB');
+    });
+    
+    // wait database conection
+    while(1){
+      if(isConnectedBefore){
+        console.log('Database connected');
+        break;
+      }else{
+        console.log('Database connecting...');
+        await sleep(1000);
+      }
+    }
+    
+    /*Connect to data chains*/
+    const dataChainList = await getDatachainList(); 
+    for(var i=0; i<dataChainList.length; i++){
+      ForgeSDK.connect(dataChainList[i].chain_host, {
+        chainId: dataChainList[i].chain_id,
+        name: dataChainList[i].chain_id
+      });
+      console.log(`connected to app ${dataChainList[i].name} data chain host:${dataChainList[i].chain_host} id: ${dataChainList[i].chain_id}`);
+    }
+
+    /*Connect to app default chain*/
+    if (defaultChainHost) {
+      ForgeSDK.connect(defaultChainHost, {
+        chainId: defaultChainId,
+        name: defaultChainId,
+        default: true
+      });
+      console.log(`connected to app default chain host:${defaultChainHost} id: ${defaultChainId}`);
+    }
+    
     var forgeState = null;
     
     for(var i=0; i<dataChainList.length; i++){
@@ -202,6 +205,7 @@ if (defaultChainHost) {
     /*Tx memo test*/
     //await forgeTxMemoTest();
     
+    mongoose.disconnect();
     process.exit(0);
   } catch (err) {
     console.error(err);

@@ -1,4 +1,6 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
+const env = require('../libs/env');
 
 /*
 Array item definition
@@ -40,6 +42,8 @@ const NewsflashSchema = new mongoose.Schema({
   news_title: { type: String, default: '' },
   news_content: { type: String, required: true, default: '' },
   news_weights: { type: Number, default: 1 },
+  data_chain_host: { type: String, default: env.assetChainHost },
+  data_chain_id: { type: String, default: env.assetChainId },
   hash_href: { type: String, default: '' },
   state: { type: String, required: true, default: 'commit' },
   minner_state: { type: String, required: true, default: 'idle' },
@@ -125,6 +129,15 @@ NewsflashSchema.query.byNewsTypeAndState = function(strType, strState){
 
 NewsflashSchema.query.byNewsTypeAuthorDidAndState = function(strType, strAutherDid, strState){
   return this.find({$and: [
+    {news_type: strType},
+    {author_did: strAutherDid},
+    {state: strState}
+  ]}).sort({"createdAt":-1});
+}
+
+NewsflashSchema.query.byChainHostNewsTypeAuthorDidAndState = function(strChainHost, strType, strAutherDid, strState){
+  return this.find({$and: [
+    {data_chain_host: strChainHost},
     {news_type: strType},
     {author_did: strAutherDid},
     {state: strState}

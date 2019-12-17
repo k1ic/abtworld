@@ -1,11 +1,40 @@
 ﻿require('dotenv').config();
 const mongoose = require('mongoose');
 const env = require('../api/libs/env');
-const { Picture, Newsflash } = require('../api/models');
+const { Datachain, Picture, Newsflash } = require('../api/models');
 const AssetPicList = require('../src/libs/asset_pic');
+const dataChainList = require('../src/libs/datachains');
 const { forgeTokenStateGet } = require('../api/routes/session');
 
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
+
+async function datachainDbInit(){
+  try {
+    /*Import const datachain list to database*/
+    console.log('[Start]Import const datachain list to database');
+    for(var i=0;i<dataChainList.length;i++){
+      var doc = await Datachain.findOne({ chain_host: dataChainList[i].chain_host });
+      if (doc) {
+        doc.name = dataChainList[i].name;
+        doc.chain_id = dataChainList[i].chain_id;
+        await doc.save();
+        //console.log('update datachain', doc);
+      }else{
+        var doc_new = new Datachain({
+          name: dataChainList[i].name,
+          chain_host: dataChainList[i].chain_host,
+          chain_id: dataChainList[i].chain_id,
+          createdAt: Date(),
+        });
+        await doc_new.save();
+        //console.log('create datachain', doc_new);
+      }
+    }
+    console.log('[End]Import const datachain list to database');
+  } catch (err) {
+    console.log('datachainDbInit err=', err);
+  }
+}
 
 async function pictureDbInit(){
   try {
@@ -138,6 +167,9 @@ async function newsflashDbInit(){
         await sleep(1000);
       }
     }
+    
+    /*chaindata db init*/
+    await datachainDbInit();
     
     /*picture db init*/
     await pictureDbInit();
