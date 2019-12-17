@@ -109,13 +109,11 @@ module.exports = {
       await storage.update(token, { did: userDid, sessionToken });
       console.log('login.onAuth.login', { userDid, sessionToken });
       
-      /*
       return {
         callbackParams: {
           loginToken: sessionToken,
         },
       };
-      */
       
     } catch (err) {
       console.error('login.onAuth.error', err);

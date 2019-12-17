@@ -37,6 +37,11 @@ export default function Header() {
       const params = qs.parse(window.location.search.slice(1));
       try {
         if (params.openLogin && JSON.parse(params.openLogin)) {
+          
+          /*clear location hash and search*/
+          const redirectUrl = `${window.location.pathname}`;
+          window.history.replaceState({}, window.title, redirectUrl);
+          
           toggle(true);
         }
       } catch (err) {
@@ -46,11 +51,20 @@ export default function Header() {
     // eslint-disable-next-line
   }, [session]);
 
-  const onLogin = async result => {
+  const onLoginSuccess = result => {
     if (result.sessionToken) {
       setToken(result.sessionToken);
     }
-    window.location.href = '/profile';
+    window.location.reload();
+  };
+  
+  const onLoginHanlder = () => {
+
+    /*clear location hash and search*/
+    const redirectUrl = `${window.location.pathname}`;
+    window.history.replaceState({}, window.title, redirectUrl);
+    
+    toggle();
   };
 
   return (
@@ -92,7 +106,7 @@ export default function Header() {
           </Button>
         )}
         {session.value && !session.value.user && (
-          <Button color="primary" variant="outlined" onClick={toggle}>
+          <Button color="primary" variant="outlined" onClick={onLoginHanlder}>
             登陆
           </Button>
         )}

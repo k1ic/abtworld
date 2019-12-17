@@ -649,7 +649,7 @@ class App extends Component {
       return null;
     }
     
-    if(isProduction && !user && action_type != 'share'){
+    if(!user && action_type != 'share'){
       window.location.href = '/newsflash?openLogin=true';
       return null;
     }

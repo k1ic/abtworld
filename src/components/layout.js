@@ -17,17 +17,15 @@ import env from '../libs/env';
 import { setToken } from '../libs/auth';
 
 export default function Layout({ title, children, contentOnly }) {
- 
-  /* 
-  const location = useLocation();
   
   // If a login token exist in url, set that token in storage
   useEffect(() => {
     const params = qs.parse(window.location.search.slice(1));
     if(params.loginToken){
-      console.log('Save login token', params.loginToken);
+      //console.log('Save login token', params.loginToken);
       setToken(params.loginToken);
       
+      const location = window.location;
       if(location){
         delete params.loginToken;
         const redirectUrl = `${location.pathname}?${qs.stringify(params)}`;
@@ -37,7 +35,6 @@ export default function Layout({ title, children, contentOnly }) {
       }
     }
   }, []);
-  */
   
   if (contentOnly) {
     return <Container>{children}</Container>;
