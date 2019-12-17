@@ -97,8 +97,10 @@ export default function ProfilePage() {
       <Main>
         <Grid container spacing={6}>
           <Grid item xs={12} md={3} className="avatar">
-            {user.avatar.length > 0?<img src={user.avatar} height="240" width="240"/>:<Avatar size={240} did={user.did} />}
-            <Button color="secondary" variant="outlined" onClick={onLogout}>
+            <div align="center">
+              {user.avatar.length > 0?<img src={user.avatar} height="240" width="240"/>:<Avatar size={240} did={user.did} />}
+            </div>
+            <Button color="secondary" variant="outlined" onClick={onLogout} style={{ marginTop: '30px' }}>
               退出
             </Button>
             {/*balance.value && (
@@ -173,7 +175,7 @@ export default function ProfilePage() {
 }
 
 const Main = styled.main`
-  margin: 80px 0;
+  margin: 30px 0;
   display: flex;
 
   .avatar {

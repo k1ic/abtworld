@@ -94,9 +94,10 @@ class App extends Component {
             图片
           </Typography>
           <Typography component="p" variant="h6" className="page-description" color="textSecondary" style={{ fontSize: '15px' }}>
-            1. 每个付费图片拥有唯一的DID，支付数据上链不可篡改，支付后用户拥有该资产的永久浏览权; <br/>
-            2. 用户付费后，资产拥有者的DID账户中将实时收到60%收益; <br/>
-            3. 资产的所有权归属于用户，和平台无关，如发现侵权，可联系下架！<br/>
+            1. 每张图片拥有独立的资产编号，不可重复提交; <br/>
+            2. 支付数据上链不可篡改，支付后用户拥有该图片的永久浏览权; <br/>
+            3. 用户付费浏览后，提交者的DID账户中将实时收到付费收益; <br/>
+            4. 图片的所有权归属用户，如发现侵权，可联系下架！<br/>
           </Typography>
           <Typography component="h2" variant="h5" className="page-header" color="primary" style={{ fontSize: '16px' }}>
             资讯

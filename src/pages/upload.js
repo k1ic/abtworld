@@ -352,15 +352,15 @@ class App extends Component {
         <Main>
           <LocaleProvider locale={zh_CN}>
             <div className="clearfix">
-              <Title level={4}>付费资源上传</Title>
+              <Title level={4}>图片上传</Title>
               <div style={{ margin: '24px 0' }} />
-              <Text>资源类型</Text> <br />
+              <Text>类型</Text> <br />
               <Select defaultValue={this.props.asset_type || "entertainment"} style={{ width: 120 }} onChange={this.handleAssetTypeChange}>
                 <Option value="entertainment">私藏</Option>
                 <Option value="marriage">征婚</Option>
               </Select>
               <div style={{ margin: '24px 0' }} />
-              <Text>图片标题</Text>
+              <Text>标题</Text>
               <TextArea
                 value={pic_title}
                 onChange={this.onTitleInputChange}
@@ -369,7 +369,7 @@ class App extends Component {
                 maxLength={9}
               />
               <div style={{ margin: '24px 0' }} />
-              <Text>图片描述</Text>
+              <Text>描述</Text>
               <TextArea
                 value={pic_description}
                 onChange={this.onDescriptionInputChange}
@@ -384,8 +384,8 @@ class App extends Component {
                 <NumericInput style={{ width: 200 }} value={pic_worth} onChange={this.onPicWorthChange} />
               </div>
               <div style={{ margin: '24px 0' }} />
-              <Text>图片(jpg/png 5M以内)</Text> <br />
-              <Text type="danger">禁：黄赌毒和非自有版权资源</Text>
+              <Text>文件(jpg/png 5M以内)</Text> <br />
+              <Text type="danger">禁：黄赌毒和非自有版权图片</Text>
               <Upload{...props}           
               >
                 {fileList.length >= 1 ? null : uploadButton}

@@ -1,4 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import {
+  useLocation
+} from "react-router-dom";
+import qs from 'querystring';
 import PropTypes from 'prop-types';
 import AppBar from '@material-ui/core/AppBar';
 import Container from '@material-ui/core/Container';
@@ -10,7 +14,31 @@ import Footer from './footer';
 
 import env from '../libs/env';
 
+import { setToken } from '../libs/auth';
+
 export default function Layout({ title, children, contentOnly }) {
+ 
+  /* 
+  const location = useLocation();
+  
+  // If a login token exist in url, set that token in storage
+  useEffect(() => {
+    const params = qs.parse(window.location.search.slice(1));
+    if(params.loginToken){
+      console.log('Save login token', params.loginToken);
+      setToken(params.loginToken);
+      
+      if(location){
+        delete params.loginToken;
+        const redirectUrl = `${location.pathname}?${qs.stringify(params)}`;
+          
+        console.log('Redirect Url', redirectUrl);
+        window.history.replaceState({}, window.title, redirectUrl);
+      }
+    }
+  }, []);
+  */
+  
   if (contentOnly) {
     return <Container>{children}</Container>;
   }
