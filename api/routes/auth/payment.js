@@ -11,7 +11,6 @@ const env = require('../../libs/env');
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 const { Picture } = require('../../models');
 const { getNewsForUploadToChain, cleanUserDeadNews } = require('../newsflash');
-const { createNewsflahAsset, listAssets } = require('../../libs/assets');
 const { forgeTxValueSecureConvert, waitAndGetTxHash } = require('../../libs/transactions');
 
 //const appWallet = fromJSON(wallet);

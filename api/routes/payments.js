@@ -78,7 +78,7 @@ module.exports = {
                   temp_tx['weights'] = 1;
                   temp_tx['state'] = 'allowed';
                   if(!hash || hash.length == 0){
-                    hash = await getAssetGenesisHash(e.address);
+                    hash = await getAssetGenesisHash(e.address, env.assetChainId);
                   }
                 }
                 

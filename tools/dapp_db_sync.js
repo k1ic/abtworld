@@ -261,7 +261,7 @@ async function newsflashDappDbSync(){
           const cdid = HashString('sha1', memo.para.content);
           const asset_did = newsflashAssetDidGen(cdid, memo);
           const asset_local_time = utcToLocalTime(e.genesisTime);
-          const asset_hash = await getAssetGenesisHash(e.address);
+          const asset_hash = await getAssetGenesisHash(e.address, env.chainId);
         
           var author_name = '';
           if(typeof(memo.para.uname) != "undefined" && memo.para.uname && memo.para.uname.length > 0){
@@ -336,7 +336,7 @@ async function newsflashDappDbSync(){
             const cdid = HashString('sha1', memo.para.content);
             const asset_did = newsflashAssetDidGen(cdid, memo);
             const asset_local_time = utcToLocalTime(e.genesisTime);
-            const asset_hash = await getAssetGenesisHash(e.address);
+            const asset_hash = await getAssetGenesisHash(e.address, dataChainList[i].chain_id);
         
             var author_name = '';
             if(typeof(memo.para.uname) != "undefined" && memo.para.uname && memo.para.uname.length > 0){

@@ -96,6 +96,7 @@ const paymentsRoutes = require('../routes/payments');
 const picturesRoutes = require('../routes/pictures');
 const uploadRoutes = require('../routes/upload');
 const newsflashRoutes = require('../routes/newsflash');
+const datachainsRoutes = require('../routes/datachains');
 const didChatRoutes = require('../routes/chats');
 
 const router = express.Router();
@@ -109,6 +110,7 @@ paymentsRoutes.init(router);
 picturesRoutes.init(router);
 uploadRoutes.init(router);
 newsflashRoutes.init(router);
+datachainsRoutes.init(router);
 didChatRoutes.init(router);
 
 // Check for application account

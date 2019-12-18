@@ -11,7 +11,7 @@ const env = require('../../libs/env');
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 const { Picture } = require('../../models');
 const { getNewsForUploadToChain, cleanUserDeadNews } = require('../newsflash');
-const { createNewsflahAsset, listAssets } = require('../../libs/assets');
+const { createNewsflahAsset } = require('../../libs/assets');
 const { forgeTxValueSecureConvert, waitAndGetTxHash } = require('../../libs/transactions');
 const { utcToLocalTime } = require('../../libs/time');
 
@@ -48,7 +48,7 @@ async function newsflashPaymentHookV2(hash, forgeState, userDid) {
           var newsflash_doc = await getNewsForUploadToChain(tx_memo.para.asset_did);
           if(newsflash_doc){
             /*create asset*/
-            transferHash = await createNewsflahAsset(tx_memo.para.asset_did);
+            transferHash = await createNewsflahAsset(tx_memo.para.asset_did, newsflash_doc.data_chain_id);
             
             /*Update newsflash doc*/
             if(transferHash && transferHash.length > 0){              

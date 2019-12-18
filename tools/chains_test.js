@@ -9,7 +9,7 @@ const { fromTokenToUnit, fromUnitToToken } = require('@arcblock/forge-util');
 const { fromAddress } = require('@arcblock/forge-wallet');
 const { fromSecretKey, WalletType } = require('@arcblock/forge-wallet');
 const env = require('../api/libs/env');
-const { getDatachainList } = require('../api/routes/datachains');
+const { getDatachainList, AddDatachainNode } = require('../api/routes/datachains');
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
 const type = WalletType({
@@ -204,6 +204,16 @@ async function forgeTxMemoTest(connId = defaultChainId){
     
     /*Tx memo test*/
     //await forgeTxMemoTest();
+    
+    /*AddDatachainNode API test*/
+    /*
+    const fields = {
+      chain_name: ['argons'],
+      chain_host: ['https://argons.abtnetwork.io/api'],
+      chain_id: ['argons-2019-11-07'],
+    };
+    await AddDatachainNode(fields);
+    */
     
     mongoose.disconnect();
     process.exit(0);

@@ -8,7 +8,7 @@ const {
   fetchForgeTransactions,
   getAssetPayDataFromTx
 } = require('../libs/transactions');
-const { createNewsflahAsset, listAssets } = require('../libs/assets');
+const { createNewsflahAsset } = require('../libs/assets');
 const { utcToLocalTime } = require('../libs/time');
 
 const ForgeSDK = require('@arcblock/forge-sdk');
@@ -17,6 +17,7 @@ const { fromTokenToUnit, fromUnitToToken } = require('@arcblock/forge-util');
 const { fromAddress } = require('@arcblock/forge-wallet');
 const { fromSecretKey, WalletType } = require('@arcblock/forge-wallet');
 const { wallet, newsflashWallet, type } = require('../libs/auth');
+const { Datachain } = require('../models');
 const env = require('../libs/env');
 const appWallet = fromSecretKey(process.env.APP_SK, type);
 const newsflashAppWallet = fromSecretKey(process.env.APP_NEWSFLASH_SK, type);
@@ -43,6 +44,18 @@ async function NewsflashAdd(fields){
     return false;
   }
   
+  var data_chain_host = env.assetChainHost;
+  var data_chain_id = env.assetChainId;
+  if(typeof(fields.data_chain_name) != "undefined"){
+    var doc = await Datachain.findOne({ name: fields.data_chain_name[0] });
+    if(doc){
+      data_chain_host = doc.data_chain_host;
+      data_chain_id = doc.data_chain_id;
+    }
+  }
+  //data_chain_host = 'https://argon.abtnetwork.io/api';
+  //data_chain_id = 'argon-2019-11-07';
+  
   var total_comment_minner_number = 10;
   var total_like_minner_number = 10;
   var total_forward_minner_number = 10;
@@ -67,6 +80,8 @@ async function NewsflashAdd(fields){
       console.log('NewsflashAdd asset_did=', fields.asset_did[0], 'already in db');
       
       /*asset already in db, update it*/
+      doc.data_chain_host = data_chain_host;
+      doc.data_chain_id = data_chain_id;
       doc.asset_did = fields.asset_did[0];
       doc.content_did = fields.asset_did[0];
       doc.news_type = fields.news_type[0];
@@ -82,6 +97,8 @@ async function NewsflashAdd(fields){
     /*save newsflash to db when not exist*/
     const user = JSON.parse(fields.user[0]);
     var new_doc = new Newsflash({
+      data_chain_host: data_chain_host,
+      data_chain_id: data_chain_id,
       asset_did: fields.asset_did[0],
       content_did: fields.asset_did[0],
       author_did: user.did,
@@ -119,6 +136,18 @@ async function NewsflashCreateAssetOnChain(fields){
     return false;
   }
   
+  var data_chain_host = env.assetChainHost;
+  var data_chain_id = env.assetChainId;
+  if(typeof(fields.data_chain_name) != "undefined"){
+    var doc = await Datachain.findOne({ name: fields.data_chain_name[0] });
+    if(doc){
+      data_chain_host = doc.data_chain_host;
+      data_chain_id = doc.data_chain_id;
+    }
+  }
+  //data_chain_host = 'https://argon.abtnetwork.io/api';
+  //data_chain_id = 'argon-2019-11-07';
+  
   var doc = await Newsflash.findOne({ content_did: fields.asset_did[0] });
   if(doc){
     if(doc.state != 'commit'){
@@ -130,6 +159,8 @@ async function NewsflashCreateAssetOnChain(fields){
       console.log('NewsflashCreateAssetOnChain asset_did=', fields.asset_did[0], 'already in db');
       
       /*asset already in db, update it*/
+      doc.data_chain_host = data_chain_host;
+      doc.data_chain_id = data_chain_id;
       doc.asset_did = fields.asset_did[0];
       doc.content_did = fields.asset_did[0];
       doc.news_type = fields.news_type[0];
@@ -141,6 +172,8 @@ async function NewsflashCreateAssetOnChain(fields){
     /*save newsflash to db when not exist*/
     const user = JSON.parse(fields.user[0]);
     var new_doc = new Newsflash({
+      data_chain_host: data_chain_host,
+      data_chain_id: data_chain_id,
       asset_did: fields.asset_did[0],
       content_did: fields.asset_did[0],
       author_did: user.did,
@@ -159,8 +192,8 @@ async function NewsflashCreateAssetOnChain(fields){
     console.log('NewsflashCreateAssetOnChain saved to db');
     
     /*create asset on chain*/
-    var transferHash = await createNewsflahAsset(fields.asset_did[0]);
-    const txRes = await waitAndGetTxHash(transferHash, env.assetChainId);
+    var transferHash = await createNewsflahAsset(fields.asset_did[0], data_chain_id);
+    const txRes = await waitAndGetTxHash(transferHash, data_chain_id);
     if(transferHash && transferHash.length > 0
       && txRes && txRes.getTx && txRes.getTx.code === 'OK' && txRes.getTx.info){
       const tx_local_time = utcToLocalTime(txRes.getTx.info.time);
@@ -168,7 +201,7 @@ async function NewsflashCreateAssetOnChain(fields){
       console.log('NewsflashCreateAssetOnChain create asset success, update doc');
       new_doc.news_hash = transferHash;
       new_doc.news_time = tx_local_time;
-      new_doc.hash_href = env.assetChainHost.replace('/api', '/node/explorer/txs/')+transferHash;
+      new_doc.hash_href = new_doc.data_chain_host.replace('/api', '/node/explorer/txs/')+transferHash;
       new_doc.state = 'chained';
       await new_doc.save();
     }else{

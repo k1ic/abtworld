@@ -9,8 +9,9 @@ const { fromAddress } = require('@arcblock/forge-wallet');
 const { fromSecretKey, WalletType } = require('@arcblock/forge-wallet');
 
 const { wallet, newsflashWallet, type } = require('./auth');
-const { Newsflash } = require('../models');
+const { Datachain, Newsflash } = require('../models');
 const { getNewsForUploadToChain } = require('../routes/newsflash');
+const { forgeChainConnect } = require('../routes/datachains');
 const env = require('./env');
 
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
@@ -29,7 +30,7 @@ const getNewsFlash = async cdid => {
   return doc;
 };
 
-const genNewsFlashAsset = async (cdid) => {
+const genNewsFlashAsset = async (cdid, connId) => {
   const news = await getNewsFlash(cdid);
   if(!news){
     return null;
@@ -55,7 +56,10 @@ const genNewsFlashAsset = async (cdid) => {
     },
   };
 
-  asset.address = ForgeSDK.Util.toAssetAddress(asset, newsflashAppWallet.toAddress(), { conn: env.assetChainId });
+  asset.address = ForgeSDK.Util.toAssetAddress(asset, 
+    newsflashAppWallet.toAddress(), 
+    { conn: connId }
+  );
   console.log('genNewsFlashAsset new asset.address=', asset.address);
 
   news.asset_did = asset.address;
@@ -64,7 +68,7 @@ const genNewsFlashAsset = async (cdid) => {
   return asset;
 };
 
-const waitAndGetAssetTxHash = async hash => {
+const waitAndGetAssetTxHash = async (hash, connId) => {
   var res = null;
   var i = 0;
   if (typeof(hash) == "undefined" || !hash || hash.length == 0) {
@@ -84,7 +88,7 @@ const waitAndGetAssetTxHash = async hash => {
             }
           }
         }`, 
-        { conn: env.assetChainId }
+        { conn: connId }
       );
       if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
         break;
@@ -101,14 +105,21 @@ const waitAndGetAssetTxHash = async hash => {
 }
 
 /*create newsflash asset on chain*/
-const createNewsflahAsset = async cdid => {
+const createNewsflahAsset = async (cdid, connId) => {
   var result = false;
   var hash = null;
-  const asset = await genNewsFlashAsset(cdid);
+  
+  //connect to chain
+  await forgeChainConnect(connId);
+  
+  const asset = await genNewsFlashAsset(cdid, connId);
   //console.log('asset=', asset);
   if(asset){
     // Create asset if not exists
-    var { state } = await ForgeSDK.getAssetState({ address: asset.address }, { conn: env.assetChainId });
+    var { state } = await ForgeSDK.getAssetState(
+      { address: asset.address }, 
+      { conn: connId }
+    );
     if (state) {
       console.log('asset exist', asset.address);
       //console.log('asset state=', state);
@@ -118,16 +129,23 @@ const createNewsflahAsset = async cdid => {
       //console.log('newsflashAppWallet = ', newsflashAppWallet);
       //console.log('newsflashAppWallet.toAddress() = ', newsflashAppWallet.toAddress());
         
-      hash = await ForgeSDK.sendCreateAssetTx({ tx: { itx: asset }, wallet: newsflashAppWallet}, { conn: env.assetChainId });
+      hash = await ForgeSDK.sendCreateAssetTx(
+        { tx: { itx: asset }, wallet: newsflashAppWallet}, 
+        { conn: connId }
+      );
       //console.log('asset created', { hash });
 
       /*wait asset created*/
-      const res = await waitAndGetAssetTxHash(hash);
+      const res = await waitAndGetAssetTxHash(hash, connId);
       if(res && res.getTx && res.getTx.code === 'OK' && res.getTx.info){
         //const tx_memo = JSON.parse(res.getTx.info.tx.itxJson.data.value);
         //console.log('tx_memo = ', tx_memo);
       }
-      var { state } = await ForgeSDK.getAssetState({ address: asset.address }, { conn: env.assetChainId });
+      var { state } = await ForgeSDK.getAssetState(
+        { address: asset.address }, 
+        { conn: connId }
+      );
+      
       //console.log('asset created hash=', hash, 'state=', state);
       console.log('asset created hash=', hash);
       result = true;
@@ -140,9 +158,12 @@ const createNewsflahAsset = async cdid => {
   return hash;
 }
 
-const getAssetGenesisHash = async asset_addr => {
+const getAssetGenesisHash = async (asset_addr, connId) => {
   var res = null;
   var hash = null;
+  
+  //connect to chain
+  await forgeChainConnect(connId);
   
   //console.log('getAssetGenesisHash asset_addr=', asset_addr);
   
@@ -158,7 +179,7 @@ const getAssetGenesisHash = async asset_addr => {
         }
       }
     }`,
-    { conn: env.assetChainId }
+    { conn: connId }
   ); 
   
   if(res && res.getAssetState 
@@ -179,6 +200,9 @@ const listAssets= async (ower_did, pages, connId) => {
   var assets = null;
   
   console.log('listAssets ower_did=', ower_did, 'pages=', pages, 'connId=', connId);
+  
+  //connect to chain
+  await forgeChainConnect(connId);
   
   res = await ForgeSDK.doRawQuery(`{
       listAssets(ownerAddress: "${ower_did}", paging: {size: ${pages}}) {
@@ -202,71 +226,6 @@ const listAssets= async (ower_did, pages, connId) => {
   
   return assets;
 }
-
-
-/*
-(async () => {
-  try {
-    if (!process.env.MONGO_URI) {
-      throw new Error('Cannot start application without process.env.MONGO_URI');
-    }else{
-      console.log('MONGO_URI=', process.env.MONGO_URI);
-    }
-    
-    // Connect to database
-    let isConnectedBefore = false;
-    mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, autoReconnect: true });
-    mongoose.connection.on('error', console.error.bind(console, 'MongoDB connection error:'));
-    mongoose.connection.on('disconnected', () => {
-      console.log('Lost MongoDB connection...');
-      if (!isConnectedBefore) {
-        mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, autoReconnect: true });
-      }
-    });
-    mongoose.connection.on('connected', () => {
-      isConnectedBefore = true;
-      console.log('Connection established to MongoDB');
-    });
-    mongoose.connection.on('reconnected', () => {
-      console.log('Reconnected to MongoDB');
-    });
-    
-    // wait database conection
-    while(1){
-      if(isConnectedBefore){
-        console.log('Database connected');
-        break;
-      }else{
-        console.log('Database connecting...');
-        await sleep(1000);
-      }
-    }
-    
-    // init test db
-    const cdid = '9656d05f636e838cc58d80c4c679f44ef0409608';
-    await newsflashDbInit(cdid);
-    
-    // create asset on chain
-    await createNewsflahAsset(cdid);
-    
-    // show assets
-    const assets = await listAssets(newsflashAppWallet.toAddress(), 1000, env.chainId);
-    if(assets && assets.length > 0){
-      console.log('The assets of ower', newsflashAppWallet.toAddress(), 'num', assets.length);
-      console.log(assets);
-    }else{
-      console.log('asset is empty');
-    }
-    
-    mongoose.disconnect();
-    process.exit(0);
-  } catch (err) {
-    console.error(err);
-    console.error(err.errors);
-    process.exit(1);
-  }
-})();
-*/
 
 module.exports = {
   createNewsflahAsset,

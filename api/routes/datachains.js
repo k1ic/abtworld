@@ -3,12 +3,128 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const multiparty = require('multiparty');
 const ForgeSDK = require('@arcblock/forge-sdk');
+const { fromJSON } = require('@arcblock/forge-wallet');
+const { wallet, newsflashWallet } = require('../libs/auth');
 
 const { Datachain } = require('../models');
 const env = require('../libs/env');
 
+const appWallet = fromJSON(wallet);
+const newsflashAppWallet = fromJSON(newsflashWallet);
+
 const isProduction = process.env.NODE_ENV === 'production';
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
+
+async function getAccoutState(accoutAddr, connId){
+  var res = null;
+  //console.log('getAccoutState accoutAddr=', accoutAddr, 'connId=', connId);
+  
+  res = await ForgeSDK.doRawQuery(`{
+      getAccountState(address: "${accoutAddr}") {
+        code
+        state {
+          address
+          balance
+          moniker
+          pk
+        }
+      }
+    }`, 
+    { conn: connId }
+  ); 
+  return res;
+}
+
+async function declareAccount(objWallet, strMoniker, connId){
+  var res = null;
+  res = await ForgeSDK.sendDeclareTx({
+      tx: {
+        itx: {
+          moniker: strMoniker,
+         },
+      },
+      wallet: objWallet,
+    },
+    { conn: connId }
+  );
+  
+  return res;
+}
+
+async function AddDatachainNode(fields){
+  /*fields verify*/
+  if(!fields
+    || typeof(fields.chain_name) == "undefined"
+    || typeof(fields.chain_host) == "undefined"
+    || typeof(fields.chain_id) == "undefined"){
+    console.log('AddDatachainNode invalid fields');
+    return false;
+  }
+  
+  /*verify input chais parameter*/
+  const chain_name = fields.chain_name[0];
+  const chain_host = fields.chain_host[0];
+  const chain_id = fields.chain_id[0];
+  var doc = null;
+  doc = await Datachain.findOne({ name: chain_name });
+  if(doc){
+    console.log('AddDatachainNode chain name '+chain_name+' already exist');
+    return false;
+  }
+  doc = await Datachain.findOne({ chain_host: chain_host });
+  if(doc){
+    console.log('AddDatachainNode chain host '+chain_host+' already exist');
+    return false;
+  }
+  doc = await Datachain.findOne({ chain_id: chain_id });
+  if(doc){
+    console.log('AddDatachainNode chain id '+chain_id+' already exist');
+    return false;
+  }
+  
+  /*verify the chain data and declare the account*/
+  ForgeSDK.connect(chain_host, {
+    chainId: chain_id,
+    name: chain_id
+  });
+  console.log(`connected to ${chain_name} chain host:${chain_host} id: ${chain_id}`);
+  
+  try {
+    res = await getAccoutState(wallet.address, chain_id);
+    if(!res || !res.getAccountState || !res.getAccountState.state){
+      res = await declareAccount(appWallet, 'abtworld', chain_id);
+    }
+    res = await getAccoutState(newsflashWallet.address, chain_id);
+    if(!res || !res.getAccountState || !res.getAccountState.state){
+      res = await declareAccount(newsflashAppWallet, 'hashnews', chain_id);
+    }
+  } catch (err) {
+    console.error('AddDatachainNode chain err', err);
+    return false;
+  }
+  
+  /*save chain data to db*/
+  var new_doc = new Datachain({
+    name: chain_name,
+    chain_host: chain_host,
+    chain_id: chain_id,
+    createdAt: Date(),
+  });
+  await new_doc.save();
+  console.log('AddDatachainNode added new chain node to db');
+  
+  return true;;
+}
+
+async function getDatachainItem(chain_name){
+  let found_docs = [];
+  var doc = await Datachain.findOne({ name: chain_name });
+  if(doc){
+    found_docs.push(doc);
+  }
+  
+  return found_docs;
+}
 
 async function getDatachainList(){
   let found = 0;
@@ -36,6 +152,19 @@ async function getDatachainList(){
   return found_docs;
 }
 
+async function forgeChainConnect(connId){
+  var doc = await Datachain.findOne({ chain_id: connId });
+  if(doc){
+    ForgeSDK.connect(doc.chain_host, {
+      chainId: doc.chain_id,
+      name: doc.chain_id
+    });
+    console.log(`connected to ${doc.name} chain host:${doc.chain_host} id: ${doc.chain_id}`);
+  }else{
+    console.log('forgeChainConnect invalid connId', connId);
+  }
+}
+
 module.exports = {
   init(app) {
     /*Get datachains API command list*/
@@ -44,7 +173,19 @@ module.exports = {
         var params = req.query;
         if(params){
           console.log('api.datachainsget params=', params);
-          const chain_name = req.query.name;
+          const chain_name = req.query.chain_name;
+          if(typeof(chain_name) != "undefined"){
+            var dataChainList = [];
+            if(chain_name === 'all'){
+              dataChainList = await getDatachainList();
+            }else{
+              dataChainList = await getDatachainItem();
+            }
+            if(dataChainList.length > 0){
+              res.json(dataChainList);
+              return;
+            }
+          }
         }
         res.json(null);
       } catch (err) {
@@ -83,6 +224,7 @@ module.exports = {
              */
             switch (cmd) {
               case 'add':
+                result = await AddDatachainNode(fields);
                 break;
               default:
                 break;
@@ -115,4 +257,6 @@ module.exports = {
   },
   
   getDatachainList,
+  forgeChainConnect,
+  AddDatachainNode,
 };
