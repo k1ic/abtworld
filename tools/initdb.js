@@ -5,6 +5,7 @@ const { Datachain, Picture, Newsflash } = require('../api/models');
 const AssetPicList = require('../src/libs/asset_pic');
 const dataChainList = require('../src/libs/datachains');
 const { forgeTokenStateGet } = require('../api/routes/session');
+const { getPictureListFromDb } = require('../api/routes/pictures');
 
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
@@ -58,9 +59,6 @@ async function pictureDbInit(){
         picture.worth = AssetPicList[i].worth;
         picture.token_sym = token.symbol;
         picture.payback_rate = AssetPicList[i].payback_rate;
-        if(picture.hot_index == 0){
-          picture.hot_index = picture.payed_counter*10;
-        }
         await picture.save();
         //console.log('update picture', picture);
       }else{
@@ -86,6 +84,16 @@ async function pictureDbInit(){
       }
     }
     console.log('[End]Import const picture data to database');
+    
+    /*update hot index and star level*/
+    const picsOnDb = await getPictureListFromDb();
+    console.log('Update picture hot and star data on database');
+    for(var i=0;i<picsOnDb.length;i++){
+      picsOnDb[i].hot_index = picsOnDb[i].payed_counter*10;
+      picsOnDb[i].star_level = picsOnDb[i].payed_counter/2;
+      await picsOnDb[i].save();
+    }
+    
   } catch (err) {
     console.log('pictureDbInit err=', err);
   }

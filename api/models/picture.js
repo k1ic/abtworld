@@ -25,6 +25,7 @@ const PictureSchema = new mongoose.Schema({
   comment_list: { type: Array, default: [] },
   share_list: { type: Array, default: [] },
   hot_index: { type: Number, default: 0 },
+  star_level: { type: Number, default: 0 },
   createdAt: { type: Date },
   updatedAt: { type: Date },
 });

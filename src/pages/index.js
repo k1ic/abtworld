@@ -10,7 +10,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import CodeBlock from '@arcblock/ux/lib/CodeBlock';
-import { LocaleProvider, Pagination, Carousel, Tabs, Icon } from 'antd';
+import { LocaleProvider, Pagination, Carousel, Tabs, Icon, Rate } from 'antd';
 import zh_CN from 'antd/lib/locale-provider/zh_CN'
 import 'antd/dist/antd.css';
 
@@ -63,7 +63,8 @@ const renderHotPicListCard = x => (
           <img className="pic-list" src={x.pic_src} alt={x.title} height="225" width="225" />
         </Typography>
         <Typography component="p" color="primary" className="payment-pic-list-description" gutterBottom>
-          <span style={{ color: '#FF0033' }}>热门指数：{x.hot_index}</span> <br/>
+          {/*<span style={{ color: '#FF0033' }}>热门指数：{x.hot_index}</span> <br/>*/}
+          <Rate disabled allowHalf={true} count={6} value={x.star_level} style={{ fontSize: '14px', color: '#FF0000' }}/> <br/>
           {x.owner}：{x.description}
         </Typography>
       </CardContent>
@@ -358,7 +359,7 @@ class App extends Component {
             tabBarGutter={10}
             className="antd-tabs"
           >
-            { show_hot_permistion && (<TabPane tab={<span style={{ fontSize: '20px', color: '#0' }}><Icon type="fire" theme="twoTone" twoToneColor="#FF0033" />热门</span>} key={pics_category_list[0]}>
+            { show_hot_permistion && (<TabPane tab={<span style={{ fontSize: '20px', color: '#0' }}><Icon type="fire" theme="twoTone" twoToneColor="#FF0000" />热门</span>} key={pics_category_list[0]}>
             </TabPane>)}
             <TabPane tab={<span style={{ fontSize: '20px', color: '#0' }}>私藏</span>} key={pics_category_list[1]}>
             </TabPane>
@@ -369,8 +370,8 @@ class App extends Component {
           <section className="section">
             <Grid container spacing={6} className="grid-cards">
               {tab_pics?
-			   (category==='hot'?tab_pics.map(x => renderHotPicListCard(x)):tab_pics.map(x => renderPaymentPicListCard(x)))
-			   :''}
+                (category==='hot'?tab_pics.map(x => renderHotPicListCard(x)):tab_pics.map(x => renderPaymentPicListCard(x)))
+                :''}
             </Grid>
             <LocaleProvider locale={zh_CN}>
               <div className="pagination">

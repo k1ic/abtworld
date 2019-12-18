@@ -16,6 +16,32 @@ const {
 const isProduction = process.env.NODE_ENV === 'production';
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
+async function getPictureListFromDb(){
+  let found = 0;
+  let found_docs = [];
+    
+  Picture.find().exec(function(err, docs){
+    if(docs && docs.length>0){
+      console.log('Found', docs.length, ' picture docs');
+      found_docs = docs;
+    }
+    found = 1;
+  });
+    
+  /*wait found result*/
+  let wait_counter = 0;
+  while(!found){
+    await sleep(1);
+    wait_counter++;
+    if(wait_counter > 15000){
+      break;
+    }
+  }
+  console.log('getPictureListFromDb wait_counter=' + wait_counter);
+  
+  return found_docs;
+}
+
 async function getPicsByFilter(params){
   var new_docs = [];
   var found = 0;
@@ -246,6 +272,7 @@ async function getPicsForPreview(strCategory, user_did, iStart, iEnd){
       doc['worth'] = e.worth;
       doc['token_sym'] = e.token_sym;
       doc['hot_index'] = e.hot_index;
+      doc['star_level'] = e.star_level;
       return doc;
     });
     
@@ -801,4 +828,5 @@ module.exports = {
     /*end of /api/managepics post*/
     
   },
+  getPictureListFromDb,
 };
