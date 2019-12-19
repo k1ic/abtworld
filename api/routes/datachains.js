@@ -116,9 +116,15 @@ async function AddDatachainNode(fields){
   return true;;
 }
 
-async function getDatachainItem(chain_name){
+async function getDatachainItem(data_chain_name){
   let found_docs = [];
-  var doc = await Datachain.findOne({ name: chain_name });
+  var doc = null;
+  
+  if(data_chain_name === 'default'){
+    doc = await Datachain.findOne({ chain_host: env.assetChainHost });
+  }else{
+    doc = await Datachain.findOne({ name: data_chain_name });
+  }
   if(doc){
     found_docs.push(doc);
   }
@@ -173,13 +179,13 @@ module.exports = {
         var params = req.query;
         if(params){
           console.log('api.datachainsget params=', params);
-          const chain_name = req.query.chain_name;
-          if(typeof(chain_name) != "undefined"){
+          const data_chain_name = req.query.data_chain_name;
+          if(typeof(data_chain_name) != "undefined"){
             var dataChainList = [];
-            if(chain_name === 'all'){
+            if(data_chain_name === 'all'){
               dataChainList = await getDatachainList();
             }else{
-              dataChainList = await getDatachainItem();
+              dataChainList = await getDatachainItem(data_chain_name);
             }
             if(dataChainList.length > 0){
               res.json(dataChainList);

@@ -47,10 +47,17 @@ async function NewsflashAdd(fields){
   var data_chain_host = env.assetChainHost;
   var data_chain_id = env.assetChainId;
   if(typeof(fields.data_chain_name) != "undefined"){
-    var doc = await Datachain.findOne({ name: fields.data_chain_name[0] });
+    var doc = null;
+    console.log('NewsflashAdd data_chain_name=', fields.data_chain_name[0]);
+    
+    if(fields.data_chain_name[0] === 'default'){
+      doc = await Datachain.findOne({ chain_host: env.assetChainHost });
+    }else{
+      doc = await Datachain.findOne({ name: fields.data_chain_name[0] });
+    }
     if(doc){
-      data_chain_host = doc.data_chain_host;
-      data_chain_id = doc.data_chain_id;
+      data_chain_host = doc.chain_host;
+      data_chain_id = doc.chain_id;
     }
   }
   //data_chain_host = 'https://argon.abtnetwork.io/api';
@@ -139,10 +146,16 @@ async function NewsflashCreateAssetOnChain(fields){
   var data_chain_host = env.assetChainHost;
   var data_chain_id = env.assetChainId;
   if(typeof(fields.data_chain_name) != "undefined"){
-    var doc = await Datachain.findOne({ name: fields.data_chain_name[0] });
+    var doc = null;
+    console.log('NewsflashCreateAssetOnChain data_chain_name=', fields.data_chain_name[0]);
+    if(fields.data_chain_name[0] === 'default'){
+      doc = await Datachain.findOne({ chain_host: env.assetChainHost });
+    }else{
+      doc = await Datachain.findOne({ name: fields.data_chain_name[0] });
+    }
     if(doc){
-      data_chain_host = doc.data_chain_host;
-      data_chain_id = doc.data_chain_id;
+      data_chain_host = doc.chain_host;
+      data_chain_id = doc.chain_id;
     }
   }
   //data_chain_host = 'https://argon.abtnetwork.io/api';
@@ -582,10 +595,20 @@ async function getNewsForUploadToChain(strAssetDid){
 async function getNewsForShow(module_para){
   var new_docs = [];
   var found = 0;
+  var data_chain_host = env.assetChainHost;
+  
+  if(module_para.data_chain_name === 'default'){
+    data_chain_host = env.assetChainHost;
+  }else{
+    var doc = await Datachain.findOne({ name: module_para.data_chain_name });
+    if(doc){
+      data_chain_host = doc.chain_host;
+    }
+  }
   
   if(module_para.news_type === 'hot'){
     if(module_para.udid_to_show.length > 0){
-      Newsflash.find().hotByHotIndexAndAuthorDid(module_para.udid_to_show).exec(function(err, docs){
+      Newsflash.find().hotByChainHostHotIndexAndAuthorDid(data_chain_host, module_para.udid_to_show).exec(function(err, docs){
         if(docs && docs.length>0){
           console.log('Found', docs.length, module_para.news_type, module_para.udid_to_show, 'docs');
           new_docs = docs;
@@ -595,7 +618,7 @@ async function getNewsForShow(module_para){
         found = 1;
       })
     }else{
-      Newsflash.find().hotByHotIndex().exec(function(err, docs){
+      Newsflash.find().hotByChainHostAndHotIndex(data_chain_host).exec(function(err, docs){
         if(docs && docs.length>0){
           console.log('Found', docs.length, module_para.news_type, 'docs');
           new_docs = docs;
@@ -607,7 +630,7 @@ async function getNewsForShow(module_para){
     }
   }else{
     if(module_para.udid_to_show.length > 0){
-      Newsflash.find().byNewsTypeAuthorDidAndState(module_para.news_type, module_para.udid_to_show, 'chained').exec(function(err, docs){
+      Newsflash.find().byChainHostNewsTypeAuthorDidAndState(data_chain_host, module_para.news_type, module_para.udid_to_show, 'chained').exec(function(err, docs){
         if(docs && docs.length>0){
           console.log('Found', docs.length, module_para.news_type, module_para.udid_to_show, 'docs');
           new_docs = docs;
@@ -617,7 +640,7 @@ async function getNewsForShow(module_para){
         found = 1;
       })
     }else{
-      Newsflash.find().byNewsTypeAndState(module_para.news_type, 'chained').exec(function(err, docs){
+      Newsflash.find().byChainHostNewsTypeAndState(data_chain_host, module_para.news_type, 'chained').exec(function(err, docs){
         if(docs && docs.length>0){
           console.log('Found', docs.length, module_para.news_type, 'docs');
           new_docs = docs;
@@ -752,6 +775,7 @@ module.exports = {
           var module_para = null;
           if(typeof(page) != "undefined" &&  typeof(count) != "undefined"){
             module_para = {
+              data_chain_name: req.query.data_chain_name,
               news_type: req.query.news_type, 
               udid: req.query.udid, 
               udid_to_show: req.query.udid_to_show,
@@ -759,7 +783,7 @@ module.exports = {
               slice_end: (parseInt(page)-1)*parseInt(count)+parseInt(count),
             };
           }else{
-            module_para = {news_type: req.query.news_type, udid: req.query.udid, udid_to_show: req.query.udid_to_show, slice_start: 0, slice_end: 500};
+            module_para = {data_chain_name: 'default',news_type: req.query.news_type, udid: req.query.udid, udid_to_show: req.query.udid_to_show, slice_start: 0, slice_end: 500};
           }
           const news = await getNewsForShow(module_para);
           if(news && news.length > 0){

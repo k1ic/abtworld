@@ -92,6 +92,16 @@ NewsflashSchema.query.hotByHotIndex = function(){
   return docs;
 }
 
+NewsflashSchema.query.hotByChainHostAndHotIndex = function(strChainHost){
+  var docs =  this.find({$and: [
+    {data_chain_host: strChainHost},
+    {state: "chained"},
+    {hot_index: {$gt: 0}}
+  ]}).sort({"hot_index":-1, "updatedAt":-1});
+  
+  return docs;
+}
+
 NewsflashSchema.query.hotByNewsWeigths = function(){
   var docs =  this.find({$and: [
     {state: "chained"},
@@ -120,8 +130,27 @@ NewsflashSchema.query.hotByHotIndexAndAuthorDid = function(strAutherDid){
   return docs;
 }
 
+NewsflashSchema.query.hotByChainHostHotIndexAndAuthorDid = function(strChainHost, strAutherDid){
+  var docs =  this.find({$and: [
+    {data_chain_host: strChainHost},
+    {state: "chained"},
+    {hot_index: {$gt: 0}},
+    {author_did: strAutherDid}
+  ]}).sort({"hot_index":-1, "updatedAt":-1});
+  
+  return docs;
+}
+
 NewsflashSchema.query.byNewsTypeAndState = function(strType, strState){
   return this.find({$and: [
+    {news_type: strType},
+    {state: strState}
+  ]}).sort({"createdAt":-1});
+}
+
+NewsflashSchema.query.byChainHostNewsTypeAndState = function(strChainHost, strType, strState){
+  return this.find({$and: [
+    {data_chain_host: strChainHost},
     {news_type: strType},
     {state: strState}
   ]}).sort({"createdAt":-1});

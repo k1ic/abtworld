@@ -176,6 +176,8 @@ class App extends Component {
       show_mode: 'all',
       sending: false,
       asset_sending: false,
+      datachains_list: [],
+      datachain_node_name: 'default',
       newsflash_list: [],
       loading: false,
       page_number: 1,
@@ -188,6 +190,7 @@ class App extends Component {
       shared_btn_disabled: true,
     };
     
+    this.datachainsSlecterChildren = [];
     this.comment_asset_did = '';
     this.share_asset_did = '';
     this.share_news_items = [];
@@ -204,11 +207,39 @@ class App extends Component {
       this.setState({
         session: data
       },()=>{
+        this.fetchDatachainsList();
         this.fetchNewsFlash();
       });
     } catch (err) {
     }
     return {};
+  }
+  
+  /*Fetch data chains list*/
+  fetchDatachainsList = () => {
+    reqwest({
+      url: '/api/datachainsget',
+      method: 'get',
+      data: {
+        data_chain_name: 'all',
+      },
+      type: 'json',
+    }).then(data => {
+    
+      this.datachainsSlecterChildren = [];
+      this.datachainsSlecterChildren.push(<Select.Option key="default" value="default">默认</Select.Option>);
+      if(data && data.length > 0){
+        for(var i=0;i<data.length;i++){
+          this.datachainsSlecterChildren.push(<Select.Option key={data[i].name} value={data[i].name}>{data[i].name}</Select.Option>);
+        }
+        this.setState({
+          datachains_list: data,
+        }, ()=>{
+          //console.log('fetchDatachainsList chainnodes ', this.state.datachains_list);
+          //console.log('fetchDatachainsList datachainsSlecterChildren ', this.datachainsSlecterChildren);
+        });
+      }
+    });
   }
   
   /*Fetch news flash */
@@ -242,6 +273,7 @@ class App extends Component {
       url: api_url,
       method: 'get',
       data: {
+        data_chain_name: this.state.datachain_node_name,
         module: 'newsflash',
         news_type: this.state.news_type,
         udid: udid,
@@ -360,6 +392,19 @@ class App extends Component {
     },()=>{
       this.updateToPayValue();
       window.location.hash = `#${value}`;
+      this.fetchNewsFlash();
+    });
+  }
+  
+  onDatachainNodeChange = value => {
+    console.log('onDatachainNodeChange value=', value);
+    this.setState({ 
+      datachain_node_name: value,
+      newsflash_list: [],
+      loading: false,
+      more_to_load: true,
+      page_number: 1,
+    }, ()=>{
       this.fetchNewsFlash();
     });
   }
@@ -525,7 +570,17 @@ class App extends Component {
   
   /*Send news handler*/
   handleSendNews = () => {
-    const { session, news_type, news_title_to_send, news_content_to_send, news_to_send_weight, news_comment_minner_number, news_like_minner_number, news_forward_minner_number } = this.state;
+    const { 
+      session,
+      datachain_node_name,
+      news_type, 
+      news_title_to_send, 
+      news_content_to_send, 
+      news_to_send_weight, 
+      news_comment_minner_number, 
+      news_like_minner_number, 
+      news_forward_minner_number 
+    } = this.state;
     const { user, token } = session;
     
     console.log('handleSendNews');
@@ -552,6 +607,7 @@ class App extends Component {
         }else{
           formData.append('cmd', 'add');
         }
+        formData.append('data_chain_name', datachain_node_name);
         formData.append('asset_did', asset_did);
         formData.append('news_type', news_type);
         formData.append('news_title', news_title_to_send);
@@ -1105,7 +1161,8 @@ class App extends Component {
       comment_to_send, 
       toPay, 
       sending, 
-      asset_sending, 
+      asset_sending,
+      datachains_list, 
       newsflash_list, 
       more_to_load, 
       loading } = this.state;
@@ -1159,7 +1216,7 @@ class App extends Component {
     this.winH = window.innerHeight; //浏览器窗口的内部高度
     //this.winW = window.screen.width; //显示屏幕的高度
     //this.winH = window.screen.height;  //显示屏幕的宽度
-    console.log('render winW=', this.winW, 'winH=', this.winH);
+    //console.log('render winW=', this.winW, 'winH=', this.winH);
     const sendNewsDialogWinWidth = this.winW>20?this.winW - 10:this.winW;
     const sendAffixOffsetTop = this.winH>100?this.winH - 100:10;
     var commentInpuTopOffset = this.winH/2;
@@ -1248,11 +1305,17 @@ class App extends Component {
             type="text/css"
             href="https://cdn.jsdelivr.net/npm/@arcblock/did-logo@latest/style.css"
           />
-          <Typography component="p" variant="h5" className="section-description" color="textSecondary">
-            DID身份发布，资讯哈希可查
+          <div>
+            <div style={{ fontSize: '15px', color: '#000000' }}>去中心化资讯平台，数据上链不可篡改！</div>
+            <div style={{ margin: '15px 0' }}/>
+            <Text style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>链节点</Text>
+            <Select value={this.state.datachain_node_name} style={{ fontSize: '15px', color: '#000000', width: 120, marginRight: 15 }} onChange={this.onDatachainNodeChange} className="antd-select">
+              {this.datachainsSlecterChildren}
+            </Select>
             <Switch checked={this.state.show_mode === 'all'?true:false} onChange={this.onShowModeChange} disabled={user == null} size="small" className="antd-showmode-switch"/>
             {this.state.show_mode === 'all'?'全部':'我的'}
-          </Typography>
+            <div style={{ margin: '15px 0' }}/>
+          </div>
 
           {/*<div style={{ margin: '24px 0' }} />*/}
           {/*<Text style={{ margin: '0 10px 0 0' }} className="antd-select">类型</Text>
@@ -1401,6 +1464,11 @@ class App extends Component {
                 maxLength={news_content_max_length}
               />
               <div style={{ margin: '15px 0' }}/>
+              <Text style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>发布节点</Text>
+              <Select value={this.state.datachain_node_name} style={{ fontSize: '15px', color: '#000000', width: 120 }} onChange={this.onDatachainNodeChange} className="antd-select">
+                {this.datachainsSlecterChildren}
+              </Select>
+              <div style={{ margin: '15px 0' }}/>
               {(news_type != 'test2') && (
                 <div>
                   {/*<Slider 
@@ -1471,7 +1539,7 @@ class App extends Component {
               <div style={{ margin: '15px 0' }}/>
               <div align="left">
                 <Button
-                  key="submit"
+                  key="submit-cancel"
                   onClick={this.handleSendNewsDialogCancel}
                   style={{ marginRight: 10, fontSize: '15px' }}
                   className="antd-button-cancel"
@@ -1481,7 +1549,7 @@ class App extends Component {
                 {(news_type === 'test2')
                 ?
                 <Button
-                  key="submit"
+                  key="submit-ok"
                   type="primary"
                   onClick={this.onSendNews}
                   disabled={news_content_to_send === '' || (news_content_to_send && news_content_to_send.length < 6)}
@@ -1493,7 +1561,7 @@ class App extends Component {
                 </Button>
                 :
                 <Button
-                  key="submit"
+                  key="submit-ok"
                   type="primary"
                   onClick={this.onSendNews}
                   disabled={news_content_to_send === '' || (news_content_to_send && news_content_to_send.length < 6)}
