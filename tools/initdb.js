@@ -132,6 +132,8 @@ async function newsflashDbInit(){
             console.log('newsflashDbInit asset_did=', doc.asset_did, 'hot_index update to', doc.hot_index);
           }
         }
+        //doc.updatedAt = Date();
+        //await doc.save();
       }
     }
   } catch (err) {
