@@ -24,6 +24,7 @@ import {
   Checkbox,
   Divider,
   Slider,
+  Affix,
   InputNumber,
   Row,
   Col
@@ -164,6 +165,7 @@ class App extends Component {
       news_title_to_send: '',
       news_content_to_send: '',
       toPay: 0,
+      send_news_dialog_visible: false,
       news_to_send_weight: 1,
       news_comment_minner_number: news_comment_minner_number_default,
       news_like_minner_number: news_like_minner_number_default,
@@ -381,6 +383,31 @@ class App extends Component {
     });
   }
   
+  onOpenSendNewsDialogButtonClick = () => {
+    this.setState({
+      send_news_dialog_visible: true,
+    },()=>{
+    });
+  }
+  
+  handleSendNewsDialogOk = e => {
+    console.log('handleSendNewsDialogOk');
+   
+    this.setState({
+      send_news_dialog_visible: false
+    },()=>{
+    });
+  };
+  
+  handleSendNewsDialogCancel = e => {
+    console.log('handleSendNewsDialogCancel');
+    
+    this.setState({
+      send_news_dialog_visible: false
+    },()=>{
+    });
+  };
+  
   onNewsflashWeightChange = value => {    
     if(typeof(value) === 'number' && value <= news_weights_value_max && value >= news_weights_value_min){
       console.log('onNewsflashWeightChange: ', value);
@@ -437,15 +464,11 @@ class App extends Component {
   
   /*send news button handler*/
   onSendNews = () => {
-    const { news_type, news_to_send_weight } = this.state;
-    if(news_type != 'test2' && news_to_send_weight > 1){
-      this.setState({
-        news_to_send_cfg_visible: true,
-      },()=>{
-      });
-    }else{
+    this.setState({
+      send_news_dialog_visible: false,
+    },()=>{
       this.handleSendNews();
-    }
+    });
   }
 
   onNewsSendCommentMinnerNumberCfgChange = value => {
@@ -513,6 +536,7 @@ class App extends Component {
       
       if(news_to_chain_mode === 'direct'){
         this.setState({
+          send_news_dialog_visible: false,
           asset_did: asset_did,
           sending: true,
         });
@@ -546,7 +570,7 @@ class App extends Component {
             //console.log('add newsflash success with response=', result.response);
             if(news_type === 'test2'){
               this.setState({
-              	news_title_to_send: '',
+                news_title_to_send: '',
                 news_content_to_send: '',
                 toPay: 0,
                 asset_sending: false,
@@ -1074,7 +1098,8 @@ class App extends Component {
   render() {
     const { 
       session, 
-      news_type, 
+      news_type,
+      news_to_send_weight,
       news_title_to_send, 
       news_content_to_send, 
       comment_to_send, 
@@ -1130,9 +1155,13 @@ class App extends Component {
     //  return null;
     //}
     
-    this.winW = window.innerWidth;
-    this.winH = window.innerHeight;
-    //console.log('render winW=', this.winW, 'winH=', this.winH);
+    this.winW = window.innerWidth;  //浏览器窗口的内部宽度
+    this.winH = window.innerHeight; //浏览器窗口的内部高度
+    //this.winW = window.screen.width; //显示屏幕的高度
+    //this.winH = window.screen.height;  //显示屏幕的宽度
+    console.log('render winW=', this.winW, 'winH=', this.winH);
+    const sendNewsDialogWinWidth = this.winW>20?this.winW - 10:this.winW;
+    const sendAffixOffsetTop = this.winH>100?this.winH - 100:10;
     var commentInpuTopOffset = this.winH/2;
     if(commentInpuTopOffset == 0){
       commentInpuTopOffset = 20;
@@ -1224,7 +1253,8 @@ class App extends Component {
             <Switch checked={this.state.show_mode === 'all'?true:false} onChange={this.onShowModeChange} disabled={user == null} size="small" className="antd-showmode-switch"/>
             {this.state.show_mode === 'all'?'全部':'我的'}
           </Typography>
-          <div style={{ margin: '24px 0' }} />
+
+          {/*<div style={{ margin: '24px 0' }} />*/}
           {/*<Text style={{ margin: '0 10px 0 0' }} className="antd-select">类型</Text>
           <Select defaultValue="chains" style={{ width: 100 }} onChange={this.handleNewsTypeChange} className="antd-select">
             <Option value="chains">区块链</Option>
@@ -1260,95 +1290,16 @@ class App extends Component {
             }
           </Tabs>
           {send_permission && (
-            <Row>
-              <Col span={3}>
-                <span style={{fontSize: '16px', color: '#000000', margin: '15px 0' }} >权重</span>
-              </Col>
-              <Col span={14}>
-                <Slider 
-                  defaultValue={this.state.news_to_send_weight} 
-                  value={typeof this.state.news_to_send_weight === 'number' ? this.state.news_to_send_weight : 1}
-                  min={news_weights_value_min}
-                  max={news_weights_value_max}
-                  step={news_weights_value_step}
-                  onChange={this.onNewsflashWeightChange}
-                />
-              </Col>
-              <Col span={4}>
-                <InputNumber
-                  min={news_weights_value_min}
-                  max={news_weights_value_max}
-                  step={news_weights_value_step}
-                  formatter={limit2Decimals}
-                  parser={limit2Decimals}
-                  style={{ marginLeft: 5,  marginRight: 0}}
-                  value={this.state.news_to_send_weight}
-                  onChange={this.onNewsflashWeightChange}
-                />
-             </Col>
-            </Row>
-          )}
-          {send_permission && this.state.news_title_enabled && (
-            <div style={{ margin: '5px 0' }}/>
-          )}
-          {send_permission && this.state.news_title_enabled && (
-            <TextArea
-              value={news_title_to_send}
-              onChange={this.onNewsTitleToSendChange}
-              placeholder={"(可选)请输入标题...("+news_title_max_length+"字以内)"}
-              autoSize={{ minRows: 1, maxRows: 3 }}
-              maxLength={news_title_max_length}
-            />
-          )}
-          {send_permission && (
-            <div style={{ margin: '5px 0' }}/>
-          )}
-          {send_permission && (
-            <TextArea
-              value={news_content_to_send}
-              onChange={this.onNewsContentToSendChange}
-              placeholder={"请输入内容...("+news_content_max_length+"字以内)"}
-              autoSize={{ minRows: 1, maxRows: 10 }}
-              maxLength={news_content_max_length}
-            />
-          )}
-          {send_permission && (
-            <div style={{ margin: '15px 0' }}/>
-          )}
-          {send_permission && (
-            <span style={{ marginRight: 20 }}>
-              <Checkbox checked={this.state.news_title_enabled} onChange={this.onNewsTitleCheckBoxChange}>标题</Checkbox>
-            </span>
-          )}
-          {send_permission && (
-            (news_type === 'test2')
-            ?
-            <Button
-              key="submit"
-              type="primary"
-              size="large"
-              onClick={this.onSendNews}
-              disabled={news_content_to_send === '' || (news_content_to_send && news_content_to_send.length < 6)}
-              loading={asset_sending}
-              className="antd-button-send"
-            >
-              发布
-            </Button>
-            :
-            <Button
-              key="submit"
-              type="primary"
-              size="large"
-              onClick={this.onSendNews}
-              disabled={news_content_to_send === '' || (news_content_to_send && news_content_to_send.length < 6)}
-              loading={sending}
-              className="antd-button-send"
-            >
-              发布({toPay}{token.symbol})
-            </Button>
-          )}
-          {send_permission && (
-            <div style={{ margin: '15px 0' }} />
+            <div style={{ float: 'right' }}>
+              <Affix offsetTop={sendAffixOffsetTop}>
+                <Button
+                  type="link"
+                  onClick={this.onOpenSendNewsDialogButtonClick}
+                >
+                  <Icon type="message" theme="filled" style={{ fontSize: '40px', color: "#2194FF" }}/>
+                </Button>
+              </Affix>
+            </div>
           )}
           <LocaleProvider locale={zh_CN}>
             <List
@@ -1414,6 +1365,147 @@ class App extends Component {
                 </List.Item>
               )}
             />
+            <Modal
+             title="发布资讯"
+             closable={false}
+             visible={this.state.send_news_dialog_visible}
+             okText='发布'
+             footer={null}
+             onOk={this.handleSendNewsDialogOk}
+             onCancel={this.handleSendNewsDialogCancel}
+             okButtonProps={{ disabled: false }}
+             destroyOnClose={true}
+             forceRender={true}
+             width = {sendNewsDialogWinWidth}
+            >
+              <div>
+                <span style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>添加标题</span>
+                <Checkbox checked={this.state.news_title_enabled} onChange={this.onNewsTitleCheckBoxChange}></Checkbox>
+              </div>
+              <div style={{ margin: '15px 0' }}/>
+              {(this.state.news_title_enabled) && (
+                <TextArea
+                  value={news_title_to_send}
+                  onChange={this.onNewsTitleToSendChange}
+                  placeholder={"请输入标题...("+news_title_max_length+"字以内)"}
+                  autoSize={{ minRows: 1, maxRows: 3 }}
+                  maxLength={news_title_max_length}
+                />
+              )}
+              <div style={{ margin: '5px 0' }}/>
+              <TextArea
+                value={news_content_to_send}
+                onChange={this.onNewsContentToSendChange}
+                placeholder={"请输入内容...("+news_content_max_length+"字以内)"}
+                autoSize={{ minRows: 3, maxRows: 10 }}
+                maxLength={news_content_max_length}
+              />
+              <div style={{ margin: '15px 0' }}/>
+              {(news_type != 'test2') && (
+                <div>
+                  {/*<Slider 
+                    defaultValue={this.state.news_to_send_weight} 
+                    value={typeof this.state.news_to_send_weight === 'number' ? this.state.news_to_send_weight : 1}
+                    min={news_weights_value_min}
+                    max={news_weights_value_max}
+                    step={news_weights_value_step}
+                    onChange={this.onNewsflashWeightChange}
+                  />*/}
+                  <span style={{ fontSize: '15px', color: '#000000' }} >资讯权重</span>
+                  <InputNumber
+                    min={news_weights_value_min}
+                    max={news_weights_value_max}
+                    step={news_weights_value_step}
+                    formatter={limit2Decimals}
+                    parser={limit2Decimals}
+                    style={{ marginLeft: 10,  marginRight: 10}}
+                    value={this.state.news_to_send_weight}
+                    onChange={this.onNewsflashWeightChange}
+                  />
+                  <span style={{ fontSize: '15px', color: '#000000' }}>倍</span>
+                  <br/>
+                </div>
+              )}
+              {(news_type != 'test2' && news_to_send_weight > 1) && (
+                <div>
+                  <span style={{ fontSize: '15px', color: '#000000' }}>点赞挖矿</span>
+                  <InputNumber
+                    min={news_like_minner_number_min}
+                    max={news_like_minner_number_max}
+                    step={1}
+                    formatter={limit0Decimals}
+                    parser={limit0Decimals}
+                    style={{ marginLeft: 10,  marginRight: 10}}
+                    value={this.state.news_like_minner_number}
+                    onChange={this.onNewsSendLikeMinnerNumberCfgChange}
+                  />
+                  <span style={{ fontSize: '15px', color: '#000000' }}>个</span>
+                  <br/>
+                  <span style={{ fontSize: '15px', color: '#000000' }}>评论挖矿</span>
+                  <InputNumber
+                    min={news_comment_minner_number_min}
+                    max={news_comment_minner_number_max}
+                    step={1}
+                    formatter={limit0Decimals}
+                    parser={limit0Decimals}
+                    style={{ marginLeft: 10,  marginRight: 10}}
+                    value={this.state.news_comment_minner_number}
+                    onChange={this.onNewsSendCommentMinnerNumberCfgChange}
+                  />
+                  <span style={{ fontSize: '15px', color: '#000000' }}>个</span>
+                  <br/>
+                  <span style={{ fontSize: '15px', color: '#000000' }}>分享挖矿</span>
+                  <InputNumber
+                    min={news_forward_minner_number_min}
+                    max={news_forward_minner_number_max}
+                    step={1}
+                    formatter={limit0Decimals}
+                    parser={limit0Decimals}
+                    style={{ marginLeft: 10,  marginRight: 10}}
+                    value={this.state.news_forward_minner_number}
+                    onChange={this.onNewsSendForwardMinnerNumberCfgChange}
+                  />
+                  <span style={{ fontSize: '15px', color: '#000000' }}>个</span>
+                </div>
+              )}
+              <div style={{ margin: '15px 0' }}/>
+              <div align="left">
+                <Button
+                  key="submit"
+                  onClick={this.handleSendNewsDialogCancel}
+                  style={{ marginRight: 10, fontSize: '15px' }}
+                  className="antd-button-cancel"
+                >
+                  取消
+                </Button>
+                {(news_type === 'test2')
+                ?
+                <Button
+                  key="submit"
+                  type="primary"
+                  onClick={this.onSendNews}
+                  disabled={news_content_to_send === '' || (news_content_to_send && news_content_to_send.length < 6)}
+                  loading={asset_sending}
+                  style={{ fontSize: '15px'}}
+                  className="antd-button-send"
+                >
+                  发布
+                </Button>
+                :
+                <Button
+                  key="submit"
+                  type="primary"
+                  onClick={this.onSendNews}
+                  disabled={news_content_to_send === '' || (news_content_to_send && news_content_to_send.length < 6)}
+                  loading={sending}
+                  style={{ fontSize: '15px'}}
+                  className="antd-button-send"
+                >
+                  发布({toPay}{token.symbol})
+                </Button>
+                }
+              </div>
+            </Modal>
             <Modal
              title="发布参数配置"
              closable={false}
@@ -1621,7 +1713,11 @@ const Main = styled.main`
   }
   
   .antd-button-send{
-    height: 30px;
+    height: 20px;
+  }
+  
+  .antd-button-cancel{
+    height: 20px;
   }
   
   .antd-list-item{

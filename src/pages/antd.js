@@ -11,7 +11,9 @@ import {
   Modal,
   message,
   List,
-  Avatar 
+  Avatar,
+  Affix,
+  Button
 } from 'antd';
 import zh_CN from 'antd/lib/locale-provider/zh_CN'
 import 'antd/dist/antd.css';
@@ -46,12 +48,23 @@ function getBase64(file) {
 }
 
 class App extends Component {
-  state = {
-    loading: false,
-    previewImageVisible: false,
-    previewImage: '',
-    fileList: [],
-  };
+
+  constructor(props) {
+    super(props);
+    //console.log('newsflash props=', props);
+    
+    /*initial state*/
+    this.state = {
+      loading: false,
+      previewImageVisible: false,
+      previewImage: '',
+      fileList: [],
+    };
+    
+    this.winW = 0;
+    this.winH = 0;
+    this.sendAffixOffsetTop = 0;
+  }
 
   beforeUpload = (file) => {
     const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
@@ -106,10 +119,28 @@ class App extends Component {
       </div>
     );
     
+    if(typeof(window) != "undefined"){
+      this.winW = window.innerWidth;
+      this.winH = window.innerHeight;
+      console.log('render winW=', this.winW, 'winH=', this.winH);
+      this.sendAffixOffsetTop = this.winH - 150;
+    }
+    
     return (
       <Layout title="Home">
         <Main>
           <LocaleProvider locale={zh_CN}>
+            <div align="right" style={{ marginTop: `${this.sendAffixOffsetTop}`, marginRight: 0 }} >
+              <Affix offsetTop={this.sendAffixOffsetTop}>
+                <Button
+                  type="link"
+                  onClick={() => {
+                  }}
+                >
+                  <Icon type="message" theme="filled" style={{ fontSize: '40px', color: "#2194FF" }}/>
+                </Button>
+              </Affix>
+            </div>
             <div style={{ margin: 20 }}>
               <Pagination defaultCurrent={1} total={50} />
               <Pagination showSizeChanger onShowSizeChange={this.onShowSizeChange} onChange={this.onChange} defaultCurrent={1} total={500} />
