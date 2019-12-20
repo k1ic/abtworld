@@ -35,7 +35,7 @@ const newsflashDbInit = async content_did => {
       news_hash: '06A0E48D11F83165A0D992CAD3E6BA8E56DBF73D5B635533F9F723A9A27C1A5F',
       news_type: 'test',
       news_content: '孙宇晨发博文：各位菠菜都买了啥，粉丝回复：巴菲特午餐团购券',
-      hash_href: 'https://zinc.abtnetwork.io/node/explorer/txs/06A0E48D11F83165A0D992CAD3E6BA8E56DBF73D5B635533F9F723A9A27C1A5F',
+      hash_href: ['https://zinc.abtnetwork.io/node/explorer/txs/06A0E48D11F83165A0D992CAD3E6BA8E56DBF73D5B635533F9F723A9A27C1A5F'],
       state: 'commit',
       minner_state: 'idle',
       createdAt: Date(),

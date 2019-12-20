@@ -44,6 +44,7 @@ async function NewsflashAdd(fields){
     return false;
   }
   
+  var data_chain_name = env.assetChainName;
   var data_chain_host = env.assetChainHost;
   var data_chain_id = env.assetChainId;
   if(typeof(fields.data_chain_name) != "undefined"){
@@ -56,10 +57,12 @@ async function NewsflashAdd(fields){
       doc = await Datachain.findOne({ name: fields.data_chain_name[0] });
     }
     if(doc){
+      data_chain_name = doc.name;
       data_chain_host = doc.chain_host;
       data_chain_id = doc.chain_id;
     }
   }
+  //data_chain_name = 'argon';
   //data_chain_host = 'https://argon.abtnetwork.io/api';
   //data_chain_id = 'argon-2019-11-07';
   
@@ -87,8 +90,8 @@ async function NewsflashAdd(fields){
       console.log('NewsflashAdd asset_did=', fields.asset_did[0], 'already in db');
       
       /*asset already in db, update it*/
-      doc.data_chain_host = data_chain_host;
-      doc.data_chain_id = data_chain_id;
+      doc.data_chain_nodes[0] = {name: data_chain_name, chain_host: data_chain_host, chain_id: data_chain_id};
+      doc.markModified('data_chain_nodes');
       doc.asset_did = fields.asset_did[0];
       doc.content_did = fields.asset_did[0];
       doc.news_type = fields.news_type[0];
@@ -104,8 +107,7 @@ async function NewsflashAdd(fields){
     /*save newsflash to db when not exist*/
     const user = JSON.parse(fields.user[0]);
     var new_doc = new Newsflash({
-      data_chain_host: data_chain_host,
-      data_chain_id: data_chain_id,
+      data_chain_nodes: [{name: data_chain_name, chain_host: data_chain_host, chain_id: data_chain_id}],
       asset_did: fields.asset_did[0],
       content_did: fields.asset_did[0],
       author_did: user.did,
@@ -119,7 +121,6 @@ async function NewsflashAdd(fields){
       total_comment_minner_number: total_comment_minner_number,
       total_like_minner_number: total_like_minner_number,
       total_forward_minner_number: total_forward_minner_number,
-      hash_href: '',
       state: 'commit',
       minner_state: 'idle',
       createdAt: Date(),
@@ -143,6 +144,7 @@ async function NewsflashCreateAssetOnChain(fields){
     return false;
   }
   
+  var data_chain_name = env.assetChainName;
   var data_chain_host = env.assetChainHost;
   var data_chain_id = env.assetChainId;
   if(typeof(fields.data_chain_name) != "undefined"){
@@ -154,10 +156,12 @@ async function NewsflashCreateAssetOnChain(fields){
       doc = await Datachain.findOne({ name: fields.data_chain_name[0] });
     }
     if(doc){
+      data_chain_name = doc.name;
       data_chain_host = doc.chain_host;
       data_chain_id = doc.chain_id;
     }
   }
+  //data_chain_name = 'argon';
   //data_chain_host = 'https://argon.abtnetwork.io/api';
   //data_chain_id = 'argon-2019-11-07';
   
@@ -172,8 +176,8 @@ async function NewsflashCreateAssetOnChain(fields){
       console.log('NewsflashCreateAssetOnChain asset_did=', fields.asset_did[0], 'already in db');
       
       /*asset already in db, update it*/
-      doc.data_chain_host = data_chain_host;
-      doc.data_chain_id = data_chain_id;
+      doc.data_chain_nodes[0] = {name: data_chain_name, chain_host: data_chain_host, chain_id: data_chain_id};
+      doc.markModified('data_chain_nodes');
       doc.asset_did = fields.asset_did[0];
       doc.content_did = fields.asset_did[0];
       doc.news_type = fields.news_type[0];
@@ -185,8 +189,7 @@ async function NewsflashCreateAssetOnChain(fields){
     /*save newsflash to db when not exist*/
     const user = JSON.parse(fields.user[0]);
     var new_doc = new Newsflash({
-      data_chain_host: data_chain_host,
-      data_chain_id: data_chain_id,
+      data_chain_nodes: [{name: data_chain_name, chain_host: data_chain_host, chain_id: data_chain_id}],
       asset_did: fields.asset_did[0],
       content_did: fields.asset_did[0],
       author_did: user.did,
@@ -196,7 +199,6 @@ async function NewsflashCreateAssetOnChain(fields){
       news_type: fields.news_type[0],
       news_title: fields.news_title[0],
       news_content: fields.news_content[0],
-      hash_href: '',
       state: 'commit',
       minner_state: 'idle',
       createdAt: Date(),
@@ -214,7 +216,7 @@ async function NewsflashCreateAssetOnChain(fields){
       console.log('NewsflashCreateAssetOnChain create asset success, update doc');
       new_doc.news_hash = transferHash;
       new_doc.news_time = tx_local_time;
-      new_doc.hash_href = new_doc.data_chain_host.replace('/api', '/node/explorer/txs/')+transferHash;
+      new_doc.hash_href.push(new_doc.data_chain_nodes[0].chain_host.replace('/api', '/node/explorer/txs/')+transferHash);
       new_doc.state = 'chained';
       await new_doc.save();
     }else{
@@ -595,20 +597,15 @@ async function getNewsForUploadToChain(strAssetDid){
 async function getNewsForShow(module_para){
   var new_docs = [];
   var found = 0;
-  var data_chain_host = env.assetChainHost;
+  var data_chain_name = module_para.data_chain_name;
   
-  if(module_para.data_chain_name === 'default'){
-    data_chain_host = env.assetChainHost;
-  }else{
-    var doc = await Datachain.findOne({ name: module_para.data_chain_name });
-    if(doc){
-      data_chain_host = doc.chain_host;
-    }
+  if(data_chain_name == 'default'){
+    data_chain_name = env.assetChainName;
   }
   
   if(module_para.news_type === 'hot'){
     if(module_para.udid_to_show.length > 0){
-      Newsflash.find().hotByChainHostHotIndexAndAuthorDid(data_chain_host, module_para.udid_to_show).exec(function(err, docs){
+      Newsflash.find().hotByHotIndexAndAuthorDid(module_para.udid_to_show).exec(function(err, docs){
         if(docs && docs.length>0){
           console.log('Found', docs.length, module_para.news_type, module_para.udid_to_show, 'docs');
           new_docs = docs;
@@ -618,7 +615,7 @@ async function getNewsForShow(module_para){
         found = 1;
       })
     }else{
-      Newsflash.find().hotByChainHostAndHotIndex(data_chain_host).exec(function(err, docs){
+      Newsflash.find().hotByHotIndex().exec(function(err, docs){
         if(docs && docs.length>0){
           console.log('Found', docs.length, module_para.news_type, 'docs');
           new_docs = docs;
@@ -630,7 +627,7 @@ async function getNewsForShow(module_para){
     }
   }else{
     if(module_para.udid_to_show.length > 0){
-      Newsflash.find().byChainHostNewsTypeAuthorDidAndState(data_chain_host, module_para.news_type, module_para.udid_to_show, 'chained').exec(function(err, docs){
+      Newsflash.find().byNewsTypeAuthorDidAndState(module_para.news_type, module_para.udid_to_show, 'chained').exec(function(err, docs){
         if(docs && docs.length>0){
           console.log('Found', docs.length, module_para.news_type, module_para.udid_to_show, 'docs');
           new_docs = docs;
@@ -640,7 +637,7 @@ async function getNewsForShow(module_para){
         found = 1;
       })
     }else{
-      Newsflash.find().byChainHostNewsTypeAndState(data_chain_host, module_para.news_type, 'chained').exec(function(err, docs){
+      Newsflash.find().byNewsTypeAndState(module_para.news_type, 'chained').exec(function(err, docs){
         if(docs && docs.length>0){
           console.log('Found', docs.length, module_para.news_type, 'docs');
           new_docs = docs;
@@ -659,6 +656,25 @@ async function getNewsForShow(module_para){
     wait_counter++;
     if(wait_counter > 15000){
       break;
+    }
+  }
+  
+  /*filter the doc by chain name*/
+  if(data_chain_name != 'all'){
+    if(new_docs && new_docs.length > 0){
+      var result = false;
+      new_docs = new_docs.filter(function (e) {
+        result = false;
+        if(e.data_chain_nodes.length > 0){
+          for(var i=0;i<e.data_chain_nodes.length;i++){
+            if(e.data_chain_nodes[i].name === data_chain_name){
+              result = true;
+              break;
+            }
+          }
+        }
+        return result;
+      });
     }
   }
   
@@ -681,12 +697,13 @@ async function getNewsForShow(module_para){
   if(new_docs && new_docs.length > 0){
     new_docs = await Promise.all(new_docs.map( async (e) => {
       var temp_doc = {};
+      temp_doc['data_chain_nodes'] = e.data_chain_nodes;
       temp_doc['loading'] = false;
       temp_doc['state'] = e.state;
       temp_doc['time'] = e.news_time;
       temp_doc['sender'] = getUserDidFragment(e.author_did);
       temp_doc['hash'] = e.news_hash;
-      temp_doc['href'] = e.hash_href;
+      temp_doc['href'] = e.hash_href[0];
       temp_doc['news_title'] = e.news_title;
       temp_doc['news_content'] = e.news_content;
       temp_doc['weights'] = e.news_weights;

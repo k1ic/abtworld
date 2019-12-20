@@ -153,11 +153,14 @@ async function newsflashDappDbSync(){
             doc.news_type = memo.para.type;
             doc.news_title = news_title;
             doc.news_content = memo.para.content;
-            doc.hash_href = env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash;
+            doc.hash_href[0] = env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash;
+            doc.data_chain_nodes[0] = {name: env.chainName, chain_host: env.chainHost, chain_id: env.chainId};
+            doc.markModified('data_chain_nodes');
             await doc.save();
           }else{
             /*create new doc*/
             var new_doc = new Newsflash({
+              data_chain_nodes: [{name: env.chainName, chain_host: env.chainHost, chain_id: env.chainId}],
               asset_did: asset_did,
               content_did: cdid,
               author_did: e.sender,
@@ -168,7 +171,7 @@ async function newsflashDappDbSync(){
               news_type: memo.para.type,
               news_title: news_title,
               news_content: memo.para.content,
-              hash_href: env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash,
+              hash_href: [env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash],
               state: 'chained',
               minner_state: 'idle',
               createdAt: e.time,
@@ -218,11 +221,14 @@ async function newsflashDappDbSync(){
             doc.news_time = asset_local_time;
             doc.news_type = memo.para.type;
             doc.news_content = memo.para.content;
-            doc.hash_href = env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash;
+            doc.hash_href[0] = env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash;
+            doc.data_chain_nodes[0] = {name: env.chainName, chain_host: env.chainHost, chain_id: env.chainId};
+            doc.markModified('data_chain_nodes');
             await doc.save();
           }else{
             /*create new doc*/
             var new_doc = new Newsflash({
+              data_chain_nodes: [{name: env.chainName, chain_host: env.chainHost, chain_id: env.chainId}],
               asset_did: asset_did,
               content_did: cdid,
               author_did: e.sender,
@@ -232,7 +238,7 @@ async function newsflashDappDbSync(){
               news_time: asset_local_time,
               news_type: memo.para.type,
               news_content: memo.para.content,
-              hash_href: env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash,
+              hash_href: [env.chainHost.replace('/api', '/node/explorer/txs/')+e.hash],
               state: 'chained',
               minner_state: 'idle',
               createdAt: e.time,
@@ -285,11 +291,14 @@ async function newsflashDappDbSync(){
             doc.news_time = asset_local_time;
             doc.news_type = memo.para.type;
             doc.news_content = memo.para.content;
-            doc.hash_href = env.chainHost.replace('/api', '/node/explorer/txs/')+asset_hash;
+            doc.hash_href[0] = env.chainHost.replace('/api', '/node/explorer/txs/')+asset_hash;
+            doc.data_chain_nodes[0] = {name: env.chainName, chain_host: env.chainHost, chain_id: env.chainId};
+            doc.markModified('data_chain_nodes');
             await doc.save();
           }else{
             /*create new doc*/
             var new_doc = new Newsflash({
+              data_chain_nodes: [{name: env.chainName, chain_host: env.chainHost, chain_id: env.chainId}],
               asset_did: e.address,
               content_did: cdid,
               author_did: memo.para.udid,
@@ -299,7 +308,7 @@ async function newsflashDappDbSync(){
               news_time: asset_local_time,
               news_type: memo.para.type,
               news_content: memo.para.content,
-              hash_href: env.chainHost.replace('/api', '/node/explorer/txs/')+asset_hash,
+              hash_href: [env.chainHost.replace('/api', '/node/explorer/txs/')+asset_hash],
               state: 'chained',
               minner_state: 'idle',
               createdAt: e.genesisTime,
@@ -360,11 +369,19 @@ async function newsflashDappDbSync(){
               doc.news_time = asset_local_time;
               doc.news_type = memo.para.type;
               doc.news_content = memo.para.content;
-              doc.hash_href = dataChainList[i].chain_host.replace('/api', '/node/explorer/txs/')+asset_hash;
+              if(doc.hash_href.length > 0){
+                const hash_href = dataChainList[i].chain_host.replace('/api', '/node/explorer/txs/')+asset_hash;
+                if(-1 == doc.hash_href.indexOf(hash_href)){
+                  doc.hash_href.push(hash_href);
+                }
+              }else{
+                doc.hash_href[0] = hash_href;
+              }
               await doc.save();
             }else{
               /*create new doc*/
               var new_doc = new Newsflash({
+                data_chain_nodes: [{name: dataChainList[i].name, chain_host: dataChainList[i].chain_host, chain_id: dataChainList[i].chain_id}],
                 asset_did: e.address,
                 content_did: cdid,
                 author_did: memo.para.udid,
@@ -374,7 +391,7 @@ async function newsflashDappDbSync(){
                 news_time: asset_local_time,
                 news_type: memo.para.type,
                 news_content: memo.para.content,
-                hash_href: dataChainList[i].chain_host.replace('/api', '/node/explorer/txs/')+asset_hash,
+                hash_href: [dataChainList[i].chain_host.replace('/api', '/node/explorer/txs/')+asset_hash],
                 state: 'chained',
                 minner_state: 'idle',
                 createdAt: e.genesisTime,

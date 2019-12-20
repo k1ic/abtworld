@@ -127,15 +127,32 @@ async function newsflashDbInit(){
       for (var doc of found_docs) {
         if(doc.hot_index == 0){
           doc.hot_index = doc.like_counter*(1*doc.news_weights) + doc.forward_counter*(1*doc.news_weights) + doc.comment_counter*(3*doc.news_weights);
-          if(doc.hot_index > 0){
-            await doc.save();
-            console.log('newsflashDbInit asset_did=', doc.asset_did, 'hot_index update to', doc.hot_index);
-          }
         }
-        //doc.updatedAt = Date();
-        //await doc.save();
+        doc.updatedAt = Date();
+        await doc.save();
       }
     }
+    
+    /*sync hash_href to data_chain_nodes*/
+    if(found_docs && found_docs.length>0){
+      for (var doc of found_docs) {
+        if(doc.data_chain_nodes.length == 0 && doc.hash_href.length > 0){
+          for (var href of doc.hash_href){
+            if(href && href.length > 0){
+              var chain_host = href.replace(/\/node\/explorer\/txs\/.*/, "/api");
+              //console.log('newsflashDbInit chain_host=', chain_host);
+              var datachain_doc = await Datachain.findOne({ chain_host: chain_host });
+              if(datachain_doc){
+                 doc.data_chain_nodes.push({name: datachain_doc.name, chain_host: datachain_doc.chain_host, chain_id: datachain_doc.chain_id});
+                 doc.markModified('data_chain_nodes');
+                 await doc.save();
+              }
+            }
+          }
+        }
+      }
+    }
+    
   } catch (err) {
     console.log('newsflashDbInit err=', err);
   }

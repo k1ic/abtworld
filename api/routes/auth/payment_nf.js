@@ -48,7 +48,7 @@ async function newsflashPaymentHookV2(hash, forgeState, userDid) {
           var newsflash_doc = await getNewsForUploadToChain(tx_memo.para.asset_did);
           if(newsflash_doc){
             /*create asset*/
-            transferHash = await createNewsflahAsset(tx_memo.para.asset_did, newsflash_doc.data_chain_id);
+            transferHash = await createNewsflahAsset(tx_memo.para.asset_did, newsflash_doc.data_chain_nodes[0].chain_id);
             
             /*Update newsflash doc*/
             if(transferHash && transferHash.length > 0){              
@@ -78,7 +78,7 @@ async function newsflashPaymentHookV2(hash, forgeState, userDid) {
               console.log('update newsflash doc');
               newsflash_doc.news_hash = transferHash;
               newsflash_doc.news_time = tx_local_time;
-              newsflash_doc.hash_href = newsflash_doc.data_chain_host.replace('/api', '/node/explorer/txs/')+transferHash;
+              newsflash_doc.hash_href.push(newsflash_doc.data_chain_nodes[0].chain_host.replace('/api', '/node/explorer/txs/')+transferHash);
               newsflash_doc.total_payed_balance = tx_value;
               newsflash_doc.total_comment_minner_balance = total_comment_minner_balance;
               newsflash_doc.total_like_minner_balance = total_like_minner_balance;

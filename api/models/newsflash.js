@@ -42,9 +42,8 @@ const NewsflashSchema = new mongoose.Schema({
   news_title: { type: String, default: '' },
   news_content: { type: String, required: true, default: '' },
   news_weights: { type: Number, default: 1 },
-  data_chain_host: { type: String, default: env.assetChainHost },
-  data_chain_id: { type: String, default: env.assetChainId },
-  hash_href: { type: String, default: '' },
+  data_chain_nodes: { type: Array, default: [] },
+  hash_href: { type: Array, default: [] },
   state: { type: String, required: true, default: 'commit' },
   minner_state: { type: String, required: true, default: 'idle' },
   total_payed_balance: { type: Number, default: 0 },
@@ -92,16 +91,6 @@ NewsflashSchema.query.hotByHotIndex = function(){
   return docs;
 }
 
-NewsflashSchema.query.hotByChainHostAndHotIndex = function(strChainHost){
-  var docs =  this.find({$and: [
-    {data_chain_host: strChainHost},
-    {state: "chained"},
-    {hot_index: {$gt: 0}}
-  ]}).sort({"hot_index":-1, "updatedAt":-1});
-  
-  return docs;
-}
-
 NewsflashSchema.query.hotByNewsWeigths = function(){
   var docs =  this.find({$and: [
     {state: "chained"},
@@ -130,17 +119,6 @@ NewsflashSchema.query.hotByHotIndexAndAuthorDid = function(strAutherDid){
   return docs;
 }
 
-NewsflashSchema.query.hotByChainHostHotIndexAndAuthorDid = function(strChainHost, strAutherDid){
-  var docs =  this.find({$and: [
-    {data_chain_host: strChainHost},
-    {state: "chained"},
-    {hot_index: {$gt: 0}},
-    {author_did: strAutherDid}
-  ]}).sort({"hot_index":-1, "updatedAt":-1});
-  
-  return docs;
-}
-
 NewsflashSchema.query.byNewsTypeAndState = function(strType, strState){
   return this.find({$and: [
     {news_type: strType},
@@ -148,25 +126,8 @@ NewsflashSchema.query.byNewsTypeAndState = function(strType, strState){
   ]}).sort({"createdAt":-1});
 }
 
-NewsflashSchema.query.byChainHostNewsTypeAndState = function(strChainHost, strType, strState){
-  return this.find({$and: [
-    {data_chain_host: strChainHost},
-    {news_type: strType},
-    {state: strState}
-  ]}).sort({"createdAt":-1});
-}
-
 NewsflashSchema.query.byNewsTypeAuthorDidAndState = function(strType, strAutherDid, strState){
   return this.find({$and: [
-    {news_type: strType},
-    {author_did: strAutherDid},
-    {state: strState}
-  ]}).sort({"createdAt":-1});
-}
-
-NewsflashSchema.query.byChainHostNewsTypeAuthorDidAndState = function(strChainHost, strType, strAutherDid, strState){
-  return this.find({$and: [
-    {data_chain_host: strChainHost},
     {news_type: strType},
     {author_did: strAutherDid},
     {state: strState}

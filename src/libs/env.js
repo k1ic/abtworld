@@ -1,10 +1,12 @@
 module.exports = {
+  chainName: process.env.REACT_APP_CHAIN_NAME || process.env.GATSBY_CHAIN_NAME || process.env.CHAIN_NAME || process.env.chainName,
   chainId: process.env.REACT_APP_CHAIN_ID || process.env.GATSBY_CHAIN_ID || process.env.CHAIN_ID || process.env.chainId,
   chainHost:
     process.env.REACT_APP_CHAIN_HOST ||
     process.env.GATSBY_CHAIN_HOST ||
     process.env.CHAIN_HOST ||
     process.env.chainHost,
+  assetChainName: process.env.REACT_ASSET_CHAIN_NAME || process.env.GATSBY_ASSET_CHAIN_NAME || process.env.ASSET_CHAIN_NAME || process.env.assetChainName,
   assetChainId: process.env.REACT_ASSET_CHAIN_ID || process.env.GATSBY_ASSET_CHAIN_ID || process.env.ASSET_CHAIN_ID || process.env.assetChainId,
   assetChainHost:
     process.env.REACT_ASSET_CHAIN_HOST ||

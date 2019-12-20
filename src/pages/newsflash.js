@@ -164,6 +164,7 @@ class App extends Component {
       news_type: news_type_default,
       news_title_to_send: '',
       news_content_to_send: '',
+      sendAffixOffsetTop: 0,
       toPay: 0,
       send_news_dialog_visible: false,
       news_to_send_weight: 1,
@@ -177,7 +178,8 @@ class App extends Component {
       sending: false,
       asset_sending: false,
       datachains_list: [],
-      datachain_node_name: 'default',
+      datachain_node_name_to_view: 'all',
+      datachain_node_name_to_send: 'default',
       newsflash_list: [],
       loading: false,
       page_number: 1,
@@ -190,7 +192,8 @@ class App extends Component {
       shared_btn_disabled: true,
     };
     
-    this.datachainsSlecterChildren = [];
+    this.datachainsToViewSlecterChildren = [];
+    this.datachainsToSendSlecterChildren = [];
     this.comment_asset_did = '';
     this.share_asset_did = '';
     this.share_news_items = [];
@@ -226,17 +229,20 @@ class App extends Component {
       type: 'json',
     }).then(data => {
     
-      this.datachainsSlecterChildren = [];
-      this.datachainsSlecterChildren.push(<Select.Option key="default" value="default">默认</Select.Option>);
+      this.datachainsToSendSlecterChildren = [];
+      this.datachainsToViewSlecterChildren = [];
+      this.datachainsToSendSlecterChildren.push(<Select.Option key="default" value="default">默认</Select.Option>);
+      this.datachainsToViewSlecterChildren.push(<Select.Option key="all" value="all">所有</Select.Option>);
       if(data && data.length > 0){
         for(var i=0;i<data.length;i++){
-          this.datachainsSlecterChildren.push(<Select.Option key={data[i].name} value={data[i].name}>{data[i].name}</Select.Option>);
+          var chainNameToShow = data[i].name.substring(0,1).toUpperCase()+data[i].name.substring(1);
+          this.datachainsToSendSlecterChildren.push(<Select.Option key={data[i].name} value={data[i].name}>{chainNameToShow}</Select.Option>);
+          this.datachainsToViewSlecterChildren.push(<Select.Option key={data[i].name} value={data[i].name}>{chainNameToShow}</Select.Option>);
         }
         this.setState({
           datachains_list: data,
         }, ()=>{
           //console.log('fetchDatachainsList chainnodes ', this.state.datachains_list);
-          //console.log('fetchDatachainsList datachainsSlecterChildren ', this.datachainsSlecterChildren);
         });
       }
     });
@@ -273,7 +279,7 @@ class App extends Component {
       url: api_url,
       method: 'get',
       data: {
-        data_chain_name: this.state.datachain_node_name,
+        data_chain_name: this.state.datachain_node_name_to_view,
         module: 'newsflash',
         news_type: this.state.news_type,
         udid: udid,
@@ -330,9 +336,39 @@ class App extends Component {
       this.fetchNewsFlash();
     });
   };
+   
+  scrollHandler = (event) => {
+    let scrollTop = event.srcElement.body.scrollTop;
+    //console.log('handleScroll', scrollTop); //滚动条距离页面的高度
+    this.winW = window.innerWidth;  //浏览器窗口的内部宽度
+    this.winH = window.innerHeight; //浏览器窗口的内部高度
+    this.setState({
+      sendAffixOffsetTop: this.winH>100?this.winH - 100:10,
+    },()=>{
+    });
+  }
+  
+  resizeHandler = (event) => {
+    this.winW = window.innerWidth;  //浏览器窗口的内部宽度
+    this.winH = window.innerHeight; //浏览器窗口的内部高度
+    this.setState({
+      sendAffixOffsetTop: this.winH>100?this.winH - 100:10,
+    },()=>{
+    });
+  }
   
   /*component mount process*/
-  componentDidMount() {    
+  componentDidMount() {
+    
+    this.winW = window.innerWidth;  //浏览器窗口的内部宽度
+    this.winH = window.innerHeight; //浏览器窗口的内部高度
+    window.addEventListener('scroll', this.scrollHandler);
+    window.addEventListener('resize', this.resizeHandler);
+    this.setState({
+      sendAffixOffsetTop: this.winH>100?this.winH - 100:10,
+    },()=>{
+    });
+    
     //console.log('componentDidMount hash=', window.location.hash.slice(1));
     const location_hash = window.location.hash.slice(1);
     if(typeof(location_hash) != "undefined" && location_hash && location_hash.length > 0) {
@@ -357,6 +393,8 @@ class App extends Component {
       clearInterval(this.state.intervalIsSet);
       this.setState({ intervalIsSet: null});
     }
+    window.removeEventListener('scroll', this.scrollHandler);
+    window.removeEventListener('resize', this.resizeHandler);
   }
   
   updateToPayValue = () => {
@@ -396,16 +434,24 @@ class App extends Component {
     });
   }
   
-  onDatachainNodeChange = value => {
-    console.log('onDatachainNodeChange value=', value);
+  onDatachainNodeToViewChange = value => {
+    console.log('onDatachainNodeToViewChange value=', value);
     this.setState({ 
-      datachain_node_name: value,
+      datachain_node_name_to_view: value,
       newsflash_list: [],
       loading: false,
       more_to_load: true,
       page_number: 1,
     }, ()=>{
       this.fetchNewsFlash();
+    });
+  }
+  
+  onDatachainNodeToSendChange = value => {
+    console.log('onDatachainNodeToSendChange value=', value);
+    this.setState({ 
+      datachain_node_name_to_send: value,
+    }, ()=>{
     });
   }
   
@@ -572,7 +618,7 @@ class App extends Component {
   handleSendNews = () => {
     const { 
       session,
-      datachain_node_name,
+      datachain_node_name_to_send,
       news_type, 
       news_title_to_send, 
       news_content_to_send, 
@@ -607,7 +653,7 @@ class App extends Component {
         }else{
           formData.append('cmd', 'add');
         }
-        formData.append('data_chain_name', datachain_node_name);
+        formData.append('data_chain_name', datachain_node_name_to_send);
         formData.append('asset_did', asset_did);
         formData.append('news_type', news_type);
         formData.append('news_title', news_title_to_send);
@@ -1157,8 +1203,9 @@ class App extends Component {
       news_type,
       news_to_send_weight,
       news_title_to_send, 
-      news_content_to_send, 
-      comment_to_send, 
+      news_content_to_send,
+      sendAffixOffsetTop,
+      comment_to_send,
       toPay, 
       sending, 
       asset_sending,
@@ -1218,7 +1265,6 @@ class App extends Component {
     //this.winH = window.screen.height;  //显示屏幕的宽度
     //console.log('render winW=', this.winW, 'winH=', this.winH);
     const sendNewsDialogWinWidth = this.winW>20?this.winW - 10:this.winW;
-    const sendAffixOffsetTop = this.winH>100?this.winH - 100:10;
     var commentInpuTopOffset = this.winH/2;
     if(commentInpuTopOffset == 0){
       commentInpuTopOffset = 20;
@@ -1309,8 +1355,8 @@ class App extends Component {
             <div style={{ fontSize: '15px', color: '#000000' }}>去中心化资讯平台，数据上链不可篡改！</div>
             <div style={{ margin: '15px 0' }}/>
             <Text style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>链节点</Text>
-            <Select value={this.state.datachain_node_name} style={{ fontSize: '15px', color: '#000000', width: 120, marginRight: 15 }} onChange={this.onDatachainNodeChange} className="antd-select">
-              {this.datachainsSlecterChildren}
+            <Select value={this.state.datachain_node_name_to_view} style={{ fontSize: '15px', color: '#000000', width: 120, marginRight: 15 }} onChange={this.onDatachainNodeToViewChange} className="antd-select">
+              {this.datachainsToViewSlecterChildren}
             </Select>
             <Switch checked={this.state.show_mode === 'all'?true:false} onChange={this.onShowModeChange} disabled={user == null} size="small" className="antd-showmode-switch"/>
             {this.state.show_mode === 'all'?'全部':'我的'}
@@ -1360,6 +1406,8 @@ class App extends Component {
                   onClick={this.onOpenSendNewsDialogButtonClick}
                 >
                   <Icon type="message" theme="filled" style={{ fontSize: '40px', color: "#2194FF" }}/>
+                  <br/>
+                  <span style={{ fontSize: '15px', fontWeight: 700, color: "#339966" }}>发布</span>
                 </Button>
               </Affix>
             </div>
@@ -1393,7 +1441,7 @@ class App extends Component {
                   {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
                   <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
                   <span style={{ fontSize: '15px', color: '#000000' }}> {item.sender}</span> <br/>
-                  <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>哈希@{item.time}</a> <br/>        
+                  <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.time}</a> <br/>        
                   <div id={item.asset_did}>
                     {(item.news_title.length > 0) && 
                       <span style={{ fontSize: '17px', fontWeight: 600, color: '#000000' }}>{item.news_title}</span>
@@ -1465,8 +1513,8 @@ class App extends Component {
               />
               <div style={{ margin: '15px 0' }}/>
               <Text style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>发布节点</Text>
-              <Select value={this.state.datachain_node_name} style={{ fontSize: '15px', color: '#000000', width: 120 }} onChange={this.onDatachainNodeChange} className="antd-select">
-                {this.datachainsSlecterChildren}
+              <Select value={this.state.datachain_node_name_to_send} style={{ fontSize: '15px', color: '#000000', width: 120 }} onChange={this.onDatachainNodeToSendChange} className="antd-select">
+                {this.datachainsToSendSlecterChildren}
               </Select>
               <div style={{ margin: '15px 0' }}/>
               {(news_type != 'test2') && (
@@ -1689,7 +1737,7 @@ class App extends Component {
                       {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
                       <i class="icon-did-abt-logo" style={{fontSize: '12px', color: '#000000'}}></i>
                       <span style={{ fontSize: '12px', fontVariant: 'normal', color: '#000000' }}> {item.sender}</span> <br/>
-                      <a href={item.href} target="_blank" style={{ fontSize: '11px', fontVariant: 'normal', color: '#000000' }}>20{item.time}</a>
+                      <a href={item.href} target="_blank" style={{ fontSize: '11px', fontVariant: 'normal', color: '#000000' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 20{item.time}</a>
                       <div>
                         <br/>
                         {(item.news_title.length > 0) && 
