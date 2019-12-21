@@ -77,20 +77,20 @@ const toPayEachChar = 0.001;
 
 /*news weights*/
 const news_weights_value_min = 1;
-const news_weights_value_max = 1000;
+const news_weights_value_max = 10000;
 const news_weights_value_step = 1;
 
 /*minner numbers*/
 const newsSendCfgWinWidth = 300;
 const news_comment_minner_number_default = 10;
 const news_like_minner_number_default = 10;
-const news_forward_minner_number_default = 10;
+const news_forward_minner_number_default = 5;
 var news_comment_minner_number_min = news_comment_minner_number_default;
 var news_comment_minner_number_max = news_comment_minner_number_default;
-var news_like_minner_number_min = news_comment_minner_number_default;
-var news_like_minner_number_max = news_comment_minner_number_default;
-var news_forward_minner_number_min = news_comment_minner_number_default;
-var news_forward_minner_number_max = news_comment_minner_number_default;
+var news_like_minner_number_min = news_like_minner_number_default;
+var news_like_minner_number_max = news_like_minner_number_default;
+var news_forward_minner_number_min = news_forward_minner_number_default;
+var news_forward_minner_number_max = news_forward_minner_number_default;
 
 /*poster window width*/
 const posterWinWidth = 320;
@@ -510,9 +510,6 @@ class App extends Component {
       
       this.setState({
         news_to_send_weight: value,
-        news_comment_minner_number: news_comment_minner_number_max,
-        news_like_minner_number: news_like_minner_number_max,
-        news_forward_minner_number: news_forward_minner_number_max,
       },()=>{
         this.updateToPayValue();
       });

@@ -1,6 +1,9 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const env = require('../libs/env');
+const { 
+  getDateByDeltaDay
+} = require('../libs/time');
 
 /*
 Array item definition
@@ -83,9 +86,23 @@ NewsflashSchema.query.byNewsType = function(strType){
 }
 
 NewsflashSchema.query.hotByHotIndex = function(){
+  var hot_deadline = getDateByDeltaDay(-10); /* show latest 10 days hot news */
   var docs =  this.find({$and: [
     {state: "chained"},
-    {hot_index: {$gt: 0}}
+    {hot_index: {$gt: 0}},
+    {createdAt: {$gte: hot_deadline}}
+  ]}).sort({"hot_index":-1, "updatedAt":-1});
+  
+  return docs;
+}
+
+NewsflashSchema.query.hotByHotIndexAndAuthorDid = function(strAutherDid){
+  var hot_deadline = getDateByDeltaDay(-10); /* show latest 10 days hot news */
+  var docs =  this.find({$and: [
+    {state: "chained"},
+    {hot_index: {$gt: 0}},
+    {author_did: strAutherDid},
+    {createdAt: {$gte: hot_deadline}}
   ]}).sort({"hot_index":-1, "updatedAt":-1});
   
   return docs;
@@ -105,16 +122,6 @@ NewsflashSchema.query.hotTotalPayed = function(){
     {state: "chained"},
     {total_payed_balance: {$gt: 0}}
   ]}).sort({"total_payed_balance":-1, "updatedAt":-1});
-  
-  return docs;
-}
-
-NewsflashSchema.query.hotByHotIndexAndAuthorDid = function(strAutherDid){
-  var docs =  this.find({$and: [
-    {state: "chained"},
-    {hot_index: {$gt: 0}},
-    {author_did: strAutherDid}
-  ]}).sort({"hot_index":-1, "updatedAt":-1});
   
   return docs;
 }

@@ -9,7 +9,9 @@ const {
   getAssetPayDataFromTx
 } = require('../libs/transactions');
 const { createNewsflahAsset } = require('../libs/assets');
-const { utcToLocalTime } = require('../libs/time');
+const { 
+  utcToLocalTime
+} = require('../libs/time');
 
 const ForgeSDK = require('@arcblock/forge-sdk');
 const { fromJSON } = require('@arcblock/forge-wallet');
