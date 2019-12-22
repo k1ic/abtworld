@@ -1,5 +1,6 @@
 ﻿/* eslint-disable react/jsx-one-expression-per-line */
 import React, { Component } from 'react';
+import qs from 'querystring';
 import styled from 'styled-components';
 import useAsyncFn from 'react-use/lib/useAsyncFn';
 import useToggle from 'react-use/lib/useToggle';
@@ -373,10 +374,17 @@ class App extends Component {
     const location_hash = window.location.hash.slice(1);
     if(typeof(location_hash) != "undefined" && location_hash && location_hash.length > 0) {
       const hashArr = location_hash.split('?');
-      this.setState({news_type: hashArr[0]},()=>{
-        console.log('componentDidMount news_type=', this.state.news_type);        
+      const params = qs.parse(hashArr[0]);
+      if(params.type){
+        this.setState({
+          news_type: params.type
+        },()=>{
+          console.log('componentDidMount news_type=', this.state.news_type);        
+          this.fetchAppData();
+        });
+      }else{
         this.fetchAppData();
-      });
+      }
     }else{
       this.fetchAppData();
     }
@@ -429,7 +437,7 @@ class App extends Component {
       page_number: 1,
     },()=>{
       this.updateToPayValue();
-      window.location.hash = `#${value}`;
+      window.location.hash = `#type=${value}`;
       this.fetchNewsFlash();
     });
   }
