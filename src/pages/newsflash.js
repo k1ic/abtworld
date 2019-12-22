@@ -560,11 +560,7 @@ class App extends Component {
   
   /*send news button handler*/
   onSendNews = () => {
-    this.setState({
-      send_news_dialog_visible: false,
-    },()=>{
-      this.handleSendNews();
-    });
+    this.handleSendNews();
   }
 
   onNewsSendCommentMinnerNumberCfgChange = value => {
@@ -642,7 +638,6 @@ class App extends Component {
       
       if(news_to_chain_mode === 'direct'){
         this.setState({
-          send_news_dialog_visible: false,
           asset_did: asset_did,
           sending: true,
         });
@@ -677,6 +672,7 @@ class App extends Component {
             //console.log('add newsflash success with response=', result.response);
             if(news_type === 'test2'){
               this.setState({
+                send_news_dialog_visible: false,
                 news_title_to_send: '',
                 news_content_to_send: '',
                 toPay: 0,
@@ -1180,6 +1176,7 @@ class App extends Component {
   onPaymentSuccess = async result => {
     console.log('onPaymentSuccess');
     this.setState({
+      send_news_dialog_visible: false,
       news_title_to_send: '',
       news_content_to_send: '',
       toPay: 0,
@@ -1199,7 +1196,7 @@ class App extends Component {
       } catch (err) {
         // Do nothing
       }
-    }, 5000);
+    }, 8000);
   };
 
   render() {
@@ -1494,34 +1491,11 @@ class App extends Component {
              forceRender={true}
              width = {sendNewsDialogWinWidth}
             >
-              <div>
-                <span style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>添加标题</span>
-                <Checkbox checked={this.state.news_title_enabled} onChange={this.onNewsTitleCheckBoxChange}></Checkbox>
-              </div>
-              <div style={{ margin: '15px 0' }}/>
-              {(this.state.news_title_enabled) && (
-                <TextArea
-                  value={news_title_to_send}
-                  onChange={this.onNewsTitleToSendChange}
-                  placeholder={"请输入标题...("+news_title_max_length+"字以内)"}
-                  autoSize={{ minRows: 1, maxRows: 3 }}
-                  maxLength={news_title_max_length}
-                />
-              )}
-              <div style={{ margin: '5px 0' }}/>
-              <TextArea
-                value={news_content_to_send}
-                onChange={this.onNewsContentToSendChange}
-                placeholder={"请输入内容...("+news_content_max_length+"字以内)"}
-                autoSize={{ minRows: 3, maxRows: 10 }}
-                maxLength={news_content_max_length}
-              />
-              <div style={{ margin: '15px 0' }}/>
               <Text style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>发布节点</Text>
               <Select value={this.state.datachain_node_name_to_send} style={{ fontSize: '15px', color: '#000000', width: 120 }} onChange={this.onDatachainNodeToSendChange} className="antd-select">
                 {this.datachainsToSendSlecterChildren}
               </Select>
-              <div style={{ margin: '15px 0' }}/>
+              <div style={{ margin: '10px 0' }}/>
               {(news_type != 'test2') && (
                 <div>
                   {/*<Slider 
@@ -1589,7 +1563,30 @@ class App extends Component {
                   <span style={{ fontSize: '15px', color: '#000000' }}>个</span>
                 </div>
               )}
-              <div style={{ margin: '15px 0' }}/>
+              <div style={{ margin: '10px 0' }}/>
+              <div>
+                <span style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>添加标题</span>
+                <Checkbox checked={this.state.news_title_enabled} onChange={this.onNewsTitleCheckBoxChange}></Checkbox>
+              </div>
+              <div style={{ margin: '10px 0' }}/>
+              {(this.state.news_title_enabled) && (
+                <TextArea
+                  value={news_title_to_send}
+                  onChange={this.onNewsTitleToSendChange}
+                  placeholder={"请输入标题...("+news_title_max_length+"字以内)"}
+                  autoSize={{ minRows: 1, maxRows: 3 }}
+                  maxLength={news_title_max_length}
+                />
+              )}
+              <div style={{ margin: '5px 0' }}/>
+              <TextArea
+                value={news_content_to_send}
+                onChange={this.onNewsContentToSendChange}
+                placeholder={"请输入内容...("+news_content_max_length+"字以内)"}
+                autoSize={{ minRows: 3, maxRows: 10 }}
+                maxLength={news_content_max_length}
+              />
+              <div style={{ margin: '10px 0' }}/>
               <div align="left">
                 <Button
                   key="submit-cancel"
