@@ -97,6 +97,10 @@ var news_forward_minner_number_max = news_forward_minner_number_default;
 const posterWinWidth = 320;
 var share_news_pic_data = '';
 
+/*user slogan*/
+const share_news_user_slogan_len_max = 25;
+const share_news_user_slogan_dialog_width = 320;
+
 /*send permistion list*/
 const ama_send_perm_udid = [ 'z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo' ];
 
@@ -188,6 +192,8 @@ class App extends Component {
       minning: false,
       comment_input_visible: false,
       comment_to_send: '',
+      share_news_user_slogan_content: '不只是资讯，更让每一次分享，传递价值，倡导真实！',
+      share_news_user_slogan_input_visible: false,
       gen_share_news_visible: false,
       share_news_pic_visible: false,
       shared_btn_disabled: true,
@@ -764,6 +770,74 @@ class App extends Component {
     return forwardStatus;
   }
   
+  genShareNewsPoster = async () => {
+    this.setState({
+      gen_share_news_visible: true
+    }, async ()=>{
+      share_news_pic_data = '';
+          
+      await sleep(1000);
+          
+      //document.getElementById('shareNewsListItemContent').style.whiteSpace = 'pre-wrap';
+      //document.getElementById('shareNewsListItemContent').style.wordWrap = 'break-word';
+      //document.getElementById('shareNewsListItemContent').style.wordBreak = 'break-all';
+          
+      var shareContent = document.getElementById('shareNewsContent');
+      //shareContent.style.position = 'fixed';
+          
+      var canvas = document.createElement("canvas"); //创建一个canvas节点
+      var scale = 4; //定义任意放大倍数 支持小数
+      var width = shareContent.offsetWidth; //获取dom 宽度
+      var height = shareContent.offsetHeight; //获取dom 高度
+      canvas.width = width * scale; //定义canvas 宽度 * 缩放
+      canvas.height = height * scale; //定义canvas高度 *缩放
+      //canvas.getContext("2d").scale(scale,scale); //获取context,设置scale
+      var opts = {
+        scale: scale,
+        canvas:canvas, //自定义 canvas
+        logging: false,
+        width: width, //dom 原始宽度
+        height: height, //dom 原始高度
+        dpi: window.devicePixelRatio * 8,
+        letterRendering: true,
+        useCORS: true,
+        scrollX: 0,
+        scrollY: 0,
+      };
+
+      html2canvas(document.getElementById('shareNewsContent'), opts).then(function(canvas) {
+        share_news_pic_data = canvas.toDataURL("image/jpg");            
+      });
+    });
+        
+    /*wait share news pic ready*/
+    var wait_counter = 0;
+    while(share_news_pic_data.length == 0){
+      await sleep(1);
+      wait_counter++;
+      if(wait_counter > 15000){
+        break;
+      }
+    }
+    console.log('share news pic ready counter=', wait_counter);
+    if(share_news_pic_data.length > 0){
+      this.setState({
+        gen_share_news_visible: false,
+        share_news_pic_visible: true,
+        shared_btn_disabled: true,
+      }, ()=>{
+        let posterImage = document.getElementById("shareNewsPic");
+        posterImage.src = share_news_pic_data;
+      });
+    }else{
+      this.setState({
+        gen_share_news_visible: false
+      }, ()=>{
+      });
+      consolg.log('share news failure');
+    }
+  }
+  
   onListItemActionClick = async (action_type, asset_did) => {
     const { session, newsflash_list } = this.state;
     const { user, token } = session;
@@ -851,75 +925,9 @@ class App extends Component {
         this.share_news_items[0] = newsflashItem;
         
         this.setState({
-          gen_share_news_visible: true
+          share_news_user_slogan_input_visible: true
         }, async ()=>{
-          share_news_pic_data = '';
-          
-          await sleep(1000);
-          
-          //document.getElementById('shareNewsListItemContent').style.whiteSpace = 'pre-wrap';
-          //document.getElementById('shareNewsListItemContent').style.wordWrap = 'break-word';
-          //document.getElementById('shareNewsListItemContent').style.wordBreak = 'break-all';
-          
-          var shareContent = document.getElementById('shareNewsContent');
-          //shareContent.style.position = 'fixed';
-          
-          var canvas = document.createElement("canvas"); //创建一个canvas节点
-          var scale = 4; //定义任意放大倍数 支持小数
-          var width = shareContent.offsetWidth; //获取dom 宽度
-          var height = shareContent.offsetHeight; //获取dom 高度
-          canvas.width = width * scale; //定义canvas 宽度 * 缩放
-          canvas.height = height * scale; //定义canvas高度 *缩放
-          //canvas.getContext("2d").scale(scale,scale); //获取context,设置scale
-          var opts = {
-            scale: scale,
-            canvas:canvas, //自定义 canvas
-            logging: false,
-            width: width, //dom 原始宽度
-            height: height, //dom 原始高度
-            dpi: window.devicePixelRatio * 8,
-            letterRendering: true,
-            useCORS: true,
-            scrollX: 0,
-            scrollY: 0,
-          };
-
-          html2canvas(document.getElementById('shareNewsContent'), opts).then(function(canvas) {
-            share_news_pic_data = canvas.toDataURL("image/jpg");            
-          });
         });
-        
-        /*wait share news pic ready*/
-        var wait_counter = 0;
-        while(share_news_pic_data.length == 0){
-          await sleep(1);
-          wait_counter++;
-          if(wait_counter > 15000){
-            break;
-          }
-        }
-        console.log('share news pic ready counter=', wait_counter);
-        if(share_news_pic_data.length > 0){
-          this.setState({
-            gen_share_news_visible: false,
-            share_news_pic_visible: true,
-            shared_btn_disabled: true,
-          }, ()=>{
-            let posterImage = document.getElementById("shareNewsPic");
-            posterImage.src = share_news_pic_data;
-          });
-        }else{
-          this.setState({
-            gen_share_news_visible: false
-          }, ()=>{
-          });
-          consolg.log('share news failure');
-        }
-        
-        //html2canvas(document.getElementById(this.share_asset_did),{scale:1}).then(function(canvas) {
-        //  let posterImage = document.getElementById("shareNewsPic")
-        //  posterImage.src = canvas.toDataURL("image/jpg")
-        //});
         
         break;
       default:
@@ -1063,6 +1071,44 @@ class App extends Component {
       });
     }, 8000);
   }
+  
+ 
+  onShareNewsUserSloganChange = ({ target: { value } }) => {    
+    //console.log('onShareNewsUserSloganChange value='+value+' length='+value.length);
+    
+    this.setState({
+      share_news_user_slogan_content: value,
+    },()=>{
+    });
+  };
+  
+  handleShareNewsUserSloganInputOk = e => {
+    console.log('handleShareNewsUserSloganInputOk, asset_did=', this.share_asset_did);
+   
+    this.setState({
+      share_news_user_slogan_input_visible: false
+    },()=>{
+      this.setState({
+        gen_share_news_visible: true
+      }, async ()=>{
+        await this.genShareNewsPoster();
+      });
+    });
+  };
+  
+  handleShareNewsUserSloganInputCancel = e => {
+    console.log('handleShareNewsUserSloganInputCancel, asset_did=', this.share_asset_did);
+    
+    this.setState({
+      share_news_user_slogan_input_visible: false
+    },()=>{
+      this.setState({
+        gen_share_news_visible: true
+      }, async ()=>{
+        await this.genShareNewsPoster();
+      });
+    });
+  };
   
   handleGenShareNewsOk = e => {
     console.log('handleGenShareNewsOk, asset_did=', this.share_asset_did);
@@ -1695,6 +1741,27 @@ class App extends Component {
               />
             </Modal>
             <Modal
+             title="喊出你的口号"
+             closable={false}
+             visible={this.state.share_news_user_slogan_input_visible}
+             okText='确认'
+             onOk={this.handleShareNewsUserSloganInputOk}
+             onCancel={this.handleShareNewsUserSloganInputCancel}
+             okButtonProps={{ disabled: false }}
+             cancelButtonProps={{ disabled: true }}
+             destroyOnClose={true}
+             forceRender={true}
+             width = {share_news_user_slogan_dialog_width}
+            >
+              <TextArea
+                value={this.state.share_news_user_slogan_content}
+                onChange={this.onShareNewsUserSloganChange}
+                placeholder={""}
+                autoSize={{ minRows: 2, maxRows: 3 }}
+                maxLength={share_news_user_slogan_len_max}
+              />
+            </Modal>
+            <Modal
              style={{ top: 80 }}
              title={null}
              closable={false}
@@ -1758,7 +1825,7 @@ class App extends Component {
                 <div style={{ marginLeft: 10,  marginRight: 10 }}>
                   <QrCode value={"http://abtworld.cn/newsflash"} size={60} level={'M'} id="HashNewsQrCode" style={{ float: 'left', marginRight: 10 }} />
                   <span style={{fontSize: '13px', fontVariant: 'normal', color: '#000000', marginLeft: 0 }} >ArcBlock DID身份发布</span> <br/>
-                  <span style={{fontSize: '13px', fontVariant: 'normal', fontWeight: 600, color: '#000000' }} >不只是资讯，想要的资讯你说了算！</span> <br/>
+                  <span style={{fontSize: '13px', fontVariant: 'normal', fontWeight: 600, color: '#000000' }} >{this.state.share_news_user_slogan_content}</span> <br/>
                 </div>
               </div>
             </Modal>
