@@ -98,7 +98,7 @@ const posterWinWidth = 320;
 var share_news_pic_data = '';
 
 /*user slogan*/
-const share_news_user_slogan_len_max = 25;
+const share_news_user_slogan_len_max = 24;
 const share_news_user_slogan_dialog_width = 320;
 
 /*send permistion list*/
@@ -1752,6 +1752,11 @@ class App extends Component {
              destroyOnClose={true}
              forceRender={true}
              width = {share_news_user_slogan_dialog_width}
+             footer={[
+               <Button key="submit" type="primary" onClick={this.handleShareNewsUserSloganInputOk}>
+                 确认
+               </Button>
+             ]}
             >
               <TextArea
                 value={this.state.share_news_user_slogan_content}
