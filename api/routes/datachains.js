@@ -15,6 +15,64 @@ const newsflashAppWallet = fromJSON(newsflashWallet);
 const isProduction = process.env.NODE_ENV === 'production';
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
+async function forgeChainConnect(connId){
+  var doc = await Datachain.findOne({ chain_id: connId });
+  if(doc){
+    ForgeSDK.connect(doc.chain_host, {
+      chainId: doc.chain_id,
+      name: doc.chain_id
+    });
+    console.log(`connected to ${doc.name} chain host:${doc.chain_host} id: ${doc.chain_id}`);
+  }else{
+    console.log('forgeChainConnect invalid connId', connId);
+  }
+}
+
+async function listHashNewsAssets (cursor, size, connId){
+  var res = null;
+  if(cursor && cursor.length > 0){
+    res = await ForgeSDK.doRawQuery(`{
+        listAssets(ownerAddress: "${newsflashWallet.address}", paging: {size: ${size}}) {
+          assets {
+            address
+            genesisTime
+            data {
+              value
+            }
+          }
+          page {
+            cursor
+            next
+            total
+          }
+          code
+        }
+      }`, 
+      { conn: connId }
+    ); 
+  }else{
+    res = await ForgeSDK.doRawQuery(`{
+        listAssets(ownerAddress: "${newsflashWallet.address}", paging: {size: ${size}, cursor: "${cursor}"}) {
+          assets {
+            address
+            genesisTime
+            data {
+              value
+            }
+          }
+          page {
+            cursor
+            next
+            total
+          }
+          code
+        }
+      }`, 
+      { conn: connId }
+    ); 
+  }
+}
+
 async function getAccoutState(accoutAddr, connId){
   var res = null;
   //console.log('getAccoutState accoutAddr=', accoutAddr, 'connId=', connId);
@@ -158,17 +216,27 @@ async function getDatachainList(){
   return found_docs;
 }
 
-async function forgeChainConnect(connId){
-  var doc = await Datachain.findOne({ chain_id: connId });
-  if(doc){
-    ForgeSDK.connect(doc.chain_host, {
-      chainId: doc.chain_id,
-      name: doc.chain_id
-    });
-    console.log(`connected to ${doc.name} chain host:${doc.chain_host} id: ${doc.chain_id}`);
-  }else{
-    console.log('forgeChainConnect invalid connId', connId);
+
+async function apiListDatachaisAssets(params){
+  var datachainName = 'titanium';
+  var pagingCursor = '';
+  var pagingSize = 10;
+  var connId = env.assetChainId;
+  if(typeof(params.datachainName) != "undefined"){
+    datachainName = params.datachainName;
   }
+  if(typeof(params.pagingCursor) != "undefined"){
+    pagingCursor = params.pagingCursor;
+  }
+  if(typeof(params.pagingSize) != "undefined"){
+    pagingSize = params.pagingSize;
+  }
+  var doc = await Datachain.findOne({ name: datachainName });
+  if(doc){
+    connId = doc.chain_id;
+  }
+  var res = await listHashNewsAssets(pagingCursor, pagingSize, connId);
+  
 }
 
 module.exports = {

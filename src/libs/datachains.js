@@ -17,7 +17,7 @@ module.exports = [
   },
   {
     name: 'zinc',
-    chain_host: 'https://zinc.abtnetwork.io/api',
+    chain_host: 'https://zinc.network.arcblockio.cn/api',
     chain_id: 'zinc-2019-05-17',
   },
   {

@@ -14,9 +14,10 @@ async function datachainDbInit(){
     /*Import const datachain list to database*/
     console.log('[Start]Import const datachain list to database');
     for(var i=0;i<dataChainList.length;i++){
-      var doc = await Datachain.findOne({ chain_host: dataChainList[i].chain_host });
+      var doc = await Datachain.findOne({ name: dataChainList[i].name });
       if (doc) {
         doc.name = dataChainList[i].name;
+        doc.chain_host = dataChainList[i].chain_host;
         doc.chain_id = dataChainList[i].chain_id;
         await doc.save();
         //console.log('update datachain', doc);
