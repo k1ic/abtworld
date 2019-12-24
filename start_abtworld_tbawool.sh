@@ -25,6 +25,6 @@ pwd
 yarn start
 cd ../
 done
-cd ~/charging-block
-yarn start
+#cd ~/charging-block
+#yarn start
 cd ~/abtworld

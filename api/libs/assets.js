@@ -195,6 +195,36 @@ const getAssetGenesisHash = async (asset_addr, connId) => {
   return hash;
 }
 
+const getAssetMoniker = async (asset_addr, connId) => {
+  var res = null;
+  var moniker = null;
+  
+  //connect to chain
+  await forgeChainConnect(connId);
+  
+  //console.log('getAssetMoniker asset_addr=', asset_addr);
+  
+  res = await ForgeSDK.doRawQuery(`{
+      getAssetState(address: "${asset_addr}") {
+        code
+        state {
+          moniker
+        }
+      }
+    }`,
+    { conn: connId }
+  ); 
+  
+  if(res && res.getAssetState 
+    && res.getAssetState.code === 'OK' 
+    && res.getAssetState.state){
+    moniker = res.getAssetState.state.moniker;
+  }
+  
+  return moniker;
+}
+
+
 const listAssets= async (ower_did, pages, connId) => {
   var res = null;
   var assets = null;
@@ -230,5 +260,6 @@ const listAssets= async (ower_did, pages, connId) => {
 module.exports = {
   createNewsflahAsset,
   getAssetGenesisHash,
+  getAssetMoniker,
   listAssets,
 };

@@ -9,7 +9,12 @@ const { fromTokenToUnit, fromUnitToToken } = require('@arcblock/forge-util');
 const { fromAddress } = require('@arcblock/forge-wallet');
 const { fromSecretKey, WalletType } = require('@arcblock/forge-wallet');
 const env = require('../api/libs/env');
-const { getDatachainList, AddDatachainNode } = require('../api/routes/datachains');
+const { 
+  getDatachainList,
+  AddDatachainNode,
+  apiListChainAssets,
+  apiListChainTopAccounts,
+} = require('../api/routes/datachains');
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
 const type = WalletType({
@@ -201,6 +206,24 @@ async function forgeTxMemoTest(connId = defaultChainId){
     }
     forgeState = await getForgeState(defaultChainId);
     console.log('app default chain state', forgeState);
+    
+    /*List assets*/
+    var params = {};
+    var result = '';
+    //params = {chainName: 'titanium', pagingSize: 10};
+    //result = await apiListChainAssets(params);
+    //console.log('titanium chain assets=', result);
+    params = {chainName: 'zinc', pagingSize: 10};
+    result = await apiListChainAssets(params);
+    console.log('zinc chain assets=', result);
+    
+    /*list top accounts*/
+    //params = {chainName: 'titanium', pagingSize: 10};
+    //result = await apiListChainTopAccounts(params);
+    //console.log('titanium top accounts=', result);
+    params = {chainName: 'zinc', pagingSize: 10};
+    result = await apiListChainTopAccounts(params);
+    console.log('zinc top accounts=', result);
     
     /*Tx memo test*/
     //await forgeTxMemoTest();

@@ -1,10 +1,13 @@
-/* eslint-disable no-console */
+﻿/* eslint-disable no-console */
 require('dotenv').config();
 const mongoose = require('mongoose');
 const multiparty = require('multiparty');
 const ForgeSDK = require('@arcblock/forge-sdk');
 const { fromJSON } = require('@arcblock/forge-wallet');
+const { fromTokenToUnit, fromUnitToToken } = require('@arcblock/forge-util');
 const { wallet, newsflashWallet } = require('../libs/auth');
+const { utcToLocalTime } = require('../libs/time');
+const { getMonikerFragment } = require('../libs/user');
 
 const { Datachain } = require('../models');
 const env = require('../libs/env');
@@ -14,6 +17,14 @@ const newsflashAppWallet = fromJSON(newsflashWallet);
 
 const isProduction = process.env.NODE_ENV === 'production';
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
+
+const forgeTxDPointMaxNum = 6; /*The max decimal point is 6. The fromTokenToUnit API will failure when max then 6*/
+const forgeTxDPointMaxPow = Math.pow(10, forgeTxDPointMaxNum);
+
+function forgeTxValueSecureConvert(value){
+  /*convert the tx value base on max decimal pointer*/
+  return Math.floor((value)*forgeTxDPointMaxPow)/forgeTxDPointMaxPow; /*round down*/
+}
 
 async function forgeChainConnect(connId){
   var doc = await Datachain.findOne({ chain_id: connId });
@@ -28,8 +39,64 @@ async function forgeChainConnect(connId){
   }
 }
 
+async function getForgeState(connId) {
+  var res = null;
+  
+  //connect to chain
+  await forgeChainConnect(connId);
+  
+  //console.log('getForgeState asset_addr=', asset_addr);
+  
+  res = await ForgeSDK.doRawQuery(`{
+      getForgeState {
+        code
+        state {
+          token {
+            symbol
+            decimal
+          }
+        }
+      }
+    }`,
+    { conn: connId }
+  );
+  
+  return res;
+}
+
+async function getAssetState(asset_addr, connId){
+  var res = null;
+  
+  //connect to chain
+  await forgeChainConnect(connId);
+  
+  //console.log('getAssetState asset_addr=', asset_addr);
+  
+  res = await ForgeSDK.doRawQuery(`{
+      getAssetState(address: "${asset_addr}") {
+        state {
+          moniker
+          context {
+            genesisTx {
+              hash
+            }
+          }
+        }
+        code
+      }
+    }`,
+    { conn: connId }
+  );
+  
+  return res;
+}
+
 async function listHashNewsAssets (cursor, size, connId){
   var res = null;
+  
+  /*connect to chain*/
+  await forgeChainConnect(connId);
+  
   if(cursor && cursor.length > 0){
     res = await ForgeSDK.doRawQuery(`{
         listAssets(ownerAddress: "${newsflashWallet.address}", paging: {size: ${size}}) {
@@ -71,6 +138,119 @@ async function listHashNewsAssets (cursor, size, connId){
       { conn: connId }
     ); 
   }
+  
+  return res;
+}
+
+
+async function listAllAssets (cursor, size, connId){
+  var res = null;
+  
+  /*connect to chain*/
+  await forgeChainConnect(connId);
+  
+  if(cursor && cursor.length > 0){
+    res = await ForgeSDK.doRawQuery(`{
+        listTransactions(paging: {size: ${size}, cursor: "${cursor}"}, typeFilter: {types: "create_asset"}) {
+          code
+          page {
+            cursor
+            next
+            total
+          }
+          transactions {
+            code
+            hash
+            receiver
+            sender
+            time
+            type
+            valid
+          }
+        }
+      }`, 
+      { conn: connId }
+    ); 
+  }else{
+    res = await ForgeSDK.doRawQuery(`{
+        listTransactions(paging: {size: ${size}}, typeFilter: {types: "create_asset"}) {
+          code
+          page {
+            cursor
+            next
+            total
+          }
+          transactions {
+            code
+            hash
+            receiver
+            sender
+            time
+            type
+            valid
+          }
+        }
+      }`, 
+      { conn: connId }
+    ); 
+  }
+  
+  return res;
+}
+
+async function listTopAccounts (cursor, size, connId){
+  var res = null;
+  
+  /*connect to chain*/
+  await forgeChainConnect(connId);
+  
+  if(cursor && cursor.length > 0){
+    res = await ForgeSDK.doRawQuery(`{
+        listTopAccounts(paging: {size: ${size}, cursor: "${cursor}"}) {
+          accounts {
+            balance
+            numTxs
+            totalStakes
+            totalUnstakes
+            numAssets
+            moniker
+            address
+          }
+          code
+          page {
+            cursor
+            next
+            total
+          }
+        }
+      }`, 
+      { conn: connId }
+    ); 
+  }else{
+    res = await ForgeSDK.doRawQuery(`{
+        listTopAccounts(paging: {size: ${size}}) {
+          accounts {
+            balance
+            numTxs
+            totalStakes
+            totalUnstakes
+            numAssets
+            moniker
+            address
+          }
+          code
+          page {
+            cursor
+            next
+            total
+          }
+        }
+      }`, 
+      { conn: connId }
+    ); 
+  }
+  
+  return res;
 }
 
 async function getAccoutState(accoutAddr, connId){
@@ -217,13 +397,14 @@ async function getDatachainList(){
 }
 
 
-async function apiListDatachaisAssets(params){
-  var datachainName = 'titanium';
+async function apiListChainAssets(params){
+  var chainName = 'titanium';
   var pagingCursor = '';
   var pagingSize = 10;
+  var chainHost = env.assetChainHost;
   var connId = env.assetChainId;
-  if(typeof(params.datachainName) != "undefined"){
-    datachainName = params.datachainName;
+  if(typeof(params.chainName) != "undefined"){
+    chainName = params.chainName;
   }
   if(typeof(params.pagingCursor) != "undefined"){
     pagingCursor = params.pagingCursor;
@@ -231,12 +412,81 @@ async function apiListDatachaisAssets(params){
   if(typeof(params.pagingSize) != "undefined"){
     pagingSize = params.pagingSize;
   }
-  var doc = await Datachain.findOne({ name: datachainName });
+  var doc = await Datachain.findOne({ name: chainName });
   if(doc){
+    chainHost = doc.chain_host;
     connId = doc.chain_id;
   }
-  var res = await listHashNewsAssets(pagingCursor, pagingSize, connId);
-  
+  var res = await listAllAssets(pagingCursor, pagingSize, connId);
+  var resoult = null;
+  if(res && res.listTransactions && res.listTransactions.code === 'OK'){
+    resoult = {};
+    resoult.page = res.listTransactions.page;
+    resoult.assets = res.listTransactions.transactions;
+    
+    if(resoult.assets && resoult.assets.length > 0){
+      for(var i=0;i<resoult.assets.length;i++){
+        var assetRes = await getAssetState(resoult.assets[i].receiver, connId);
+        if(assetRes 
+          && assetRes.getAssetState 
+          && assetRes.getAssetState.code === 'OK' 
+          && assetRes.getAssetState.state){
+          resoult.assets[i].moniker = getMonikerFragment(assetRes.getAssetState.state.moniker);
+        }else{
+          resoult.assets[i].moniker = '';
+        }
+        resoult.assets[i].asset_link = chainHost.replace('/api', '/node/explorer/assets/')+resoult.assets[i].receiver;
+        resoult.assets[i].hash_link = chainHost.replace('/api', '/node/explorer/txs/')+resoult.assets[i].hash;
+        resoult.assets[i].time = utcToLocalTime(resoult.assets[i].time);
+      }
+    }
+  }
+  return resoult;
+}
+
+
+async function apiListChainTopAccounts(params){
+  var chainName = 'titanium';
+  var pagingCursor = '';
+  var pagingSize = 10;
+  var chainHost = env.assetChainHost;
+  var connId = env.assetChainId;
+  if(typeof(params.chainName) != "undefined"){
+    chainName = params.chainName;
+  }
+  if(typeof(params.pagingCursor) != "undefined"){
+    pagingCursor = params.pagingCursor;
+  }
+  if(typeof(params.pagingSize) != "undefined"){
+    pagingSize = params.pagingSize;
+  }
+  var doc = await Datachain.findOne({ name: chainName });
+  if(doc){
+    chainHost = doc.chain_host;
+    connId = doc.chain_id;
+  }
+  var res = await listTopAccounts(pagingCursor, pagingSize, connId);
+  var resoult = null;
+  if(res && res.listTopAccounts && res.listTopAccounts.code === 'OK'){
+    resoult = {};
+    resoult.page = res.listTopAccounts.page;
+    resoult.accounts = res.listTopAccounts.accounts;
+    
+    if(resoult.accounts && resoult.accounts.length > 0){
+      var forgeRes = await getForgeState(connId);
+      var token = {decimal: 16, symbol: 'TBA'};
+      if(forgeRes && forgeRes.getForgeState && forgeRes.getForgeState.code === 'OK'){
+        token = forgeRes.getForgeState.state.token;
+      }
+      for(var i=0;i<resoult.accounts.length;i++){
+        resoult.accounts[i].account_link = chainHost.replace('/api', '/node/explorer/accounts/')+resoult.accounts[i].address;
+        resoult.accounts[i].moniker = getMonikerFragment(resoult.accounts[i].moniker);
+        var balanceToken = parseFloat(fromUnitToToken(resoult.accounts[i].balance, token.decimal));
+        resoult.accounts[i].balance = String(forgeTxValueSecureConvert(balanceToken));
+      }
+    }
+  }
+  return resoult;
 }
 
 module.exports = {
@@ -247,17 +497,40 @@ module.exports = {
         var params = req.query;
         if(params){
           console.log('api.datachainsget params=', params);
-          const data_chain_name = req.query.data_chain_name;
-          if(typeof(data_chain_name) != "undefined"){
-            var dataChainList = [];
-            if(data_chain_name === 'all'){
-              dataChainList = await getDatachainList();
-            }else{
-              dataChainList = await getDatachainItem(data_chain_name);
-            }
-            if(dataChainList.length > 0){
-              res.json(dataChainList);
-              return;
+          const cmd = params.cmd;
+          if (typeof(cmd) != "undefined") {
+            switch(cmd){
+              case 'getChainNodes':
+                const data_chain_name = req.query.data_chain_name;
+                if(typeof(data_chain_name) != "undefined"){
+                  var dataChainList = [];
+                  if(data_chain_name === 'all'){
+                    dataChainList = await getDatachainList();
+                  }else{
+                    dataChainList = await getDatachainItem(data_chain_name);
+                  }
+                  if(dataChainList.length > 0){
+                    res.json(dataChainList);
+                    return;
+                  }
+                }
+                break;
+              case 'listAssets':
+                var assets = await apiListChainAssets(params);
+                if(assets){
+                  res.json(assets);
+                  return;
+                }
+                break;
+              case 'listTopsAccouts':
+                var accounts = await apiListChainTopAccounts(params);
+                if(accounts){
+                  res.json(accounts);
+                  return;
+                }
+                break;
+              default:
+                break;
             }
           }
         }
@@ -333,4 +606,6 @@ module.exports = {
   getDatachainList,
   forgeChainConnect,
   AddDatachainNode,
+  apiListChainAssets,
+  apiListChainTopAccounts,
 };

@@ -231,6 +231,7 @@ class App extends Component {
       url: '/api/datachainsget',
       method: 'get',
       data: {
+        cmd: 'getChainNodes',
         data_chain_name: 'all',
       },
       type: 'json',

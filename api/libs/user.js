@@ -25,6 +25,23 @@ const getUserDidFragment = userDid => {
   return did_fragment;
 };
 
+const getMonikerFragment = moniker => {
+  if (typeof(moniker) == "undefined" || !moniker || moniker.length == 0) {
+    return '';
+  }
+  
+  const moniker_len = moniker.length;
+  var moniker_fragment = '';
+  if(moniker_len > 7){
+    moniker_fragment = moniker.substring(0,3) + '*' + moniker.substring(moniker_len-3, moniker_len);
+  }else{
+    moniker_fragment = moniker;
+  }
+  
+  return moniker_fragment;
+};
+
 module.exports = {
   getUserDidFragment,
+  getMonikerFragment,
 };
