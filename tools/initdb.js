@@ -19,6 +19,8 @@ async function datachainDbInit(){
         doc.name = dataChainList[i].name;
         doc.chain_host = dataChainList[i].chain_host;
         doc.chain_id = dataChainList[i].chain_id;
+        doc.hot_index = dataChainList[i].hot_index;
+        doc.state = dataChainList[i].state;
         await doc.save();
         //console.log('update datachain', doc);
       }else{
@@ -26,6 +28,8 @@ async function datachainDbInit(){
           name: dataChainList[i].name,
           chain_host: dataChainList[i].chain_host,
           chain_id: dataChainList[i].chain_id,
+          hot_index: dataChainList[i].hot_index,
+          state: dataChainList[i].state,
           createdAt: Date(),
         });
         await doc_new.save();

@@ -373,11 +373,13 @@ async function getDatachainItem(data_chain_name){
 async function getDatachainList(){
   let found = 0;
   let found_docs = [];
-    
-  Datachain.find().exec(function(err, docs){
+  
+  Datachain.find().byState('online').exec(function(err, docs){
     if(docs && docs.length>0){
-      console.log('Found', docs.length, ' datachain docs');
+      console.log('Found', docs.length, 'datachain docs');
       found_docs = docs;
+    }else{
+      console.log('getDatachainList document not found!');
     }
     found = 1;
   });
@@ -469,15 +471,17 @@ async function apiListChainTopAccounts(params){
   var resoult = null;
   if(res && res.listTopAccounts && res.listTopAccounts.code === 'OK'){
     resoult = {};
+    
+    var forgeRes = await getForgeState(connId);
+    var token = {decimal: 16, symbol: 'TBA'};
+    if(forgeRes && forgeRes.getForgeState && forgeRes.getForgeState.code === 'OK'){
+      token = forgeRes.getForgeState.state.token;
+    }
+    resoult.token = token;
     resoult.page = res.listTopAccounts.page;
     resoult.accounts = res.listTopAccounts.accounts;
     
     if(resoult.accounts && resoult.accounts.length > 0){
-      var forgeRes = await getForgeState(connId);
-      var token = {decimal: 16, symbol: 'TBA'};
-      if(forgeRes && forgeRes.getForgeState && forgeRes.getForgeState.code === 'OK'){
-        token = forgeRes.getForgeState.state.token;
-      }
       for(var i=0;i<resoult.accounts.length;i++){
         resoult.accounts[i].account_link = chainHost.replace('/api', '/node/explorer/accounts/')+resoult.accounts[i].address;
         resoult.accounts[i].moniker = getMonikerFragment(resoult.accounts[i].moniker);

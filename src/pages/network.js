@@ -40,7 +40,7 @@ const chain_asset_page_size=10;
 const chain_account_page_size=20;
 
 const renderTabPaneList = (x) => (
-  <TabPane tab={x.name} key={x.name}>
+  <TabPane tab={x.name.substring(0,1).toUpperCase()+x.name.substring(1)} key={x.name}>
   </TabPane>
 );
 
@@ -126,7 +126,8 @@ class App extends Component {
     this.state = {
       session: null,
       datachains_list: [],
-      chain_name: 'titanium',
+      chain_name: 'zinc',
+      chain_token_symbol: '',
       chain_assets: [],
       chain_accounts: [],
       chain_assets_page_cursor: '',
@@ -234,6 +235,7 @@ class App extends Component {
       if(data){
         this.setState({
           accounts_loading: false,
+          chain_token_symbol: data.token.symbol,
           chain_accounts_page_cursor: data.page.cursor,
           chain_accounts_page_next: data.page.next,
           chain_accounts_page_total: data.page.total,
@@ -306,6 +308,7 @@ class App extends Component {
     
     this.setState({
       chain_name: value,
+      chain_token_symbol: '',
       chain_assets: [],
       chain_accounts: [],
       chain_assets_page_cursor: '',
@@ -343,6 +346,7 @@ class App extends Component {
     const {
       datachains_list, 
       chain_name,
+      chain_token_symbol,
       chain_assets,
       chain_accounts,
     } = this.state;
@@ -368,8 +372,11 @@ class App extends Component {
             title={()=>
               <div align="center">
                 <Typography component="h2" variant="h5" color="primary" style={{ fontSize: '16px'}}>
-                  Assets - {this.state.chain_assets_page_total}
+                  Assets
                 </Typography>
+                <div>
+                  Asset number: {this.state.chain_assets_page_total}
+                  </div>
               </div>
             }
             footer={() => 
@@ -389,8 +396,11 @@ class App extends Component {
             title={()=>
               <div align="center">
                 <Typography component="h2" variant="h5" color="primary" style={{ fontSize: '16px'}}>
-                  Top Accounts - {this.state.chain_accounts_page_total}
+                  Top {this.state.chain_token_symbol} Accounts
                 </Typography>
+                <div>
+                  Account number: {this.state.chain_accounts_page_total}
+                </div>
               </div>
             }
             footer={() => 
