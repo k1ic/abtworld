@@ -45,7 +45,7 @@ const genNewsFlashAsset = async (cdid, connId) => {
   console.log('genNewsFlashAsset newsflash_tx_memo.length=', JSON.stringify(newsflash_tx_memo).length);
 
   const asset = {
-    moniker: `hash_news_${cdid}`,
+    moniker: `资讯${cdid}`,
     readonly: true,
     transferrable: true,
     issuer: newsflashAppWallet.toAddress(),
