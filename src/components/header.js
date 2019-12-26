@@ -77,6 +77,9 @@ export default function Header() {
         <Typography href="/newsflash" component="a" variant="h6" color="inherit" className="text">
           资讯
         </Typography>
+        <Typography href="/network" component="a" variant="h6" color="inherit" className="text">
+          链网
+        </Typography>
         <Menu onClick={handleMoreClick} selectedKeys={[state.current]} mode="horizontal" theme="light" className="antd-menu" >
         <SubMenu
           title={
@@ -88,12 +91,12 @@ export default function Header() {
         >
           <Menu.ItemGroup title="">
           </Menu.ItemGroup>
-          <Menu.Item key="more:1"><a href={env.chainHost.replace('/api', '/node/explorer/txs')} target="_blank">资产链</a></Menu.Item>
-          <Menu.Item key="more:2"><a href="/network">应用链</a></Menu.Item>
-          <Menu.ItemGroup title="应用">
+          <Menu.Item key="more:1"><a href="/wools" target="_parent">薅羊毛</a></Menu.Item>
+          <Menu.Item key="more:2"><a href="/about" target="_parent">关于我们</a></Menu.Item>
+          {/*<Menu.Item key="more:1"><a href={env.chainHost.replace('/api', '/node/explorer/txs')} target="_blank">资产链</a></Menu.Item>*/}
+          {/*<Menu.ItemGroup title="应用">
             <Menu.Item key="more:3.1"><a href="/wools" target="_parent">薅羊毛</a></Menu.Item>
-          </Menu.ItemGroup>
-          <Menu.Item key="more:4"><a href="/about" target="_parent">关于我们</a></Menu.Item>
+          </Menu.ItemGroup>*/}
         </SubMenu>
        </Menu>
       </div>
