@@ -11,6 +11,7 @@ export const colors = {
   green: '#4cbbb9',
   red: '#FF7B8A',
   blue: '#4e6af6',
+  main: '#0066FF',
 };
 
 // A theme with custom primary and secondary color.
@@ -20,10 +21,12 @@ const theme = createMuiTheme({
   palette: {
     primary: { main: colors.green, contrastText: colors.white },
     secondary: { main: colors.red, contrastText: colors.white },
+    background: { background: colors.gray },
   },
   typography: {
     fontSize: 14,
     useNextVariants: true,
+    color: colors,
   },
   overrides: {
     MuiButton: {

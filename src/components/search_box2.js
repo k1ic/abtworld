@@ -5,7 +5,8 @@ import get from 'lodash/get';
 
 import { withRouter } from 'react-router-dom';
 import IconFa from '@arcblock/ux/lib/Icon';
-import {  
+import {
+  Select,
   Icon
 } from "antd";
 import AsyncComponent from '@arcblock/ux/lib/Async';
@@ -14,59 +15,75 @@ import forge from '../libs/forge';
 import { getExplorerUrl } from '../libs/util';
 import env from '../libs/env';
 
+const { Option } = Select;
 const AsyncSelect = AsyncComponent(() => import('react-select/lib/Async'));
 
 class SearchBox extends React.Component {
   state = {
     searching: false,
+    data: [],
+    value: undefined,
+    disabled: false,
   };
-
+  
   placeholder = {
     en: 'account/asset/swap/hash...',
     zh: '账户/资产/跨链/哈希...'
   };
-
-  render() {
-    const { history, ...rest } = this.props;
-    return (
-      <Container {...rest}>
-        <AsyncSelect
-          cacheOptions
-          isLoading={this.state.searching}
-          className="react-select-container"
-          classNamePrefix="react-select"
-          placeholder={this.placeholder.en}
-          noOptionsMessage={this.noOptionsMessage}
-          loadOptions={this.onLoadOptions}
-          onChange={this.onSelectSearch}
-        />
-        {/*<Icon type="search" style={{ fontSize: '22px' }} className="search-icon" />*/}
-      </Container>
-    );
+  
+  timeout = null;
+  
+  onSearchHandler = async (value) => {
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+      this.timeout = null;
+    }
+    
+    if(value && value.length > 0 && value != this.state.value){
+      this.setState({ value });
+      this.timeout = setTimeout(this.searchTimoutHandler, 2000);
+    }
   }
-
-  // prettier-ignore
-  noOptionsMessage = ({ inputValue }) => (inputValue ? (this.state.searching?'Loading':'Oops, nothing match found') : this.placeholder.en);
-
-  onSelectSearch = ({ value }, { action }) => {
-    //console.log('onSelectSearch', action, value);
-    if (action === 'select-option' && value) {
-      //this.props.history.push(value);
-      window.open(value,'_blank');
+  
+  searchTimoutHandler = async () => {
+    const searchKeyword = this.state.value;
+    if (searchKeyword && searchKeyword.length > 0) {
+      this.setState({ data: [] });
+      const data = await this.doSearch(searchKeyword);
+      this.setState({ data });
     }
   };
+
+  onChangeHanlder = value => {
+    window.open(value,'_blank');
+    //this.setState({ value });
+  };
   
-  onLoadOptions = async keyword => {
-    console.log('onLoadOptions keyword=', keyword);
-    if(keyword && keyword.length > 0){
-      if(this.state.searching){
-        return [];
-      }else{
-        return await this.doSearch(keyword);
-      }
-    }else{
-      return [];
-    }
+  onBlurHanlder = () => {
+    console.log('onBlurHanlder');
+  }
+
+  render() {
+    const options = this.state.data.map(d => <Option key={d.value}>{d.label}</Option>);
+    return (
+      <Select
+        showSearch
+        loading={this.state.searching}
+        disabled={this.state.searching}
+        value={this.state.value}
+        placeholder={this.placeholder.en}
+        style={this.props.style}
+        defaultActiveFirstOption={true}
+        showArrow={true}
+        filterOption={true}
+        onSearch={this.onSearchHandler}
+        onChange={this.onChangeHanlder}
+        onBlur={this.onBlurHanlder}
+        notFoundContent={null}
+      >
+        {options}
+      </Select>
+    );
   }
 
   doSearch = async keyword => {
@@ -176,59 +193,4 @@ SearchBox.propTypes = {
   history: PropTypes.object.isRequired,
 };
 
-const Container = styled.div`
-  flex-grow: 1;
-  flex-shrink: 0;
-  margin-left: 20px;
-  position: relative;
-  max-width: 480px;
-
-  .search-icon {
-    position: absolute;
-    right: 16px;
-    top: 8px;
-  }
-
-  .react-select__control {
-    border-radius: 20px;
-    padding-left: 8px;
-    background-color: ${props => props.theme.palette.background.default};
-    .react-select__indicators {
-      display: none;
-    }
-    .react-select__placeholder {
-      color: ${props => props.theme.typography.color.gray};
-    }
-    .react-select__input,
-    .react-select__single-value {
-      color: ${props => props.theme.typography.color.main};
-    }
-  }
-
-  .react-select__control--is-focused {
-    border-color: ${props => props.theme.typography.color.main};
-    box-shadow: 0 0 0 0 transparent;
-
-    &:hover {
-      border-color: ${props => props.theme.typography.color.main};
-    }
-  }
-
-  .react-select__menu {
-    background-color: ${props => props.theme.palette.background.default};
-    color: ${props => props.theme.typography.color.main};
-    text-align: left;
-
-    .react-select__option,
-    .react-select__option--is-disabled {
-      text-align: left;
-    }
-
-    .react-select__option--is-focused,
-    .react-select__control--is-selected {
-      background-color: ${props => props.theme.palette.primary.main};
-    }
-  }
-`;
-
-export default withRouter(SearchBox);
+export default SearchBox;

@@ -1,5 +1,7 @@
 ﻿/* eslint-disable react/jsx-one-expression-per-line */
 import React, { Component } from 'react';
+import { Route, Router } from 'react-router-dom';
+import { createMemoryHistory } from 'history';
 import qs from 'querystring';
 import styled from 'styled-components';
 import useAsyncFn from 'react-use/lib/useAsyncFn';
@@ -25,11 +27,14 @@ import 'antd/dist/antd.css';
 import Auth from '@arcblock/did-react/lib/Auth';
 
 import Layout from '../components/layout';
+import SearchBox from '../components/search_box2';
 import useSession from '../hooks/session';
+import theme from '../libs/theme';
 import forge from '../libs/sdk';
 import api from '../libs/api';
 import { getUserDidFragment } from '../libs/user';
 
+const history = createMemoryHistory();
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
 const { TabPane } = Tabs;
@@ -353,6 +358,20 @@ class App extends Component {
     return (
       <Layout title="Network">
         <Main>
+          <div>
+            <div style={{ float: 'left', width: '20%', fontSize: '16px', color: '#000000', marginTop: 5, marginRight: 0}}>
+              全网搜索
+            </div>
+            <div>
+              <SearchBox history={history} theme={theme} chains={datachains_list} style={{ width: '80%' }}/>
+            </div>
+            {/*<div>
+              <Router history={history}>
+                <SearchBox history={history} theme={theme} chains={datachains_list}/>
+              </Router>
+            </div>*/}
+          </div>
+          <div style={{ margin: '20px 0' }}/>
           <Tabs activeKey={chain_name} 
             onChange={this.handleChainNameChange}
             type="card"
@@ -422,6 +441,18 @@ class App extends Component {
 
 const Main = styled.main`
   margin: 20px 0 0;
+  
+  .nav-left {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  
+  .nav-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
   
 `;
 

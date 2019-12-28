@@ -39,6 +39,37 @@ async function forgeChainConnect(connId){
   }
 }
 
+async function doRawQuery(params){
+  var res = {};
+  
+  if(typeof(params.queryCmd) == "undefined"){
+    return res;
+  }
+  const queryCmd = params.queryCmd;
+  
+  var chainName = 'titanium';
+  var chainHost = env.assetChainHost;
+  var connId = env.assetChainId;
+  if(typeof(params.chainName) != "undefined"){
+    chainName = params.chainName;
+  }
+  var doc = await Datachain.findOne({ name: chainName });
+  if(doc){
+    chainHost = doc.chain_host;
+    connId = doc.chain_id;
+  }
+  
+  //connect to chain
+  await forgeChainConnect(connId);
+  
+  res = await ForgeSDK.doRawQuery(
+    queryCmd,
+    { conn: connId }
+  );
+  
+  return res;
+}
+
 async function getForgeState(connId) {
   var res = null;
   
@@ -531,6 +562,15 @@ module.exports = {
                 if(accounts){
                   res.json(accounts);
                   return;
+                }
+                break;
+              case 'doRawQuery':
+                try {
+                  var rawRes = await doRawQuery(params);
+                  res.json(rawRes);
+                  return;
+                } catch (err) {
+                  //console.error('doRawQuery error', err);
                 }
                 break;
               default:
