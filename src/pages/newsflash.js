@@ -104,6 +104,12 @@ const share_news_user_slogan_dialog_width = 320;
 /*send permistion list*/
 const ama_send_perm_udid = [ 'z1ZLeHSJfan2WB1vSnG7CS8whxBagCoHiHo' ];
 
+function getBase64(img, callback) {
+  const reader = new FileReader();
+  reader.addEventListener('load', () => callback(reader.result));
+  reader.readAsDataURL(img);
+}
+
 const limit0Decimals = (value) => {
   const reg = /^(\-)*(\d+)\.().*$/;
   //console.log(value);
@@ -169,6 +175,10 @@ class App extends Component {
       news_type: news_type_default,
       news_title_to_send: '',
       news_content_to_send: '',
+      news_image_file_list: [],
+      news_image_url: null,
+      news_image_preview_visible: false,
+      news_image_preview_image: "",
       sendAffixOffsetTop: 0,
       toPay: 0,
       send_news_dialog_visible: false,
@@ -424,7 +434,7 @@ class App extends Component {
       newsLength += news_content_to_send.length;
     }
     
-    if(news_type != 'test2' && newsLength > 0){
+    if(news_type != 'test2' && news_type != 'articles' && newsLength > 0){
       toPay = forgeTxValueSecureConvert((toPayEachChar*news_to_send_weight)*newsLength);
     }
     this.setState({
@@ -436,17 +446,34 @@ class App extends Component {
   handleNewsTypeChange = value => {    
     console.log('handleNewsTypeChange value=', value);
     
-    this.setState({
-      news_type: value,
-      newsflash_list: [],
-      loading: false,
-      more_to_load: true,
-      page_number: 1,
-    },()=>{
-      this.updateToPayValue();
-      window.location.hash = `#type=${value}`;
-      this.fetchNewsFlash();
-    });
+    if(value === 'test2' || value === 'articles'){
+      this.setState({
+        news_type: value,
+        newsflash_list: [],
+        loading: false,
+        more_to_load: true,
+        page_number: 1,
+        news_title_enabled: true,
+      },()=>{
+        this.updateToPayValue();
+        window.location.hash = `#type=${value}`;
+        this.fetchNewsFlash();
+      });
+    }else{
+      this.setState({
+        news_type: value,
+        newsflash_list: [],
+        loading: false,
+        more_to_load: true,
+        page_number: 1,
+        news_title_enabled: false,
+        news_title_to_send: '',
+      },()=>{
+        this.updateToPayValue();
+        window.location.hash = `#type=${value}`;
+        this.fetchNewsFlash();
+      });
+    }
   }
   
   onDatachainNodeToViewChange = value => {
@@ -560,6 +587,55 @@ class App extends Component {
     });
   };
   
+  onNewsImageUploadChange = ({ fileList }) => {
+    console.log('onNewsImageUploadChange fileList.length=', fileList.length);
+    
+    /*filter out invalid picture*/
+    for(var i=0;i<fileList.length;i++){
+      const file = fileList[i];
+      const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+      if (!isJpgOrPng) {
+        Modal.error({title: '只能添加JPG/PNG图片!'});
+        
+        const index = fileList.indexOf(file);
+        const newFileList = fileList.slice();
+        newFileList.splice(index, 1);
+        fileList = newFileList;
+      }else{
+        const isLt1M = file.size / 1024 / 1024 < 1;
+        if (!isLt1M) {
+          Modal.error({title: '图片大小需小于1MB!'});
+        
+          const index = fileList.indexOf(file);
+          const newFileList = fileList.slice();
+          newFileList.splice(index, 1);
+          fileList = newFileList;
+        }
+      }
+    }
+    
+    if(fileList && fileList.length >= 1){
+      getBase64(fileList[0].originFileObj, image =>
+        this.setState({
+          news_image_url: image,
+        })
+      );
+    }
+    
+    this.setState({ 
+      news_image_file_list: fileList,
+    });
+  };
+  
+  onNewsImagePreviewCancel = () => this.setState({ news_image_preview_visible: false });
+ 
+  onNewsImagePreview = file => {
+    this.setState({
+      news_image_preview_image: file.url || file.thumbUrl,
+      news_image_preview_visible: true
+    });
+  };
+  
   onCommentToSendChange = ({ target: { value } }) => {
     //console.log('onCommentToSendChange value='+value+' length='+value.length);
     this.setState({ comment_to_send: value });
@@ -652,7 +728,7 @@ class App extends Component {
         const formData = new FormData();
         
         formData.append('user', JSON.stringify(user));
-        if(news_type === 'test2'){
+        if(news_type === 'test2' || news_type === 'articles'){
           formData.append('cmd', 'create_asset_on_chain');
           this.setState({
             asset_sending: true,
@@ -677,7 +753,7 @@ class App extends Component {
           data: formData,
           success: (result) => {
             //console.log('add newsflash success with response=', result.response);
-            if(news_type === 'test2'){
+            if(news_type === 'test2' || news_type === 'articles'){
               this.setState({
                 send_news_dialog_visible: false,
                 news_title_to_send: '',
@@ -711,7 +787,7 @@ class App extends Component {
           },
           error: (result) => {
             console.log('add newsflash error with response=', result.response);
-            if(news_type === 'test2'){
+            if(news_type === 'test2' || news_type === 'articles'){
               this.setState({
                 asset_sending: false,
               });
@@ -1253,6 +1329,10 @@ class App extends Component {
       news_to_send_weight,
       news_title_to_send, 
       news_content_to_send,
+      news_image_file_list,
+      news_image_url,
+      news_image_preview_visible,
+      news_image_preview_image,
       sendAffixOffsetTop,
       comment_to_send,
       toPay, 
@@ -1320,7 +1400,11 @@ class App extends Component {
     }
     
     if(news_to_chain_mode === 'indirect'){
-      news_content_max_length = 1000;
+      if(news_type === 'test2' || news_type === 'articles'){
+        news_content_max_length = 10000;
+      }else{
+        news_content_max_length = 1000;
+      }
     }else{
       news_content_max_length = 100;
     }
@@ -1391,6 +1475,33 @@ class App extends Component {
     //    list_action_show = true;
     //  }
     //}
+    
+    const newsImageUploadprops = {
+      onRemove: (file) => {
+        this.setState(({ news_image_file_list }) => {
+          const index = news_image_file_list.indexOf(file);
+          const newFileList = news_image_file_list.slice();
+          newFileList.splice(index, 1);
+          return {
+            news_image_file_list: newFileList,
+          };
+        });
+      },
+      beforeUpload: (file) => {
+        return false;
+      },
+      fileList: this.state.news_image_file_list,
+      listType:"picture-card",
+      onPreview: this.onNewsImagePreview,
+      onChange: this.onNewsImageUploadChange,
+    }
+    
+    const newsImageUploadButton = (
+      <div>
+        <Icon type="plus" />
+        <div className="ant-upload-text">添加配图</div>
+      </div>
+    );
     
     return (
       <Layout title="HashNews">
@@ -1542,9 +1653,8 @@ class App extends Component {
               <Select value={this.state.datachain_node_name_to_send} style={{ fontSize: '15px', color: '#000000', width: 120 }} onChange={this.onDatachainNodeToSendChange} className="antd-select">
                 {this.datachainsToSendSlecterChildren}
               </Select>
-              <div style={{ margin: '10px 0' }}/>
-              {(news_type != 'test2') && (
-                <div>
+              {(news_type != 'test2') && (news_type != 'articles') && (
+                <div style={{ margin: '10px 0' }}>
                   {/*<Slider 
                     defaultValue={this.state.news_to_send_weight} 
                     value={typeof this.state.news_to_send_weight === 'number' ? this.state.news_to_send_weight : 1}
@@ -1568,7 +1678,7 @@ class App extends Component {
                   <br/>
                 </div>
               )}
-              {(news_type != 'test2' && news_to_send_weight > 1) && (
+              {(news_type != 'test2' && news_type != 'articles' && news_to_send_weight > 1) && (
                 <div>
                   <span style={{ fontSize: '15px', color: '#000000' }}>点赞挖矿</span>
                   <InputNumber
@@ -1610,31 +1720,41 @@ class App extends Component {
                   <span style={{ fontSize: '15px', color: '#000000' }}>个</span>
                 </div>
               )}
-              <div style={{ margin: '10px 0' }}/>
-              <div>
-                <span style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>添加标题</span>
-                <Checkbox checked={this.state.news_title_enabled} onChange={this.onNewsTitleCheckBoxChange}></Checkbox>
-              </div>
-              <div style={{ margin: '10px 0' }}/>
-              {(this.state.news_title_enabled) && (
-                <TextArea
-                  value={news_title_to_send}
-                  onChange={this.onNewsTitleToSendChange}
-                  placeholder={"请输入标题...("+news_title_max_length+"字以内)"}
-                  autoSize={{ minRows: 1, maxRows: 3 }}
-                  maxLength={news_title_max_length}
-                />
+              {(news_type != 'test2') && (news_type != 'articles') && (
+                <div style={{ margin: '10px 0' }}>
+                  <span style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>添加标题</span>
+                  <Checkbox checked={this.state.news_title_enabled} onChange={this.onNewsTitleCheckBoxChange}></Checkbox>
+                </div>
               )}
-              <div style={{ margin: '5px 0' }}/>
-              <TextArea
-                value={news_content_to_send}
-                onChange={this.onNewsContentToSendChange}
-                placeholder={"请输入内容...("+news_content_max_length+"字以内)"}
-                autoSize={{ minRows: 3, maxRows: 10 }}
-                maxLength={news_content_max_length}
-              />
-              <div style={{ margin: '10px 0' }}/>
-              <div align="left">
+              {((this.state.news_title_enabled) || (news_type === 'test2') || (news_type === 'articles')) && (
+                <div style={{ margin: '10px 0' }}>
+                  <TextArea
+                    value={news_title_to_send}
+                    onChange={this.onNewsTitleToSendChange}
+                    placeholder={"请输入标题...("+news_title_max_length+"字以内)"}
+                    autoSize={{ minRows: 1, maxRows: 3 }}
+                    maxLength={news_title_max_length}
+                  />
+                </div>
+              )}
+              <div style={{ margin: '5px 0' }}>
+                <TextArea
+                  value={news_content_to_send}
+                  onChange={this.onNewsContentToSendChange}
+                  placeholder={"请输入内容...("+news_content_max_length+"字以内)"}
+                  autoSize={{ minRows: 3, maxRows: 10 }}
+                  maxLength={news_content_max_length}
+                />
+              </div>
+              {((news_type === 'test2') || (news_type === 'articles')) && (
+                <div style={{ margin: '10px 0' }}>
+                  <Upload{...newsImageUploadprops}           
+                  >
+                    {news_image_file_list.length >= 1 ? null : newsImageUploadButton}
+                  </Upload>
+                </div>
+              )}
+              <div align="left" style={{ margin: '10px 0' }}>
                 <Button
                   key="submit-cancel"
                   onClick={this.handleSendNewsDialogCancel}
@@ -1643,13 +1763,16 @@ class App extends Component {
                 >
                   取消
                 </Button>
-                {(news_type === 'test2')
+                {(news_type === 'test2' || news_type === 'articles')
                 ?
                 <Button
                   key="submit-ok"
                   type="primary"
                   onClick={this.onSendNews}
-                  disabled={news_content_to_send === '' || (news_content_to_send && news_content_to_send.length < 6)}
+                  disabled={
+                       (news_title_to_send === '' || (news_title_to_send && news_title_to_send.length < 6))
+                    || (news_content_to_send === '' || (news_content_to_send && news_content_to_send.length < 500))
+                  }
                   loading={asset_sending}
                   style={{ fontSize: '15px'}}
                   className="antd-button-send"
@@ -1670,6 +1793,13 @@ class App extends Component {
                 </Button>
                 }
               </div>
+            </Modal>
+            <Modal
+              visible={news_image_preview_visible}
+              footer={null}
+              onCancel={this.onNewsImagePreviewCancel}
+            >
+              <img alt="picture" style={{ width: "100%" }} src={news_image_preview_image} />
             </Modal>
             <Modal
              title="发布参数配置"

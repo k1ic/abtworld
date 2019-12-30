@@ -47,7 +47,7 @@ module.exports = [
     chain_host: 'https://test.abtnetwork.io/api',
     chain_id: 'test-2048-05-15',
     hot_index: 94,
-    state: 'online',
+    state: 'offline',
   },
 ];
 
