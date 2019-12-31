@@ -8,6 +8,14 @@ const {
   fetchForgeTransactions,
   getAssetPayDataFromTx
 } = require('../libs/transactions');
+const {
+  UserPaymentBaseDirGet,
+  UserPaymentDirInit,
+  Base64ImageDataToFile,
+  ThumbImageGen,
+  ImageCrop,
+  ImageFileRemove
+}  = require('../libs/image');
 const { createNewsflahAsset } = require('../libs/assets');
 const { 
   utcToLocalTime
@@ -141,10 +149,15 @@ async function NewsflashCreateAssetOnChain(fields){
     || typeof(fields.asset_did) == "undefined"
     || typeof(fields.news_type) == "undefined"
     || typeof(fields.news_title) == "undefined"
-    || typeof(fields.news_content) == "undefined"){
+    || typeof(fields.news_content) == "undefined"
+    || typeof(fields.news_image_url) == "undefined"
+    || typeof(fields.news_article_worth) == "undefined"){
     console.log('NewsflashCreateAssetOnChain invalid fields');
     return false;
   }
+  
+  const user = JSON.parse(fields.user[0]);
+  const imageUrl = JSON.parse(fields.news_image_url[0]);
   
   var data_chain_name = env.assetChainName;
   var data_chain_host = env.assetChainHost;
@@ -167,6 +180,14 @@ async function NewsflashCreateAssetOnChain(fields){
   //data_chain_host = 'https://argon.abtnetwork.io/api';
   //data_chain_id = 'argon-2019-11-07';
   
+  //image to user dir
+  Base64ImageDataToFile(imageUrl, UserPaymentBaseDirGet(user.did)+'/article_image.jpg');
+  //article image resize for chain asset size requirements (<64KB)
+  //const base64CropImageData = await ImageCrop(UserPaymentBaseDirGet(user.did)+'/article_image.jpg', 
+  //  UserPaymentBaseDirGet(user.did)+'/article_image_crop.jpg', 312, 130, 0, 0);
+  const base64SmallImageData = await ThumbImageGen(UserPaymentBaseDirGet(user.did)+'/article_image.jpg', 
+    UserPaymentBaseDirGet(user.did)+'/article_image_small.jpg', 312, 130, 70);
+  
   var doc = await Newsflash.findOne({ content_did: fields.asset_did[0] });
   if(doc){
     if(doc.state != 'commit'){
@@ -185,11 +206,12 @@ async function NewsflashCreateAssetOnChain(fields){
       doc.news_type = fields.news_type[0];
       doc.news_title = fields.news_title[0];
       doc.news_content = fields.news_content[0];
+      doc.news_article_worth = forgeTxValueSecureConvert(parseFloat(fields.news_article_worth[0]));
+      doc.news_images[0] = base64SmallImageData;
       await doc.save();
     }
   }else{    
     /*save newsflash to db when not exist*/
-    const user = JSON.parse(fields.user[0]);
     var new_doc = new Newsflash({
       data_chain_nodes: [{name: data_chain_name, chain_host: data_chain_host, chain_id: data_chain_id}],
       asset_did: fields.asset_did[0],
@@ -201,6 +223,8 @@ async function NewsflashCreateAssetOnChain(fields){
       news_type: fields.news_type[0],
       news_title: fields.news_title[0],
       news_content: fields.news_content[0],
+      news_article_worth: forgeTxValueSecureConvert(parseFloat(fields.news_article_worth[0])),
+      news_images: [base64SmallImageData],
       state: 'commit',
       minner_state: 'idle',
       createdAt: Date(),
@@ -706,8 +730,11 @@ async function getNewsForShow(module_para){
       temp_doc['sender'] = getUserDidFragment(e.author_did);
       temp_doc['hash'] = e.news_hash;
       temp_doc['href'] = e.hash_href[0];
+      temp_doc['news_type'] = e.news_type;
       temp_doc['news_title'] = e.news_title;
       temp_doc['news_content'] = e.news_content;
+      temp_doc['news_images'] = e.news_images;
+      temp_doc['news_article_worth'] = e.news_article_worth;
       temp_doc['weights'] = e.news_weights;
       temp_doc['asset_did'] = e.asset_did;
       temp_doc['uname'] = e.author_name;
@@ -788,27 +815,40 @@ module.exports = {
         var params = req.query;
         if(params){
           console.log('api.newsflashget params=', params);
-          const dapp_module = req.query.module;
-          const page = req.query.page;
-          const count = req.query.count;
-          var module_para = null;
-          if(typeof(page) != "undefined" &&  typeof(count) != "undefined"){
-            module_para = {
-              data_chain_name: req.query.data_chain_name,
-              news_type: req.query.news_type, 
-              udid: req.query.udid, 
-              udid_to_show: req.query.udid_to_show,
-              slice_start: (parseInt(page)-1)*parseInt(count), 
-              slice_end: (parseInt(page)-1)*parseInt(count)+parseInt(count),
-            };
-          }else{
-            module_para = {data_chain_name: 'default',news_type: req.query.news_type, udid: req.query.udid, udid_to_show: req.query.udid_to_show, slice_start: 0, slice_end: 500};
-          }
-          const news = await getNewsForShow(module_para);
-          if(news && news.length > 0){
-            console.log('api.newsflashget.ok - news.length', news.length);
-            res.json(news);
-            return;
+          const cmd = req.query.cmd;
+          switch(cmd){
+            case 'getNewsList':
+              const dapp_module = req.query.module;
+              const page = req.query.page;
+              const count = req.query.count;
+              var module_para = null;
+              if(typeof(page) != "undefined" &&  typeof(count) != "undefined"){
+                module_para = {
+                  data_chain_name: req.query.data_chain_name,
+                  news_type: req.query.news_type, 
+                  udid: req.query.udid, 
+                  udid_to_show: req.query.udid_to_show,
+                  slice_start: (parseInt(page)-1)*parseInt(count), 
+                  slice_end: (parseInt(page)-1)*parseInt(count)+parseInt(count),
+               };
+              }else{
+                module_para = {data_chain_name: 'default',news_type: req.query.news_type, udid: req.query.udid, udid_to_show: req.query.udid_to_show, slice_start: 0, slice_end: 500};
+              }
+              const news = await getNewsForShow(module_para);
+              if(news && news.length > 0){
+                console.log('api.newsflashget.ok - news.length', news.length);
+                res.json(news);
+                return;
+              }
+              break;
+            case 'getNewsItem':
+              const asset_did = req.query.asset_did;
+              var doc = await Newsflash.findOne({ asset_did: asset_did });
+              if(doc){
+                res.json(doc);
+                return;
+              }
+              break;
           }
         }
         res.json(null);

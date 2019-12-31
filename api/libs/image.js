@@ -123,13 +123,13 @@ function FileToBase64Image(strFile) {
   return base64Image;
 }
 
-async function ThumbImageGen(strSrcFile, strThumbFile, thumbWide, thumbHeigh){
+async function ThumbImageGen(strSrcFile, strThumbFile, thumbWide, thumbHeigh, quality=100){
   console.log('ThumbImageGen ' + strSrcFile + ' ' + strThumbFile + ' ' + thumbWide + ' ' + thumbHeigh);
   return new Promise((resolve, reject) => {
     gm(strSrcFile)
       .resize(thumbWide,thumbHeigh, '!')
       .setFormat('JPEG')
-      .quality(100)
+      .quality(quality)
       .strip()
       .autoOrient()
       .write(strThumbFile, function(err){
@@ -139,6 +139,28 @@ async function ThumbImageGen(strSrcFile, strThumbFile, thumbWide, thumbHeigh){
         }else{
           console.log("resize success");
           const data = FileToBase64ImageData(strThumbFile);
+          resolve(data);
+        }
+      });
+  });
+}
+
+async function ImageCrop(strSrcFile, strTgtFile, cropWide, cropHeigh, startX, startY){
+  console.log('ImageCrop ' + strSrcFile + ' ' + strTgtFile + ' ' + cropWide + ' ' + cropHeigh);
+  return new Promise((resolve, reject) => {
+    gm(strSrcFile)
+      .crop(cropWide, cropHeigh, startX, startY)
+      .setFormat('JPEG')
+      .quality(100)
+      .strip()
+      .autoOrient()
+      .write(strTgtFile, function(err){
+        if(err){
+          console.log("crop error: " + err);
+          resolve('');
+        }else{
+          console.log("crop success");
+          const data = FileToBase64ImageData(strTgtFile);
           resolve(data);
         }
       });
@@ -164,6 +186,7 @@ async function ImageFileRemove(strPath){
 module.exports = {
   Base64ImageDataToFile,
   ThumbImageGen,
+  ImageCrop,
   UserPaymentBaseDirGet,
   UserPaymentHdDirGet,
   UserPaymentThumbDirGet,

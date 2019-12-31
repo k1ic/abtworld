@@ -291,6 +291,7 @@ async function newsflashDappDbSync(){
             doc.news_time = asset_local_time;
             doc.news_type = memo.para.type;
             doc.news_content = memo.para.content;
+            doc.news_images = memo.para.images;
             doc.hash_href[0] = env.chainHost.replace('/api', '/node/explorer/txs/')+asset_hash;
             doc.data_chain_nodes[0] = {name: env.chainName, chain_host: env.chainHost, chain_id: env.chainId};
             doc.markModified('data_chain_nodes');
@@ -308,6 +309,7 @@ async function newsflashDappDbSync(){
               news_time: asset_local_time,
               news_type: memo.para.type,
               news_content: memo.para.content,
+              news_images: memo.para.images,
               hash_href: [env.chainHost.replace('/api', '/node/explorer/txs/')+asset_hash],
               state: 'chained',
               minner_state: 'idle',
@@ -369,6 +371,7 @@ async function newsflashDappDbSync(){
               doc.news_time = asset_local_time;
               doc.news_type = memo.para.type;
               doc.news_content = memo.para.content;
+              doc.news_images = memo.para.images;
               if(doc.hash_href.length > 0){
                 const hash_href = dataChainList[i].chain_host.replace('/api', '/node/explorer/txs/')+asset_hash;
                 if(-1 == doc.hash_href.indexOf(hash_href)){
@@ -391,6 +394,7 @@ async function newsflashDappDbSync(){
                 news_time: asset_local_time,
                 news_type: memo.para.type,
                 news_content: memo.para.content,
+                news_images: memo.para.images,
                 hash_href: [dataChainList[i].chain_host.replace('/api', '/node/explorer/txs/')+asset_hash],
                 state: 'chained',
                 minner_state: 'idle',

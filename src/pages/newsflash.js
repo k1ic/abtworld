@@ -110,6 +110,68 @@ function getBase64(img, callback) {
   reader.readAsDataURL(img);
 }
 
+function formatNumber(value) {
+  value += '';
+  const list = value.split('.');
+  const prefix = list[0].charAt(0) === '-' ? '-' : '';
+  let num = prefix ? list[0].slice(1) : list[0];
+  let result = '';
+  while (num.length > 3) {
+    result = `,${num.slice(-3)}${result}`;
+    num = num.slice(0, num.length - 3);
+  }
+  if (num) {
+    result = num + result;
+  }
+  return `${prefix}${result}${list[1] ? `.${list[1]}` : ''}`;
+}
+
+class NumericInput extends React.Component {
+  onChange = e => {
+    const { value } = e.target;
+    const reg = /^-?(0|[1-9][0-9]*)(\.[0-9]*)?$/;
+    if ((!isNaN(value) && reg.test(value)) || value === '' || value === '-') {
+      this.props.onChange(value);
+    }
+  };
+
+  // '.' at the end or only '-' in the input box.
+  onBlur = () => {
+    const { value, onBlur, onChange } = this.props;
+    if (value.charAt(value.length - 1) === '.' || value === '-') {
+      onChange(value.slice(0, -1));
+    }
+    if (onBlur) {
+      onBlur();
+    }
+  };
+
+  render() {
+    const { value } = this.props;
+    const title = value ? (
+      <span className="numeric-input-title">{value !== '-' ? formatNumber(value) : '-'}</span>
+    ) : (
+      'Input a number'
+    );
+    return (
+      <Tooltip
+        trigger={['focus']}
+        title={title}
+        placement="topLeft"
+        overlayClassName="numeric-input"
+      >
+        <Input
+          {...this.props}
+          onChange={this.onChange}
+          onBlur={this.onBlur}
+          placeholder="如: 0.88"
+          maxLength={8}
+        />
+      </Tooltip>
+    );
+  }
+}
+
 const limit0Decimals = (value) => {
   const reg = /^(\-)*(\d+)\.().*$/;
   //console.log(value);
@@ -173,6 +235,7 @@ class App extends Component {
       session: null,
       intervalIsSet: false,
       news_type: news_type_default,
+      news_article_worth: '',
       news_title_to_send: '',
       news_content_to_send: '',
       news_image_file_list: [],
@@ -297,6 +360,7 @@ class App extends Component {
       url: api_url,
       method: 'get',
       data: {
+        cmd: 'getNewsList',
         data_chain_name: this.state.datachain_node_name_to_view,
         module: 'newsflash',
         news_type: this.state.news_type,
@@ -396,7 +460,17 @@ class App extends Component {
         this.setState({
           news_type: params.type
         },()=>{
-          console.log('componentDidMount news_type=', this.state.news_type);        
+          console.log('componentDidMount news_type=', this.state.news_type);
+          
+          /*update state value*/
+          if(this.state.news_type == 'test2' || this.state.news_type == 'articles'){
+            this.setState({
+              news_title_enabled: true
+            },()=>{
+            });
+          }
+          
+          /*fetch app data*/
           this.fetchAppData();
         });
       }else{
@@ -423,11 +497,17 @@ class App extends Component {
   }
   
   updateToPayValue = () => {
-    const { news_type, news_title_to_send, news_content_to_send, news_to_send_weight } = this.state;
+    const { 
+      news_type, 
+      news_title_enabled,
+      news_title_to_send, 
+      news_content_to_send, 
+      news_to_send_weight 
+    } = this.state;
     
     var toPay = 0;
     var newsLength = 0;
-    if(news_title_to_send && news_title_to_send.length > 0){
+    if(news_title_enabled && news_title_to_send && news_title_to_send.length > 0){
       newsLength += news_title_to_send.length;
     }
     if(news_content_to_send && news_content_to_send.length > 0){
@@ -467,7 +547,6 @@ class App extends Component {
         more_to_load: true,
         page_number: 1,
         news_title_enabled: false,
-        news_title_to_send: '',
       },()=>{
         this.updateToPayValue();
         window.location.hash = `#type=${value}`;
@@ -587,6 +666,10 @@ class App extends Component {
     });
   };
   
+  onNewsArticleWorthChange = value => {
+    this.setState({ news_article_worth: value });
+  };
+  
   onNewsImageUploadChange = ({ fileList }) => {
     console.log('onNewsImageUploadChange fileList.length=', fileList.length);
     
@@ -703,9 +786,12 @@ class App extends Component {
     const { 
       session,
       datachain_node_name_to_send,
-      news_type, 
+      news_type,
+      news_article_worth,
+      news_title_enabled,
       news_title_to_send, 
       news_content_to_send, 
+      news_image_url,
       news_to_send_weight, 
       news_comment_minner_number, 
       news_like_minner_number, 
@@ -739,8 +825,18 @@ class App extends Component {
         formData.append('data_chain_name', datachain_node_name_to_send);
         formData.append('asset_did', asset_did);
         formData.append('news_type', news_type);
-        formData.append('news_title', news_title_to_send);
+        if(news_title_enabled){
+          formData.append('news_title', news_title_to_send);
+        }else{
+          formData.append('news_title', '');
+        }
         formData.append('news_content', news_content_to_send);
+        if(news_type === 'test2' || news_type === 'articles'){
+          formData.append('news_article_worth', news_article_worth);
+        }
+        if(news_image_url){
+          formData.append('news_image_url', JSON.stringify(news_image_url));
+        }
         formData.append('news_weights', news_to_send_weight);
         formData.append('comment_minner_number', news_comment_minner_number);
         formData.append('like_minner_number', news_like_minner_number);
@@ -756,8 +852,11 @@ class App extends Component {
             if(news_type === 'test2' || news_type === 'articles'){
               this.setState({
                 send_news_dialog_visible: false,
+                news_article_worth: '',
                 news_title_to_send: '',
                 news_content_to_send: '',
+                news_image_file_list: [],
+                news_image_url: null,
                 toPay: 0,
                 asset_sending: false,
               });
@@ -1302,6 +1401,8 @@ class App extends Component {
       send_news_dialog_visible: false,
       news_title_to_send: '',
       news_content_to_send: '',
+      news_image_file_list: [],
+      news_image_url: null,
       toPay: 0,
       sending: false,
     });
@@ -1326,6 +1427,7 @@ class App extends Component {
     const { 
       session, 
       news_type,
+      news_article_worth,
       news_to_send_weight,
       news_title_to_send, 
       news_content_to_send,
@@ -1468,13 +1570,9 @@ class App extends Component {
     }
     
     var list_action_show = true;
-    //if(!isProduction){
-    //  list_action_show = true;
-    //}else{
-    //  if(user && -1 != admin_account.indexOf(user.did)){
-    //    list_action_show = true;
-    //  }
-    //}
+    if(news_type === 'test2' || news_type === 'articles'){
+      list_action_show = false;
+    }
     
     const newsImageUploadprops = {
       onRemove: (file) => {
@@ -1485,6 +1583,9 @@ class App extends Component {
           return {
             news_image_file_list: newFileList,
           };
+        });
+        this.setState({
+          news_image_url: null
         });
       },
       beforeUpload: (file) => {
@@ -1602,33 +1703,47 @@ class App extends Component {
                   <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
                   <span style={{ fontSize: '15px', color: '#000000' }}> {item.sender}</span> <br/>
                   <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.time}</a> <br/>        
+                  
+                  {(news_type != 'test2') && (news_type != 'articles') && (
+                    <div id={item.asset_did}>
+                      {(item.news_title.length > 0) && 
+                        <span style={{ fontSize: '17px', fontWeight: 600, color: '#000000' }}>{item.news_title}</span>
+                      }
+                      {(item.news_title.length > 0) && <br/>}
+                      {(item.news_title.length > 0) && <br/>}
+                      {(item.news_content.length > 400)
+                        ?
+                        (item.weights > 5
+                          ?
+                          <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#FF0000' }}>
+                            {item.news_content}
+                          </Paragraph> 
+                          :
+                          <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#000000' }}>
+                            {item.news_content}
+                          </Paragraph>
+                        )
+                        :
+                        (item.weights > 5
+                          ?
+                          <span style={{ fontSize: '16px', color: '#FF0000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
+                          :
+                          <span style={{ fontSize: '16px', color: '#000000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
+                        )
+                      }
+                    </div>
+                  )}
+                  
+                  {((news_type === 'test2') || (news_type === 'articles')) && (
                   <div id={item.asset_did}>
-                    {(item.news_title.length > 0) && 
-                      <span style={{ fontSize: '17px', fontWeight: 600, color: '#000000' }}>{item.news_title}</span>
-                    }
-                    {(item.news_title.length > 0) && <br/>}
-                    {(item.news_title.length > 0) && <br/>}
-                    {(item.news_content.length > 400)
-                      ?
-                      (item.weights > 5
-                        ?
-                        <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#FF0000' }}>
-                          {item.news_content}
-                        </Paragraph> 
-                        :
-                        <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#000000' }}>
-                          {item.news_content}
-                        </Paragraph>
-                      )
-                      :
-                      (item.weights > 5
-                        ?
-                        <span style={{ fontSize: '16px', color: '#FF0000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
-                        :
-                        <span style={{ fontSize: '16px', color: '#000000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
-                      )
-                    }
-                  </div>
+                    <a href={`/article?asset_did=${item.asset_did}`}>
+                      <span style={{ fontSize: '17px', fontWeight: 500, color: '#000000' }}>{item.news_title}</span> <br/>
+                      <span style={{ fontSize: '13px', color: '#888888'}}>{item.news_content.slice(0, 50)}...</span> <br/>
+                      <img src={item.news_images[0]} alt="HashNews" height="130" width='312' />
+                    </a>            
+                    </div>
+                  )}
+                  
                   {(list_action_show && item.comment_list.length > 0) && <br/> }
                   {(list_action_show && item.comment_list.length > 0) && 
                     <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />
@@ -1720,6 +1835,25 @@ class App extends Component {
                   <span style={{ fontSize: '15px', color: '#000000' }}>个</span>
                 </div>
               )}
+              {((news_type === 'test2') || (news_type === 'articles')) && (
+                <div style={{ margin: '10px 0' }}>
+                  <div style={{ float: 'left', marginTop: 3, marginRight: 10}}>
+                    <Text style={{ fontSize: '15px', color: '#000000' }}>文章定价</Text>
+                  </div>
+                  <div>
+                    <NumericInput style={{ width: 120 }} value={news_article_worth} onChange={this.onNewsArticleWorthChange} />
+                    <span style={{ fontSize: '15px', color: '#000000', marginLeft: 10 }}>{token.symbol}</span>
+                  </div>
+                </div>
+              )}
+              {((news_type === 'test2') || (news_type === 'articles')) && (
+                <div style={{ margin: '10px 0' }}>
+                  <Upload{...newsImageUploadprops}           
+                  >
+                    {news_image_file_list.length >= 1 ? null : newsImageUploadButton}
+                  </Upload>
+                </div>
+              )}
               {(news_type != 'test2') && (news_type != 'articles') && (
                 <div style={{ margin: '10px 0' }}>
                   <span style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>添加标题</span>
@@ -1746,14 +1880,6 @@ class App extends Component {
                   maxLength={news_content_max_length}
                 />
               </div>
-              {((news_type === 'test2') || (news_type === 'articles')) && (
-                <div style={{ margin: '10px 0' }}>
-                  <Upload{...newsImageUploadprops}           
-                  >
-                    {news_image_file_list.length >= 1 ? null : newsImageUploadButton}
-                  </Upload>
-                </div>
-              )}
               <div align="left" style={{ margin: '10px 0' }}>
                 <Button
                   key="submit-cancel"
@@ -1771,7 +1897,9 @@ class App extends Component {
                   onClick={this.onSendNews}
                   disabled={
                        (news_title_to_send === '' || (news_title_to_send && news_title_to_send.length < 6))
-                    || (news_content_to_send === '' || (news_content_to_send && news_content_to_send.length < 500))
+                    || (news_content_to_send === '' || (news_content_to_send && news_content_to_send.length < 500)
+                    || (news_article_worth === '')
+                    || (news_image_url === null))
                   }
                   loading={asset_sending}
                   style={{ fontSize: '15px'}}
