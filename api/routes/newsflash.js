@@ -184,9 +184,9 @@ async function NewsflashCreateAssetOnChain(fields){
   Base64ImageDataToFile(imageUrl, UserPaymentBaseDirGet(user.did)+'/article_image.jpg');
   //article image resize for chain asset size requirements (<64KB)
   //const base64CropImageData = await ImageCrop(UserPaymentBaseDirGet(user.did)+'/article_image.jpg', 
-  //  UserPaymentBaseDirGet(user.did)+'/article_image_crop.jpg', 312, 130, 0, 0);
+  //  UserPaymentBaseDirGet(user.did)+'/article_image_crop.jpg', 290, 186, 0, 0);
   const base64SmallImageData = await ThumbImageGen(UserPaymentBaseDirGet(user.did)+'/article_image.jpg', 
-    UserPaymentBaseDirGet(user.did)+'/article_image_small.jpg', 312, 130, 70);
+    UserPaymentBaseDirGet(user.did)+'/article_image_small.jpg', 290, 186, 70);
   
   var doc = await Newsflash.findOne({ content_did: fields.asset_did[0] });
   if(doc){

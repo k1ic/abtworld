@@ -1691,18 +1691,20 @@ class App extends Component {
                   extra={null}
                   className="antd-list-item"
                 >
-                  <span style={{ float: 'left', marginRight: 10 }}>
-                    {item.uavatar.length>0?
-                      <img src={item.uavatar} height="65" width="65"/>:
-                      <Avatar size={65} did={item.sender}/>}
-                  </span>
-                  <span style={{ fontSize: '15px', color: '#000000', marginRight: 0 }}>{item.uname}</span>
-                  {item.weights > 1&&(<span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>)}
-                  <br/>
-                  {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
-                  <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
-                  <span style={{ fontSize: '15px', color: '#000000' }}> {item.sender}</span> <br/>
-                  <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.time}</a> <br/>        
+                  <div>
+                    <span style={{ float: 'left', marginRight: 10 }}>
+                      {item.uavatar.length>0?
+                        <img src={item.uavatar} height="65" width="65" style={{ borderRadius: '50%' }}/>:
+                        <Avatar size={65} did={item.sender} style={{ borderRadius: '50%' }} />}
+                    </span>
+                    <span style={{ fontSize: '15px', color: '#000000', marginRight: 0 }}>{item.uname}</span>
+                    {item.weights > 1&&(<span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>)}
+                    <br/>
+                    {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
+                    <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
+                    <span style={{ fontSize: '15px', color: '#000000' }}> {item.sender}</span> <br/>
+                    <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.time}</a> <br/>        
+                  </div>
                   
                   {(news_type != 'test2') && (news_type != 'articles') && (
                     <div id={item.asset_did}>
@@ -1735,12 +1737,12 @@ class App extends Component {
                   )}
                   
                   {((news_type === 'test2') || (news_type === 'articles')) && (
-                  <div id={item.asset_did}>
-                    <a href={`/article?asset_did=${item.asset_did}`}>
-                      <span style={{ fontSize: '17px', fontWeight: 500, color: '#000000' }}>{item.news_title}</span> <br/>
-                      <span style={{ fontSize: '13px', color: '#888888'}}>{item.news_content.slice(0, 50)}...</span> <br/>
-                      <img src={item.news_images[0]} alt="HashNews" height="130" width='312' />
-                    </a>            
+                    <div id={item.asset_did} style={{ display: 'flex' , alignItems: 'center', justifyContent: 'flex-start'}}>
+                      <a href={`/article?asset_did=${item.asset_did}`} style={{ width: '100%' }}>
+                        <img src={item.news_images[0]} alt="HashNews" width='156' height="100" style={{ float: 'left', marginRight: 10, borderRadius: '10px' }}/>
+                        <span style={{ fontSize: '17px', fontWeight: 500, color: '#000000' }}>{item.news_title}</span> <br/>
+                        <span style={{ fontSize: '13px', color: '#888888' }}>{item.news_content.slice(0, 50)}...</span> <br/>
+                      </a>            
                     </div>
                   )}
                   
@@ -2061,8 +2063,8 @@ class App extends Component {
                     >
                       <span style={{ float: 'left', marginRight: 10 }}>
                         {item.uavatar.length>0?
-                        <img src={item.uavatar} height="60" width="60"/>:
-                        <Avatar size={60} did={item.sender}/>}
+                        <img src={item.uavatar} height="60" width="60" style={{ borderRadius: '50%' }}/>:
+                        <Avatar size={60} did={item.sender} style={{ borderRadius: '50%' }}/>}
                       </span>
                       <span style={{ fontSize: '12px', fontVariant: 'normal', color: '#000000', marginRight: 0 }}>{item.uname}</span>
                       {item.weights > 1&&(<span style={{ fontSize: '9px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>)}
@@ -2086,11 +2088,18 @@ class App extends Component {
                   )}
                 />
                 <hr style={{ height: '1px', border: 'none', borderTop: '1px solid #A9A9A9', marginTop: 0,  marginBottom: 10 }} />
-                <div style={{ marginLeft: 10,  marginRight: 10 }}>
-                  <QrCode value={"http://abtworld.cn/newsflash"} size={60} level={'M'} id="HashNewsQrCode" style={{ float: 'left', marginRight: 10 }} />
-                  <span style={{fontSize: '13px', fontVariant: 'normal', color: '#000000', marginLeft: 0 }} >ArcBlock DID身份发布</span> <br/>
-                  <span style={{fontSize: '13px', fontVariant: 'normal', fontWeight: 600, color: '#000000' }} >{this.state.share_news_user_slogan_content}</span> <br/>
+                <div style={{ marginLeft: 10,  marginRight: 10, display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+                  <div style={{ width: '100%' }}>
+                    <QrCode value={"http://abtworld.cn/newsflash"} size={60} level={'M'} id="HashNewsQrCode" style={{ float: 'left', marginRight: 10 }}/>
+                    <div style={{fontSize: '13px', fontVariant: 'normal', color: '#000000', marginLeft: 0 }} >
+                      ArcBlock DID身份发布
+                    </div>
+                    <div style={{fontSize: '13px', fontVariant: 'normal', fontWeight: 600, color: '#000000' }} >
+                      {this.state.share_news_user_slogan_content}
+                    </div>
+                  </div>
                 </div>
+                <br/>
               </div>
             </Modal>
             <Modal

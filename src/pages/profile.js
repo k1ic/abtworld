@@ -98,7 +98,7 @@ export default function ProfilePage() {
         <Grid container spacing={6}>
           <Grid item xs={12} md={3} className="avatar">
             <div align="center">
-              {user.avatar.length > 0?<img src={user.avatar} height="240" width="240"/>:<Avatar size={240} did={user.did} />}
+              {user.avatar.length > 0?<img src={user.avatar} height="240" width="240" style={{ borderRadius: '50%' }}/>:<Avatar size={240} did={user.did} style={{ borderRadius: '50%' }}/>}
             </div>
             <Button color="secondary" variant="outlined" onClick={onLogout} style={{ marginTop: '30px' }}>
               退出
