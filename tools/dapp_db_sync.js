@@ -10,7 +10,12 @@ const env = require('../api/libs/env');
 const { Picture, Newsflash } = require('../api/models');
 const { getDatachainList } = require('../api/routes/datachains');
 const AssetPicList = require('../src/libs/asset_pic');
-const { HashString } = require('../api/libs/crypto');
+const { 
+  HashString,
+  hashnews_enc_key,
+  aesEncrypt,
+  aesDecrypt
+} = require('../api/libs/crypto');
 const { 
   forgeTxValueSecureConvert,
   fetchForgeTransactions,
@@ -275,7 +280,24 @@ async function newsflashDappDbSync(){
           }else{
             author_name = '匿名';
           }
-        
+          
+          var news_title = '';
+          if(typeof(memo.para.title) != "undefined" && memo.para.title && memo.para.title.length > 0){
+            news_title = memo.para.title;
+          }
+          
+          var news_content = memo.para.content;
+          if(memo.para.type === 'test2' || memo.para.type === 'articles'){
+            try{
+              news_content = aesDecrypt(memo.para.content, hashnews_enc_key);
+            } catch (err) {
+              news_content = memo.para.content;
+            }
+            if(!news_content || news_content.length === 0){
+              news_content = memo.para.content;
+            }
+          }
+          
           //console.log('newsflashDappDbSync V2 asset_did=', asset_did);
           var doc = await Newsflash.findOne({ news_content: memo.para.content });
           if(doc){
@@ -290,7 +312,8 @@ async function newsflashDappDbSync(){
             doc.news_hash = asset_hash;
             doc.news_time = asset_local_time;
             doc.news_type = memo.para.type;
-            doc.news_content = memo.para.content;
+            doc.news_title = news_title;
+            doc.news_content = news_content;
             doc.news_images = memo.para.images;
             doc.hash_href[0] = env.chainHost.replace('/api', '/node/explorer/txs/')+asset_hash;
             doc.data_chain_nodes[0] = {name: env.chainName, chain_host: env.chainHost, chain_id: env.chainId};
@@ -308,7 +331,8 @@ async function newsflashDappDbSync(){
               news_hash: asset_hash,
               news_time: asset_local_time,
               news_type: memo.para.type,
-              news_content: memo.para.content,
+              news_title: news_title,
+              news_content: news_content,
               news_images: memo.para.images,
               hash_href: [env.chainHost.replace('/api', '/node/explorer/txs/')+asset_hash],
               state: 'chained',
@@ -356,6 +380,23 @@ async function newsflashDappDbSync(){
               author_name = '匿名';
             }
         
+            var news_title = '';
+            if(typeof(memo.para.title) != "undefined" && memo.para.title && memo.para.title.length > 0){
+              news_title = memo.para.title;
+            }
+          
+            var news_content = memo.para.content;
+            if(memo.para.type === 'test2' || memo.para.type === 'articles'){
+              try{
+                news_content = aesDecrypt(memo.para.content, hashnews_enc_key);
+              } catch (err) {
+                news_content = memo.para.content;
+              }
+              if(!news_content || news_content.length === 0){
+                news_content = memo.para.content;
+              }
+            }
+        
             //console.log('newsflashDappDbSync V3 assetChain asset_did=', asset_did);
             var doc = await Newsflash.findOne({ news_content: memo.para.content });
             if(doc){
@@ -370,7 +411,8 @@ async function newsflashDappDbSync(){
               doc.news_hash = asset_hash;
               doc.news_time = asset_local_time;
               doc.news_type = memo.para.type;
-              doc.news_content = memo.para.content;
+              doc.news_title = news_title;
+              doc.news_content = news_content;
               doc.news_images = memo.para.images;
               if(doc.hash_href.length > 0){
                 const hash_href = dataChainList[i].chain_host.replace('/api', '/node/explorer/txs/')+asset_hash;
@@ -393,7 +435,8 @@ async function newsflashDappDbSync(){
                 news_hash: asset_hash,
                 news_time: asset_local_time,
                 news_type: memo.para.type,
-                news_content: memo.para.content,
+                news_title: news_title,
+                news_content: news_content,
                 news_images: memo.para.images,
                 hash_href: [dataChainList[i].chain_host.replace('/api', '/node/explorer/txs/')+asset_hash],
                 state: 'chained',

@@ -1,8 +1,42 @@
 /* eslint-disable no-underscore-dangle */
 const crypto = require('crypto');
+const CryptoJS = require('crypto-js');
 const fs = require('fs');
 
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
+
+const hashnews_enc_key = '2e7c179599057f5810b081b9f0d01cefae07332e';
+
+function aesEncrypt(str, key){
+  var iv = key;
+  key = CryptoJS.enc.Utf8.parse(key);
+  iv = CryptoJS.enc.Utf8.parse(iv);
+  
+  var encrypted = CryptoJS.AES.encrypt(str, key, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7
+  });
+  
+  encrypted = encrypted.toString();
+  
+  return encrypted;
+}
+
+function aesDecrypt(encrypted, key){
+  var iv = key;
+  key = CryptoJS.enc.Utf8.parse(key);
+  iv = CryptoJS.enc.Utf8.parse(iv);
+  
+  var decrypted = CryptoJS.AES.decrypt(encrypted, key, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7
+  });
+  decrypted = CryptoJS.enc.Utf8.stringify(decrypted);
+  
+  return decrypted;
+}
 
 function HashString(strHashType, strHashIn){
   const HashObj = crypto.createHash(strHashType);
@@ -43,6 +77,9 @@ function HashFile(strHashType, strFileName){
 //console.log('sha1FileTest='+sha1FileTest);
 
 module.exports = {
+  hashnews_enc_key,
+  aesEncrypt,
+  aesDecrypt,
   HashString,
   HashFile,
 };

@@ -1503,7 +1503,7 @@ class App extends Component {
     
     if(news_to_chain_mode === 'indirect'){
       if(news_type === 'test2' || news_type === 'articles'){
-        news_content_max_length = 10000;
+        news_content_max_length = 5000;
       }else{
         news_content_max_length = 1000;
       }

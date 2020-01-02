@@ -188,9 +188,9 @@ async function NewsflashCreateAssetOnChain(fields){
   const base64SmallImageData = await ThumbImageGen(UserPaymentBaseDirGet(user.did)+'/article_image.jpg', 
     UserPaymentBaseDirGet(user.did)+'/article_image_small.jpg', 290, 186, 70);
   
-  var doc = await Newsflash.findOne({ content_did: fields.asset_did[0] });
-  if(doc){
-    if(doc.state != 'commit'){
+  var news_doc = await Newsflash.findOne({ content_did: fields.asset_did[0] });
+  if(news_doc){
+    if(news_doc.state != 'commit'){
       console.log('NewsflashCreateAssetOnChain asset_did=', fields.asset_did[0], 'already on chain');
       
       /*ignore dup news*/
@@ -199,20 +199,20 @@ async function NewsflashCreateAssetOnChain(fields){
       console.log('NewsflashCreateAssetOnChain asset_did=', fields.asset_did[0], 'already in db');
       
       /*asset already in db, update it*/
-      doc.data_chain_nodes[0] = {name: data_chain_name, chain_host: data_chain_host, chain_id: data_chain_id};
-      doc.markModified('data_chain_nodes');
-      doc.asset_did = fields.asset_did[0];
-      doc.content_did = fields.asset_did[0];
-      doc.news_type = fields.news_type[0];
-      doc.news_title = fields.news_title[0];
-      doc.news_content = fields.news_content[0];
-      doc.news_article_worth = forgeTxValueSecureConvert(parseFloat(fields.news_article_worth[0]));
-      doc.news_images[0] = base64SmallImageData;
+      news_doc.data_chain_nodes[0] = {name: data_chain_name, chain_host: data_chain_host, chain_id: data_chain_id};
+      news_doc.markModified('data_chain_nodes');
+      news_doc.asset_did = fields.asset_did[0];
+      news_doc.content_did = fields.asset_did[0];
+      news_doc.news_type = fields.news_type[0];
+      news_doc.news_title = fields.news_title[0];
+      news_doc.news_content = fields.news_content[0];
+      news_doc.news_article_worth = forgeTxValueSecureConvert(parseFloat(fields.news_article_worth[0]));
+      news_doc.news_images[0] = base64SmallImageData;
       await doc.save();
     }
   }else{    
     /*save newsflash to db when not exist*/
-    var new_doc = new Newsflash({
+    news_doc = new Newsflash({
       data_chain_nodes: [{name: data_chain_name, chain_host: data_chain_host, chain_id: data_chain_id}],
       asset_did: fields.asset_did[0],
       content_did: fields.asset_did[0],
@@ -229,27 +229,30 @@ async function NewsflashCreateAssetOnChain(fields){
       minner_state: 'idle',
       createdAt: Date(),
     });
-    await new_doc.save();
+    await news_doc.save();
     console.log('NewsflashCreateAssetOnChain saved to db');
-    
-    /*create asset on chain*/
-    var transferHash = await createNewsflahAsset(fields.asset_did[0], data_chain_id);
-    const txRes = await waitAndGetTxHash(transferHash, data_chain_id);
-    if(transferHash && transferHash.length > 0
-      && txRes && txRes.getTx && txRes.getTx.code === 'OK' && txRes.getTx.info){
-      const tx_local_time = utcToLocalTime(txRes.getTx.info.time);
-       
-      console.log('NewsflashCreateAssetOnChain create asset success, update doc');
-      new_doc.news_hash = transferHash;
-      new_doc.news_time = tx_local_time;
-      new_doc.hash_href.push(new_doc.data_chain_nodes[0].chain_host.replace('/api', '/node/explorer/txs/')+transferHash);
-      new_doc.state = 'chained';
-      await new_doc.save();
-    }else{
-      console.log('NewsflashCreateAssetOnChain create asset on chain failed, remove doc');
-      await new_doc.remove();
-    }
   }
+  
+  /*create asset on chain*/
+  var transferHash = await createNewsflahAsset(fields.asset_did[0], data_chain_id);
+  const txRes = await waitAndGetTxHash(transferHash, data_chain_id);
+  if(transferHash && transferHash.length > 0
+    && txRes && txRes.getTx && txRes.getTx.code === 'OK' && txRes.getTx.info){
+    const tx_local_time = utcToLocalTime(txRes.getTx.info.time);
+       
+    console.log('NewsflashCreateAssetOnChain create asset success, update doc');
+    news_doc.news_hash = transferHash;
+    news_doc.news_time = tx_local_time;
+    news_doc.hash_href.push(news_doc.data_chain_nodes[0].chain_host.replace('/api', '/node/explorer/txs/')+transferHash);
+    news_doc.state = 'chained';
+    await news_doc.save();
+  }else{
+    console.log('NewsflashCreateAssetOnChain create asset on chain failed, remove doc');
+    await news_doc.remove();
+  }
+  
+  /*clean dead news*/
+  await cleanUserDeadNews(user.did);
   
   return true;;
 }

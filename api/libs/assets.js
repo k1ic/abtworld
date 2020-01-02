@@ -12,6 +12,12 @@ const { wallet, newsflashWallet, type } = require('./auth');
 const { Datachain, Newsflash } = require('../models');
 const { getNewsForUploadToChain } = require('../routes/newsflash');
 const { forgeChainConnect } = require('../routes/datachains');
+const {
+  hashnews_enc_key,
+  aesEncrypt,
+  aesDecrypt
+} = require('./crypto');
+
 const env = require('./env');
 
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
@@ -37,6 +43,11 @@ const genNewsFlashAsset = async (cdid, connId) => {
   }
   var newsflash_tx_memo = {};
   var para_obj = null;
+  var news_content = news.news_content;
+  if(news.news_type === 'test2' || news.news_type === 'articles'){
+    news_content = aesEncrypt(news.news_content, hashnews_enc_key);
+  }
+  
   newsflash_tx_memo['module'] = 'newsflash';
   para_obj = {
    type: news.news_type, 
@@ -44,7 +55,7 @@ const genNewsFlashAsset = async (cdid, connId) => {
    udid: news.author_did, 
    uavatar: news.author_avatar, 
    title: news.news_title, 
-   content: news.news_content, 
+   content: news_content, 
    images: news.news_images};
   newsflash_tx_memo['para'] = para_obj;
   
