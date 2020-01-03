@@ -35,6 +35,9 @@ module.exports = {
                 module_para = {user_did: req.user.did, asset_did: req.query.asset_did};
               }
               break;
+            case 'article':
+              module_para = {user_did: req.query.user_did, asset_did: req.query.asset_did};
+              break;
             case 'newsflash':
               module_para = {news_type: req.query.news_type, udid: req.query.udid, udid_to_show: req.query.udid_to_show};
               break;
@@ -46,6 +49,7 @@ module.exports = {
           var final_tx = [];
           switch(dapp_module){
             case 'picture':
+            case 'article':
               final_tx = await fetchForgeTransactions(dapp_module, module_para);
               break;
             case 'newsflash':

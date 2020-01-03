@@ -9,7 +9,7 @@ const { wallet, newsflashWallet, type } = require('../../libs/auth');
 const env = require('../../libs/env');
 //const AssetPicList = require('../../../src/libs/asset_pic');
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
-const { Picture } = require('../../models');
+const { Picture, Newsflash } = require('../../models');
 const { getNewsForUploadToChain, cleanUserDeadNews } = require('../newsflash');
 const { forgeTxValueSecureConvert, waitAndGetTxHash } = require('../../libs/transactions');
 
@@ -19,39 +19,9 @@ const { forgeTxValueSecureConvert, waitAndGetTxHash } = require('../../libs/tran
 const appWallet = fromSecretKey(process.env.APP_SK, type);
 const newsflashAppWallet = fromSecretKey(process.env.APP_NEWSFLASH_SK, type);
 
-async function fetchPics(strAssetDid){
-  var new_docs = [];
-  var found = 0;
-  
-  Picture.find().byAssetDid(strAssetDid).exec(function(err, docs){
-    if(docs && docs.length>0){
-      console.log('Found', docs.length, 'asset_did docs');
-      new_docs = docs;
-    }else{
-      console.log('asset_did document not found!');
-    }
-    found = 1;
-  })
-  
-  /*wait found result*/
-  var wait_counter = 0;
-  while(!found){
-    await sleep(1);
-    wait_counter++;
-    if(wait_counter > 15000){
-      break;
-    }
-  }
-  
-  console.log('fetchPics wait counter', wait_counter);
-  //console.log(new_docs);
-  
-  return new_docs;
-}
-
-async function picturePaymentHook(hash, forgeState, userDid) {
+async function paymentHook(hash, forgeState, userDid) {
   try {
-    console.log('picturePaymentHook');
+    console.log('paymentHook');
     
     const txRes = await waitAndGetTxHash(hash, env.chainId);
     
@@ -65,47 +35,41 @@ async function picturePaymentHook(hash, forgeState, userDid) {
             
       console.log('Hook tx from:', tx_from, 'to: ', tx_to);
       console.log('Hook tx_value=', tx_value, 'tx_memo=', tx_memo);
-      console.log('Hook tx_memo.module=', tx_memo.module);
       if(tx_memo.module == 'picture'){
         console.log('picture tx hook');
-        var pic_asset = null;
-        await fetchPics(tx_memo.para.asset_did).then((v)=>{
-          pic_asset = v;
-        });
-
-        if(pic_asset && pic_asset.length > 0) {
-          pic_asset = pic_asset[0];
-          
+        var asset_doc = null;
+        asset_doc = await Picture.findOne({ asset_did: tx_memo.para.asset_did });
+        if(asset_doc) {          
           //update doc info
-          pic_asset.payed_counter += 1;
-          pic_asset.payed_balance += tx_value;
+          asset_doc.payed_counter += 1;
+          asset_doc.payed_balance += tx_value;
           
           // one pay counter value 10 hot index
-          pic_asset.hot_index += 10;
-          pic_asset.star_level += 0.5;
+          asset_doc.hot_index += 10;
+          asset_doc.star_level += 0.5;
   
           const new_payer_info = {
             udid: tx_from,
             payed_balance: tx_value,
           };
-          if(pic_asset.payer_list && pic_asset.payer_list.length > 0){
-            const index=pic_asset.payer_list.findIndex((element)=>element.udid == tx_from);
+          if(asset_doc.payer_list && asset_doc.payer_list.length > 0){
+            const index=asset_doc.payer_list.findIndex((element)=>element.udid == tx_from);
             if(index != -1){
-              pic_asset.payer_list[index].payed_balance += tx_value;
+              asset_doc.payer_list[index].payed_balance += tx_value;
             }else{
-              pic_asset.payer_list.push(new_payer_info);
+              asset_doc.payer_list.push(new_payer_info);
             }
           }else{
-            pic_asset.payer_list.push(new_payer_info);
+            asset_doc.payer_list.push(new_payer_info);
           }
-          pic_asset.markModified('payer_list');
-          pic_asset.updatedAt = Date();
-          await pic_asset.save();
-          console.log('Hook pic_asset update to', pic_asset);
+          asset_doc.markModified('payer_list');
+          asset_doc.updatedAt = Date();
+          await asset_doc.save();
+          console.log('Hook asset_doc update to', asset_doc);
   
           //verify owner accnout
           res = await ForgeSDK.doRawQuery(`{
-            getAccountState(address: "${pic_asset.owner_did.replace(/^did:abt:/, '')}") {
+            getAccountState(address: "${asset_doc.owner_did.replace(/^did:abt:/, '')}") {
               code
               state {
                 address
@@ -116,7 +80,7 @@ async function picturePaymentHook(hash, forgeState, userDid) {
             }
           }`); 
           if(res && res.getAccountState && res.getAccountState.state){
-            var payback_to_asset_owner_value = (parseFloat(pic_asset.payback_rate) < 1) ? tx_value*parseFloat(pic_asset.payback_rate) : tx_value*0.1;
+            var payback_to_asset_owner_value = (parseFloat(asset_doc.payback_rate) < 1) ? tx_value*parseFloat(asset_doc.payback_rate) : tx_value*0.1;
             var payback_to_app_owner_value = tx_value - payback_to_asset_owner_value;
             payback_to_asset_owner_value = payback_to_asset_owner_value.toFixed(6);
             payback_to_app_owner_value = payback_to_app_owner_value.toFixed(6);
@@ -129,7 +93,7 @@ async function picturePaymentHook(hash, forgeState, userDid) {
             transferHash = await ForgeSDK.sendTransferTx({
               tx: {
                 itx: {
-                  to: pic_asset.owner_did.replace(/^did:abt:/, ''),
+                  to: asset_doc.owner_did.replace(/^did:abt:/, ''),
                   value: fromTokenToUnit(payback_to_asset_owner_value, forgeState.token.decimal),
                   data: {
                     typeUrl: 'json',
@@ -157,13 +121,102 @@ async function picturePaymentHook(hash, forgeState, userDid) {
             });
             console.log('payback to app owner transferred', transferHash);
           }else{
-            console.log('payback asset owner account not exist', pic_asset.owner_did);
+            console.log('payback asset owner account not exist', asset_doc.owner_did);
           }
         }
+      }else if(tx_memo.module == 'article'){
+        console.log('article tx hook');
+        var asset_doc = null;
+        asset_doc = await Newsflash.findOne({ asset_did: tx_memo.para.asset_did });
+        if(asset_doc) {          
+          //update doc info
+          asset_doc.article_payed_counter += 1;
+          asset_doc.article_payed_balance += tx_value;
+          
+          // one pay counter value 10 hot index
+          asset_doc.hot_index += 10;
+          asset_doc.star_level += 0.5;
+  
+          const new_payer_info = {
+            udid: tx_from,
+            payed_balance: tx_value,
+          };
+          if(asset_doc.article_payer_list && asset_doc.article_payer_list.length > 0){
+            const index=asset_doc.article_payer_list.findIndex((element)=>element.udid == tx_from);
+            if(index != -1){
+              asset_doc.article_payer_list[index].payed_balance += tx_value;
+            }else{
+              asset_doc.article_payer_list.push(new_payer_info);
+            }
+          }else{
+            asset_doc.article_payer_list.push(new_payer_info);
+          }
+          asset_doc.markModified('article_payer_list');
+          asset_doc.updatedAt = Date();
+          await asset_doc.save();
+          console.log('Hook asset_doc update to', asset_doc);
+  
+          //verify owner/author accnout
+          res = await ForgeSDK.doRawQuery(`{
+            getAccountState(address: "${asset_doc.author_did.replace(/^did:abt:/, '')}") {
+              code
+              state {
+                address
+                balance
+                moniker
+                pk
+              }
+            }
+          }`); 
+          if(res && res.getAccountState && res.getAccountState.state){
+            var payback_to_asset_owner_value = (asset_doc.article_payback_rate < 1) ? tx_value*asset_doc.article_payback_rate : tx_value*0.1;
+            var payback_to_app_owner_value = tx_value - payback_to_asset_owner_value;
+            payback_to_asset_owner_value = payback_to_asset_owner_value.toFixed(6);
+            payback_to_app_owner_value = payback_to_app_owner_value.toFixed(6);
+            console.log('payback to asset owner:', String(payback_to_asset_owner_value), 'app owner:', String(payback_to_app_owner_value));
+
+            //payback to asset owner
+            transferHash = await ForgeSDK.sendTransferTx({
+              tx: {
+                itx: {
+                  to: asset_doc.author_did.replace(/^did:abt:/, ''),
+                  value: fromTokenToUnit(payback_to_asset_owner_value, forgeState.token.decimal),
+                  data: {
+                    typeUrl: 'json',
+                    value: tx_memo,
+                  },
+                },
+              },
+              wallet: newsflashAppWallet,
+            });
+            console.log('payback to asset owner transferred', transferHash);
+              
+            //remains to app owner
+            transferHash = await ForgeSDK.sendTransferTx({
+              tx: {
+                itx: {
+                  to: process.env.APP_OWNER_ACCOUNT,
+                  value: fromTokenToUnit(payback_to_app_owner_value, forgeState.token.decimal),
+                  data: {
+                    typeUrl: 'json',
+                    value: tx_memo,
+                  },
+                },
+              },
+              wallet: newsflashAppWallet,
+            });
+            console.log('payback to app owner transferred', transferHash);
+          }else{
+            console.log('payback asset owner account not exist', asset_doc.author_did);
+          }
+        }
+      }else{
+        /*unknown dapp module*/
+        console.log('unknown tx hook, module=', tx_memo.module);
       }
     }
   } catch (err) {
-    console.error('picturePaymentHook error', err);
+    console.error('paymentHook error', err);
   } 
 }
 
@@ -185,6 +238,7 @@ module.exports = {
       if (typeof(dapp) != "undefined" && dapp && dapp.length > 0){
         switch(dapp){
           case 'newsflash':
+          case 'article':
             pay_to_addr = newsflashWallet.address;
             break;
           default:
@@ -196,6 +250,9 @@ module.exports = {
       }
       
       /*Init tx_memo*/
+      /*tx memo example
+       *{module: 'picture', para: {asset_did:'d99ae4aa6881ce4c4bab83ac8953c7737d68350a'}}
+       */
       tx_memo['module'] = dapp;
       tx_memo['para'] = JSON.parse(para);
       //console.log('tx_memo=', JSON.stringify(tx_memo));
@@ -241,8 +298,8 @@ module.exports = {
 
       console.log('pay.onAuth', hash);
       
-      /*payment hook for picture*/
-      picturePaymentHook(hash, state, userDid);
+      /*payment hook for payback*/
+      paymentHook(hash, state, userDid);
       
       return { hash, tx: claim.origin };
     } catch (err) {

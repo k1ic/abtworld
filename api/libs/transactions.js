@@ -77,6 +77,7 @@ async function fetchForgeTransactions(module, module_para){
   
   switch(module){
     case 'picture':
+    case 'article':
       if(typeof(module_para) == "undefined" || !module_para){
         return [];
       }
@@ -89,8 +90,13 @@ async function fetchForgeTransactions(module, module_para){
       const asset_did = module_para.asset_did;
       console.log('fetchForgeTransactions asset_did=', asset_did);
       
+      var receiver_address = wallet.address;
+      if(module === 'article'){
+        receiver_address = newsflashWallet.address;
+      }
+      
       transactions = await ForgeSDK.doRawQuery(`{
-        listTransactions(addressFilter: {direction: ONE_WAY, sender: "${toAddress(user_did)}", receiver: "${wallet.address}"}, typeFilter: {types: "transfer"}, paging: {size: 10000}, timeFilter: {startDateTime: "2019-09-24 00:00:00"}) {
+        listTransactions(addressFilter: {direction: ONE_WAY, sender: "${toAddress(user_did)}", receiver: "${receiver_address}"}, typeFilter: {types: "transfer"}, paging: {size: 10000}, timeFilter: {startDateTime: "2019-09-24 00:00:00"}) {
           transactions {
             tx {
               itxJson
