@@ -25,6 +25,14 @@ export default function Footer() {
           link: 'https://docs.arcblockio.cn/zh/docs/intro/quickstart',
         },
         {
+          title: '技术社区',
+          link: 'https://community.arcblockio.cn/',
+        },
+        {
+          title: '游乐场',
+          link: 'https://playground.wallet.arcblockio.cn/',
+        },
+        {
           title: '周报',
           link: 'https://github.com/ArcBlock/weekly-digest',
         },
@@ -71,8 +79,8 @@ export default function Footer() {
           link: '/',
         },
         {
-          title: 'FTBC',
-          link: 'http://www.ftbc.cc/',
+          title: '陌链',
+          link: 'https://ios.lmxoh.cn/download/5dde26a05f119.html',
         },
         {
           title: '3456io区块导航',
