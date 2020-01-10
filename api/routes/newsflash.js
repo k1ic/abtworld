@@ -38,6 +38,8 @@ const { getUserDidFragment } = require('../libs/user');
 const isProduction = process.env.NODE_ENV === 'production';
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
+const data_chain_name_default = 'zinc';
+
 async function NewsflashAdd(fields){
   /*fields verify*/
   if(!fields
@@ -62,7 +64,7 @@ async function NewsflashAdd(fields){
     console.log('NewsflashAdd data_chain_name=', fields.data_chain_name[0]);
     
     if(fields.data_chain_name[0] === 'default'){
-      doc = await Datachain.findOne({ chain_host: env.assetChainHost });
+      doc = await Datachain.findOne({ name: data_chain_name_default });
     }else{
       doc = await Datachain.findOne({ name: fields.data_chain_name[0] });
     }
@@ -166,7 +168,7 @@ async function NewsflashCreateAssetOnChain(fields){
     var doc = null;
     console.log('NewsflashCreateAssetOnChain data_chain_name=', fields.data_chain_name[0]);
     if(fields.data_chain_name[0] === 'default'){
-      doc = await Datachain.findOne({ chain_host: env.assetChainHost });
+      doc = await Datachain.findOne({ name: data_chain_name_default });
     }else{
       doc = await Datachain.findOne({ name: fields.data_chain_name[0] });
     }
@@ -629,7 +631,7 @@ async function getNewsForShow(module_para){
   var data_chain_name = module_para.data_chain_name;
   
   if(data_chain_name == 'default'){
-    data_chain_name = env.assetChainName;
+    data_chain_name = data_chain_name_default;
   }
   
   if(module_para.news_type === 'hot'){

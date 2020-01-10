@@ -22,6 +22,7 @@ module.exports = withPlugins(
         env: {
           appName: process.env.APP_NAME,
           appDescription: process.env.APP_DESCRIPTION,
+          appInfoLink: process.env.APP_INFO_LINK,
           baseUrl: process.env.BASE_URL,
           appId: process.env.APP_ID,
           appOwnerAccount: process.env.APP_OWNER_ACCOUNT,

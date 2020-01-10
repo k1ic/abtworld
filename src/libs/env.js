@@ -22,6 +22,7 @@ module.exports = {
     process.env.GATSBY_APP_DESCRIPTION ||
     process.env.APP_DESCRIPTION ||
     process.env.appDescription,
+  appInfoLink: process.env.REACT_APP_INFO_LINK || process.env.GATSBY_APP_INFO_LINK || process.env.APP_INFO_LINK || process.env.appInfoLink,
   baseUrl: process.env.REACT_APP_BASE_URL || process.env.GATSBY_BASE_URL || process.env.BASE_URL || process.env.baseUrl,
   apiPrefix:
     process.env.REACT_APP_API_PREFIX ||
