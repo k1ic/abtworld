@@ -1041,7 +1041,7 @@ class App extends Component {
       case 'like':
         /*verify if already liked*/
         if(this.newsflashListItemLikeStatusGet(newsflashItem, user.did)){
-          Modal.success({title: '已赞过'});
+          Modal.success({title: '已赞过', maskClosable: 'true'});
         }else{
           newsflashItem.like_cnt += 1;
           const like_list_item = {
@@ -1476,7 +1476,7 @@ class App extends Component {
     
     if (!session) {
       return (
-        <Layout title="HashNews">
+        <Layout title="资讯">
           <Main>
             <CircularProgress />
           </Main>
@@ -1605,7 +1605,7 @@ class App extends Component {
     );
     
     return (
-      <Layout title="HashNews">
+      <Layout title="资讯">
         <Main>
           <link
             rel="stylesheet"

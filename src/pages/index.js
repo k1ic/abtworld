@@ -279,7 +279,7 @@ class App extends Component {
     
     if (!session || tab_pics_total === null) {
       return (
-        <Layout title="Home">
+        <Layout title="图片">
           <Main>
             <CircularProgress />
           </Main>
@@ -323,7 +323,7 @@ class App extends Component {
     }
     
     return (
-      <Layout title="Home">
+      <Layout title="图片">
         <Main>
           {/*
           <Carousel autoplay>
