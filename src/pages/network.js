@@ -356,7 +356,7 @@ class App extends Component {
       chain_accounts,
     } = this.state;
     return (
-      <Layout title="链网">
+      <Layout title="ABT链网">
         <Main>
           <div>
             <div style={{ float: 'left', width: '20%', fontSize: '16px', color: '#000000', marginTop: 5, marginRight: 0}}>

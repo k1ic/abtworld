@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import {
   useLocation
 } from "react-router-dom";
@@ -8,6 +8,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Container from '@material-ui/core/Container';
 import styled from 'styled-components';
 import Helmet from 'react-helmet';
+import Head from 'next/head';
 
 import Header from './header';
 import Footer from './footer';
@@ -42,7 +43,37 @@ export default function Layout({ title, children, contentOnly }) {
 
   return (
     <Div>
-      <Helmet title={`${title} - ${env.appName}`} />
+      {/*<Helmet title={`${title} - ${env.appName}`} />*/}
+      <Helmet title={`${title}`} />
+      <Head>
+        <title>{`${title}`}</title> 
+        {/*<!-- 安卓平台 chrome -->*/}
+        <meta name="mobile-web-app-capable" content="yes" />
+        <link rel="icon" sizes="192x192" href="/static/images/abtworld/abtworld-apple-touch-icon.png" />
+        
+        {/*<!-- ios平台 safari -->*/}
+        <link rel="apple-touch-icon" href="/static/images/abtworld/abtworld-apple-touch-icon.png" />
+        <link rel="apple-touch-icon-precomposed" href="/static/images/abtworld/abtworld-apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-title" content={`${title}`}/>
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+
+        {/*<!-- win8以上 平台 磁贴 -->*/}
+        <meta name="msapplication-TileImage" content="/static/images/abtworld/abtworld-apple-touch-icon.png" />
+        <meta name="msapplication-TileColor" content="#0e90d2" />
+        
+        <meta property="og:site_name" content={`${title}`} />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:image" content="/static/images/abtworld/abtworld-apple-touch-icon.png" />
+        <meta property="og:image" content="/static/images/abtworld/abtworld-apple-touch-icon.png" />
+        <meta property="og:url" content={`${env.baseUrl}`} />
+        <meta name="twitter:url" content={`${env.baseUrl}`} />
+        <meta property="og:title" content={`${title}`} />
+        <meta name="twitter:title" content={`${title}`} />
+        <meta property="og:description" content={`${title}`} />
+        <meta name="twitter:description" content={`${title}`} />
+      </Head>
       <AppBar position="static" color="default">
         <Container>
           <Header />

@@ -1476,7 +1476,7 @@ class App extends Component {
     
     if (!session) {
       return (
-        <Layout title="资讯">
+        <Layout title="哈希快讯">
           <Main>
             <CircularProgress />
           </Main>
@@ -1605,7 +1605,7 @@ class App extends Component {
     );
     
     return (
-      <Layout title="资讯">
+      <Layout title="哈希快讯">
         <Main>
           <link
             rel="stylesheet"
