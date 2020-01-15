@@ -49,6 +49,7 @@ async function NewsflashAdd(fields){
     || typeof(fields.news_weights) == "undefined"
     || typeof(fields.news_title) == "undefined"
     || typeof(fields.news_content) == "undefined"
+    || typeof(fields.news_origin) == "undefined"
     || typeof(fields.comment_minner_number) == "undefined"
     || typeof(fields.like_minner_number) == "undefined"
     || typeof(fields.forward_minner_number) == "undefined" ){
@@ -109,6 +110,7 @@ async function NewsflashAdd(fields){
       doc.news_type = fields.news_type[0];
       doc.news_title = fields.news_title[0];
       doc.news_content = fields.news_content[0];
+      doc.news_origin = fields.news_origin[0];
       doc.news_weights = fields.news_weights[0];
       doc.total_comment_minner_number = total_comment_minner_number;
       doc.total_like_minner_number = total_like_minner_number;
@@ -129,6 +131,7 @@ async function NewsflashAdd(fields){
       news_type: fields.news_type[0],
       news_title: fields.news_title[0],
       news_content: fields.news_content[0],
+      news_origin: fields.news_origin[0],
       news_weights: fields.news_weights[0],
       total_comment_minner_number: total_comment_minner_number,
       total_like_minner_number: total_like_minner_number,
@@ -152,6 +155,7 @@ async function NewsflashCreateAssetOnChain(fields){
     || typeof(fields.news_type) == "undefined"
     || typeof(fields.news_title) == "undefined"
     || typeof(fields.news_content) == "undefined"
+    || typeof(fields.news_origin) == "undefined"
     || typeof(fields.news_image_url) == "undefined"
     || typeof(fields.news_article_worth) == "undefined"){
     console.log('NewsflashCreateAssetOnChain invalid fields');
@@ -208,6 +212,7 @@ async function NewsflashCreateAssetOnChain(fields){
       news_doc.news_type = fields.news_type[0];
       news_doc.news_title = fields.news_title[0];
       news_doc.news_content = fields.news_content[0];
+      news_doc.news_origin = fields.news_origin[0];
       news_doc.news_article_worth = forgeTxValueSecureConvert(parseFloat(fields.news_article_worth[0]));
       news_doc.news_images[0] = base64SmallImageData;
       await doc.save();
@@ -225,6 +230,7 @@ async function NewsflashCreateAssetOnChain(fields){
       news_type: fields.news_type[0],
       news_title: fields.news_title[0],
       news_content: fields.news_content[0],
+      news_origin: fields.news_origin[0],
       news_article_worth: forgeTxValueSecureConvert(parseFloat(fields.news_article_worth[0])),
       news_images: [base64SmallImageData],
       state: 'commit',
@@ -738,6 +744,7 @@ async function getNewsForShow(module_para){
       temp_doc['news_type'] = e.news_type;
       temp_doc['news_title'] = e.news_title;
       temp_doc['news_content'] = e.news_content;
+      temp_doc['news_origin'] = e.news_origin;
       temp_doc['news_images'] = e.news_images;
       temp_doc['news_article_worth'] = e.news_article_worth;
       temp_doc['weights'] = e.news_weights;

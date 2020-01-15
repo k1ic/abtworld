@@ -44,6 +44,7 @@ const NewsflashSchema = new mongoose.Schema({
   news_type: { type: String, required: true, default: '' },
   news_title: { type: String, default: '' },
   news_content: { type: String, required: true, default: '' },
+  news_origin: { type: String, default: '' },
   news_images: { type: Array, default: [] },
   news_weights: { type: Number, default: 1 },
   news_article_worth: { type: Number, default: 0.8 },

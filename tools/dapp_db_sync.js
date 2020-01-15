@@ -281,6 +281,11 @@ async function newsflashDappDbSync(){
             author_name = '匿名';
           }
           
+          var news_origin = '';
+          if(typeof(memo.para.origin) != "undefined" && memo.para.origin && memo.para.origin.length > 0){
+            news_origin = memo.para.origin;
+          }
+          
           var news_title = '';
           if(typeof(memo.para.title) != "undefined" && memo.para.title && memo.para.title.length > 0){
             news_title = memo.para.title;
@@ -314,6 +319,7 @@ async function newsflashDappDbSync(){
             doc.news_type = memo.para.type;
             doc.news_title = news_title;
             doc.news_content = news_content;
+            doc.news_origin = news_origin;
             doc.news_images = memo.para.images;
             doc.hash_href[0] = env.chainHost.replace('/api', '/node/explorer/txs/')+asset_hash;
             doc.data_chain_nodes[0] = {name: env.chainName, chain_host: env.chainHost, chain_id: env.chainId};
@@ -333,6 +339,7 @@ async function newsflashDappDbSync(){
               news_type: memo.para.type,
               news_title: news_title,
               news_content: news_content,
+              news_origin: news_origin,
               news_images: memo.para.images,
               hash_href: [env.chainHost.replace('/api', '/node/explorer/txs/')+asset_hash],
               state: 'chained',
@@ -379,7 +386,12 @@ async function newsflashDappDbSync(){
             }else{
               author_name = '匿名';
             }
-        
+            
+            var news_origin = '';
+            if(typeof(memo.para.origin) != "undefined" && memo.para.origin && memo.para.origin.length > 0){
+              news_origin = memo.para.origin;
+            }
+          
             var news_title = '';
             if(typeof(memo.para.title) != "undefined" && memo.para.title && memo.para.title.length > 0){
               news_title = memo.para.title;
@@ -413,6 +425,7 @@ async function newsflashDappDbSync(){
               doc.news_type = memo.para.type;
               doc.news_title = news_title;
               doc.news_content = news_content;
+              doc.news_origin = news_origin;
               doc.news_images = memo.para.images;
               if(doc.hash_href.length > 0){
                 const hash_href = dataChainList[i].chain_host.replace('/api', '/node/explorer/txs/')+asset_hash;
@@ -437,6 +450,7 @@ async function newsflashDappDbSync(){
                 news_type: memo.para.type,
                 news_title: news_title,
                 news_content: news_content,
+                news_origin: news_origin,
                 news_images: memo.para.images,
                 hash_href: [dataChainList[i].chain_host.replace('/api', '/node/explorer/txs/')+asset_hash],
                 state: 'chained',

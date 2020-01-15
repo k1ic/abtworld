@@ -21,6 +21,7 @@ import {
   List,
   Select,
   Tabs,
+  Menu,
   Switch,
   Checkbox,
   Divider,
@@ -53,6 +54,8 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
 const { TabPane } = Tabs;
+const { Option } = Select;
+const { SubMenu } = Menu;
 
 const isProduction = process.env.NODE_ENV === 'production';
 const admin_account = env.appAdminAccounts;
@@ -238,6 +241,7 @@ class App extends Component {
       news_article_worth: '',
       news_title_to_send: '',
       news_content_to_send: '',
+      news_content_origin: '原创',
       news_image_file_list: [],
       news_image_url: null,
       news_image_preview_visible: false,
@@ -523,6 +527,55 @@ class App extends Component {
     });
   }
   
+  handleNewsTypeMenuChange = e => {
+    let menu_key = e.key;
+    console.log('handleNewsTypeMenuChange key=', menu_key);
+    
+    if(menu_key === 'test2' || menu_key === 'articles'){
+      this.setState({
+        news_type: menu_key,
+        newsflash_list: [],
+        loading: false,
+        more_to_load: true,
+        page_number: 1,
+        news_title_enabled: true,
+      },()=>{
+        this.updateToPayValue();
+        window.location.hash = `#type=${menu_key}`;
+        this.fetchNewsFlash();
+      });
+    }else{
+      this.setState({
+        news_type: menu_key,
+        newsflash_list: [],
+        loading: false,
+        more_to_load: true,
+        page_number: 1,
+        news_title_enabled: false,
+      },()=>{
+        this.updateToPayValue();
+        window.location.hash = `#type=${menu_key}`;
+        this.fetchNewsFlash();
+      });
+    }
+  }
+  
+  handleFlashNewsSubMenuTitleClick = () => {
+    let news_type = 'chains';
+    this.setState({
+      news_type: news_type,
+      newsflash_list: [],
+      loading: false,
+      more_to_load: true,
+      page_number: 1,
+      news_title_enabled: false,
+    },()=>{
+      this.updateToPayValue();
+      window.location.hash = `#type=${news_type}`;
+      this.fetchNewsFlash();
+    });
+  }
+  
   handleNewsTypeChange = value => {    
     console.log('handleNewsTypeChange value=', value);
     
@@ -574,6 +627,11 @@ class App extends Component {
       datachain_node_name_to_send: value,
     }, ()=>{
     });
+  }
+  
+  onNewsOriginTypeChange = value => {
+    console.log('onNewsOriginTypeChange value=', value);
+    this.setState({ news_content_origin: value });
   }
   
   onShowModeChange = checked => {
@@ -790,7 +848,8 @@ class App extends Component {
       news_article_worth,
       news_title_enabled,
       news_title_to_send, 
-      news_content_to_send, 
+      news_content_to_send,
+      news_content_origin,
       news_image_url,
       news_to_send_weight, 
       news_comment_minner_number, 
@@ -831,6 +890,7 @@ class App extends Component {
           formData.append('news_title', '');
         }
         formData.append('news_content', news_content_to_send);
+        formData.append('news_origin', news_content_origin);
         if(news_type === 'test2' || news_type === 'articles'){
           formData.append('news_article_worth', news_article_worth);
         }
@@ -1570,9 +1630,6 @@ class App extends Component {
     }
     
     var list_action_show = true;
-    if(news_type === 'test2' || news_type === 'articles'){
-      list_action_show = false;
-    }
     
     const newsImageUploadprops = {
       onRemove: (file) => {
@@ -1631,7 +1688,41 @@ class App extends Component {
             <Option value="ads">广告</Option>
             <Option value="soups">鸡汤</Option>
           </Select>*/}
-          <Tabs defaultActiveKey={news_type} 
+          <Menu onClick={this.handleNewsTypeMenuChange} selectedKeys={news_type} mode="horizontal">
+            <Menu.Item key="hot">
+              <span style={{ fontSize: '15px', fontWeight: 600}}>
+                热门
+              </span>
+            </Menu.Item>
+            <SubMenu
+              title={
+                <span style={{ fontSize: '14px' }}>
+                  快讯
+                </span>
+              }
+            >
+              <Menu.Item key="chains">快讯</Menu.Item>
+              <Menu.Item key="ads">广告</Menu.Item>
+              <Menu.Item key="amas">AMA</Menu.Item>
+              <Menu.Item key="memos">备忘</Menu.Item>
+            </SubMenu>
+            <Menu.Item key="articles">
+              <span style={{ fontSize: '14px' }}>
+                文章
+              </span>
+            </Menu.Item>
+            {!isProduction &&
+              <Menu.Item key="test">
+                测试
+              </Menu.Item>
+            }
+            {!isProduction &&
+              <Menu.Item key="test2">
+                测试2
+              </Menu.Item>
+            }
+          </Menu>
+          {/*<Tabs defaultActiveKey={news_type} 
             onChange={this.handleNewsTypeChange}
             tabBarStyle={{background:'#fff'}}
             tabPosition="top"
@@ -1642,13 +1733,11 @@ class App extends Component {
             </TabPane>
             <TabPane tab={<span style={{ fontSize: '14px' }}>快讯</span>} key="chains">
             </TabPane>
+            <TabPane tab={<span style={{ fontSize: '14px' }}>文章</span>} key="articles">
+            </TabPane>
             <TabPane tab={<span style={{ fontSize: '14px' }}>广告</span>} key="ads">
             </TabPane>
-            <TabPane tab={<span style={{ fontSize: '14px' }}>问答</span>} key="qnas">
-            </TabPane>
             <TabPane tab={<span style={{ fontSize: '14px' }}>AMA</span>} key="amas">
-            </TabPane>
-            <TabPane tab={<span style={{ fontSize: '14px' }}>鸡汤</span>} key="soups">
             </TabPane>
             <TabPane tab={<span style={{ fontSize: '14px' }}>备忘</span>} key="memos">
             </TabPane>
@@ -1658,7 +1747,7 @@ class App extends Component {
             {!isProduction && <TabPane tab="测试2" key="test2">
               </TabPane>
             }
-          </Tabs>
+          </Tabs>*/}
           {send_permission && (
             <div style={{ float: 'right' }}>
               <Affix offsetTop={sendAffixOffsetTop}>
@@ -1683,11 +1772,14 @@ class App extends Component {
               renderItem={item => (
                 <List.Item
                   key={item.hash}
-                  actions={list_action_show?[
-                    <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.like_min_rem} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like"+item.hash} />,
-                    <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.comment_min_rem} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message"+item.hash} />,
-                    <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.forward_min_rem} minner_num={item.forward_min_rem_number} asset_did={item.asset_did}  key={"list-item-share"+item.hash} />,
-                  ]:[]}
+                  actions={((item.news_type != 'test2') && (item.news_type != 'articles'))?
+                    [
+                      <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.like_min_rem} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like"+item.hash} />,
+                      <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.comment_min_rem} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message"+item.hash} />,
+                      <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.forward_min_rem} minner_num={item.forward_min_rem_number} asset_did={item.asset_did}  key={"list-item-share"+item.hash} />,
+                    ]:
+                    []
+                  }
                   extra={null}
                   className="antd-list-item"
                 >
@@ -1698,7 +1790,12 @@ class App extends Component {
                         <Avatar size={65} did={item.sender} style={{ borderRadius: '50%' }} />}
                     </span>
                     <span style={{ fontSize: '15px', color: '#000000', marginRight: 0 }}>{item.uname}</span>
-                    {item.weights > 1&&(<span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>)}
+                    {((item.news_type != 'test2') && (item.news_type != 'articles') && (item.weights > 1)) && (
+                      <span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>
+                    )}
+                    {((item.news_type === 'test2') || (item.news_type === 'articles')) && (
+                      <span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}> {item.news_article_worth} {token.symbol}</span>
+                    )}
                     <br/>
                     {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
                     <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
@@ -1706,7 +1803,7 @@ class App extends Component {
                     <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.time}</a> <br/>        
                   </div>
                   
-                  {(news_type != 'test2') && (news_type != 'articles') && (
+                  {(item.news_type != 'test2') && (item.news_type != 'articles') && (
                     <div id={item.asset_did}>
                       {(item.news_title.length > 0) && 
                         <span style={{ fontSize: '17px', fontWeight: 600, color: '#000000' }}>{item.news_title}</span>
@@ -1736,7 +1833,7 @@ class App extends Component {
                     </div>
                   )}
                   
-                  {((news_type === 'test2') || (news_type === 'articles')) && (
+                  {((item.news_type === 'test2') || (item.news_type === 'articles')) && (
                     <div id={item.asset_did} style={{ display: 'flex' , alignItems: 'center', justifyContent: 'flex-start'}}>
                       <a href={`/article?asset_did=${item.asset_did}`} style={{ width: '100%' }}>
                         <img src={item.news_images[0]} alt="HashNews" width='156' height="100" style={{ float: 'left', marginRight: 10, borderRadius: '10px' }}/>
@@ -1746,9 +1843,17 @@ class App extends Component {
                     </div>
                   )}
                   
-                  {(list_action_show && item.comment_list.length > 0) && <br/> }
-                  {(list_action_show && item.comment_list.length > 0) && 
-                    <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />
+                  {(item.news_origin.length > 0) &&
+                    <div>
+                      <br/>
+                      <span style={{ fontSize: '10px', color: '#888888' }}>来源：{item.news_origin}</span>
+                    </div>
+                  }
+                  {(item.comment_list.length > 0) &&
+                    <div>
+                      <br/>
+                      <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />
+                    </div> 
                   }
                 </List.Item>
               )}
@@ -1770,6 +1875,20 @@ class App extends Component {
               <Select value={this.state.datachain_node_name_to_send} style={{ fontSize: '15px', color: '#000000', width: 120 }} onChange={this.onDatachainNodeToSendChange} className="antd-select">
                 {this.datachainsToSendSlecterChildren}
               </Select>
+              <div style={{ margin: '10px 0' }}>
+                <Text style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>资讯来源</Text>
+                <Select value={this.state.news_content_origin} style={{ fontSize: '15px', color: '#000000', width: 120 }} onChange={this.onNewsOriginTypeChange} className="antd-select">
+                  <Option value="原创">原创</Option>
+                  <Option value="翻译">翻译</Option>
+                  <Option value="微信">微信</Option>
+                  <Option value="微博">微博</Option>
+                  <Option value="币乎">币乎</Option>
+                  <Option value="币世界">币世界</Option>
+                  <Option value="MyToken">MyToken</Option>
+                  <Option value="TokenPocket">TokenPocket</Option>
+                  <Option value="未知">未知</Option>
+                </Select>
+              </div>
               {(news_type != 'test2') && (news_type != 'articles') && (
                 <div style={{ margin: '10px 0' }}>
                   {/*<Slider 
@@ -1997,7 +2116,7 @@ class App extends Component {
                 value={comment_to_send}
                 onChange={this.onCommentToSendChange}
                 placeholder={"写评论..."}
-                autoSize={{ minRows: 1, maxRows: 5 }}
+                autoSize={{ minRows: 2, maxRows: 5 }}
                 maxLength={news_comment_max_length}
               />
             </Modal>

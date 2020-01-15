@@ -55,7 +55,8 @@ const genNewsFlashAsset = async (cdid, connId) => {
    udid: news.author_did, 
    uavatar: news.author_avatar, 
    title: news.news_title, 
-   content: news_content, 
+   content: news_content,
+   origin:  news.news_origin,
    images: news.news_images};
   newsflash_tx_memo['para'] = para_obj;
   
