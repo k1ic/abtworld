@@ -552,9 +552,9 @@ class App extends Component {
     }
     
     if ( isProduction && !session.user) {
-      console.log('render user not exist');
-      window.location.href = '/?openLogin=true';
-      return null;
+      //console.log('render user not exist');
+      //window.location.href = '/?openLogin=true';
+      //return null;
     }
     
     const { user, token } = session;
@@ -592,7 +592,7 @@ class App extends Component {
     }
     news_list[0]['author_did_abbr'] = getUserDidFragment(news_item.author_did);
     
-    var content_preview_length = Math.round(news_item.news_content.length * 0.10);
+    var content_preview_length = Math.round(news_item.news_content.length * 0.20);
     
     console.log('user_to_pay=',user_to_pay, 'content_preview_length=', content_preview_length);
     
