@@ -12,11 +12,11 @@
 # 2. remove collection: db.pictures.drop()
 # 3. remove db:         db.dropDatabase()
 
-restore_dir=mongodb-backup-2019-12-20-18-13-02
+restore_dir=mongodb-backup-2020-01-16-09-29-30
 if [ -f $restore_dir.tar.gz ]
 then
   sudo tar -xzvf ${restore_dir}.tar.gz
-  sudo mongorestore -u admin -p 123456 ./$restore_dir
+  #sudo mongorestore -u admin -p 123456 ./$restore_dir
   #sudo mongorestore -u admin -p 123456 ./$restore_dir --drop
   sudo rm -rf $restore_dir
 else

@@ -40,7 +40,7 @@ const admin_account = env.appAdminAccounts;
 const isProduction = process.env.NODE_ENV === 'production';
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
-const article_home_href = '/newsflash#type=articles'
+const article_home_href = '/#type=articles'
 
 /*user action parameter*/
 const news_comment_max_length = 100;
@@ -143,66 +143,76 @@ class App extends Component {
       token,
     } = this.state.session;  
     
-    try {
-      reqwest({
-        url: '/api/payments',
-        method: 'get',
-        data: {
-          module: 'article',
-          user_did: user.did,
-          asset_did: this.state.asset_did
-        },
-        type: 'json',
-      }).then(data => {
-        this.setState({
-          user_payment_tx: data
-        }, ()=>{
-          var user_payed_value = 0;
-          var user_to_pay = 0;
+    if(user){    
+      try {
+        reqwest({
+          url: '/api/payments',
+          method: 'get',
+          data: {
+            module: 'article',
+            user_did: user.did,
+            asset_did: this.state.asset_did
+          },
+          type: 'json',
+        }).then(data => {
+          this.setState({
+            user_payment_tx: data
+          }, ()=>{
+            var user_payed_value = 0;
+            var user_to_pay = 0;
           
-          //console.log('fetchUserPaymentTx user_payment_tx=', this.state.user_payment_tx);
+            //console.log('fetchUserPaymentTx user_payment_tx=', this.state.user_payment_tx);
           
-          if (this.state.user_payment_tx) {
-            for(var i=0;i<this.state.user_payment_tx.length;i++){
-              user_payed_value += parseFloat(fromUnitToToken(this.state.user_payment_tx[i].tx.itxJson.value, token.decimal));
+            if (this.state.user_payment_tx) {
+              for(var i=0;i<this.state.user_payment_tx.length;i++){
+                user_payed_value += parseFloat(fromUnitToToken(this.state.user_payment_tx[i].tx.itxJson.value, token.decimal));
+              }
             }
-          }
           
-          console.log('fetchUserPaymentTx user_payed_value=', user_payed_value);
+            console.log('fetchUserPaymentTx user_payed_value=', user_payed_value);
           
-          if(user_payed_value < news_item.news_article_worth){
-            user_to_pay = forgeTxValueSecureConvert(news_item.news_article_worth - user_payed_value);
-          }
+            if(user_payed_value < news_item.news_article_worth){
+              user_to_pay = forgeTxValueSecureConvert(news_item.news_article_worth - user_payed_value);
+            }
           
-          console.log('fetchUserPaymentTx user_to_pay=', user_to_pay);
+            console.log('fetchUserPaymentTx user_to_pay=', user_to_pay);
           
-          //asset owner and super admin don't need to pay in production release
-          if (isProduction && (user.did == news_item.author_did || -1 != admin_account.indexOf(user.did))){
-            user_to_pay = 0;
-          }
+            //asset owner and super admin don't need to pay in production release
+            if (isProduction && (user.did == news_item.author_did || -1 != admin_account.indexOf(user.did))){
+              user_to_pay = 0;
+            }
   
-          if(user_to_pay > 0){
-            this.setState({
-              open_payment: true,
-              user_to_pay: user_to_pay,
-            }, ()=>{
-            });
-          }else{
-            this.setState({
-              open_payment: false,
-              user_to_pay: 0,
-            }, ()=>{
-            });
-          }
+            if(user_to_pay > 0){
+              this.setState({
+                user_to_pay: user_to_pay,
+              }, ()=>{
+              });
+            }else{
+              this.setState({
+                user_to_pay: 0,
+              }, ()=>{
+              });
+            }
           
+          });
         });
+      } catch (err) {
+      }
+    }else{
+      this.setState({
+        user_to_pay: news_item.news_article_worth,
+      }, ()=>{
       });
-    } catch (err) {
     }
   }
   
   /*component mount process*/
   componentDidMount() {
+    window.document.oncontextmenu = function(){ 
+      //disable rigth click menu
+      return false;
+    }
+    
     const location_hash = window.location.hash.slice(1);
     const location_search = window.location.search.slice(1);
     
@@ -383,7 +393,6 @@ class App extends Component {
     console.log('handleCommentInputCancel, asset_did=', this.comment_asset_did);
     
     this.setState({
-      comment_to_send: '',
       comment_input_visible: false
     },()=>{
       this.comment_asset_did = '';
@@ -403,7 +412,7 @@ class App extends Component {
     }
     
     if(!user && action_type != 'share'){
-      window.location.href = '/newsflash?openLogin=true';
+      window.location.href = '/?openLogin=true';
       return null;
     }
     
@@ -464,7 +473,6 @@ class App extends Component {
       case 'comment':
         this.comment_asset_did = asset_did;
         this.setState({
-          comment_to_send: '',
           comment_input_visible: true
         });
         break;
@@ -483,6 +491,21 @@ class App extends Component {
     }
     
   };
+  
+  onPayToViewButtonClick = () => {
+    const { session, asset_did, news_item } = this.state;
+    const { user, token } = session;
+    
+    if(!user){
+      window.location.href = '/?openLogin=true';
+      return null;
+    }else{
+      this.setState({
+        open_payment: true,
+      },()=>{
+      });
+    }
+  }
   
   IconText = ({ type, text, token_symbol, total_min_rem, balance, minner_num, action_type, like_status, asset_did }) => (
     <span>
@@ -520,7 +543,7 @@ class App extends Component {
     
     if (!session || !news_item || user_to_pay === null) {
       return (
-        <Layout title="Article">
+        <Layout title="文章">
           <Main>
             <CircularProgress />
           </Main>
@@ -551,7 +574,11 @@ class App extends Component {
     //article parameter
     var news_list = [];
     news_list.push(news_item);
-    news_list[0]['like_status'] = this.newsflashListItemLikeStatusGet(news_item, user.did);
+    if(user){
+      news_list[0]['like_status'] = this.newsflashListItemLikeStatusGet(news_item, user.did);
+    }else{
+      news_list[0]['like_status'] = false;
+    }
     news_list[0]['total_min_rem'] = news_item.remain_comment_minner_balance + news_item.remain_like_minner_balance + news_item.remain_forward_minner_balance;
     if(news_item.remain_like_minner_balance > 0 && news_item.each_like_minner_balance > 0){
       news_list[0]['like_min_rem_number'] = Math.round(news_item.remain_like_minner_balance/news_item.each_like_minner_balance);
@@ -563,8 +590,16 @@ class App extends Component {
     }else{
       news_list[0]['comment_min_rem_number'] = 0;
     }
+    news_list[0]['author_did_abbr'] = getUserDidFragment(news_item.author_did);
+    
+    var content_preview_length = Math.round(news_item.news_content.length * 0.10);
+    
+    console.log('user_to_pay=',user_to_pay, 'content_preview_length=', content_preview_length);
     
     var list_action_show = true;
+    if(user_to_pay > 0){
+      list_action_show = false;
+    }
     
     //payment parameter
     const toPay = String(user_to_pay);
@@ -573,7 +608,7 @@ class App extends Component {
     const para = JSON.stringify(para_obj);
     
     return (
-      <Layout title="Article">
+      <Layout title="文章">
         <Main>
           <link
             rel="stylesheet"
@@ -581,8 +616,8 @@ class App extends Component {
             href="https://cdn.jsdelivr.net/npm/@arcblock/did-logo@latest/style.css"
           />
           <LocaleProvider locale={zh_CN}>
-            {(open_payment === false) && (
-              <div>
+            {(
+              <div className="article-body">
                 <List
                   itemLayout="vertical"
                   size="large"
@@ -608,7 +643,7 @@ class App extends Component {
                         <span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}> {item.news_article_worth} {token.symbol}</span>
                         <br/>
                         <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
-                        <span style={{ fontSize: '15px', color: '#000000' }}> {item.author_did}</span> <br/>
+                        <span style={{ fontSize: '15px', color: '#000000' }}> {item.author_did_abbr}</span> <br/>
                         <a href={item.hash_href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.news_time}</a> <br/>        
                       </div>
                       <div id={item.asset_did}>
@@ -619,15 +654,38 @@ class App extends Component {
                              <br/>
                           </div>
                         }
-                        <span style={{ fontSize: '16px', color: '#000000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
-                        <br/>
-                        <img src={item.news_images[0]} alt="HashNews" width="100%" style={{ borderRadius: '10px' }}/>
-                        {(item.news_origin.length > 0) &&
-                          <div>
-                            <br/>
-                            <span style={{ fontSize: '10px', color: '#888888' }}>来源：{item.news_origin}</span>
-                          </div>
+                        
+                        {(user_to_pay > 0)
+                          ?
+                          <span style={{ fontSize: '16px', color: '#000000' }}><AutoLinkText text={item.news_content.slice(0, content_preview_length)+'......'} linkProps={{ target: '_blank' }}/></span>
+                          :
+                          <span style={{ fontSize: '16px', color: '#000000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
                         }
+                        <br/>
+                        
+                        {(user_to_pay == 0) && (
+                          <div>
+                            <img src={item.news_images[0]} alt="HashNews" width="100%" style={{ borderRadius: '10px' }}/>
+                            {(item.news_origin.length > 0) &&
+                              <div>
+                                <br/>
+                                <span style={{ fontSize: '10px', color: '#888888' }}>来源：{item.news_origin}  查看次数：{item.article_payed_counter}</span>
+                              </div>
+                            }
+                          </div>
+                        )}
+                        {(user_to_pay > 0) && (
+                          <div align='center'>
+                            <Button
+                              type="link"
+                              onClick={this.onPayToViewButtonClick}
+                            >
+                              <br/>
+                              <span style={{ fontSize: '15px', fontWeight: 600, color: "#339966" }}>查看完整内容</span>
+                            </Button>
+                          </div>
+                        )}
+                        
                       </div>
                     </List.Item>
                   )}
@@ -683,6 +741,10 @@ class App extends Component {
 
 const Main = styled.main`
   margin: 20px 0 0;
+  
+  .article-body {
+    pointer-event:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;
+  }
   
   .antd-list-item{
     font-size: 1.0rem;
