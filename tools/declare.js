@@ -77,8 +77,11 @@ async function getAccoutState(accoutAddr, connId){
     if(env.chainHost === 'xenon'){
       /*1. Need another account multi-sign to declare
         2. The account need some ABT on account
+        3. Example: https://github.com/ArcBlock/forge-js/blob/master/forge/graphql-client/examples/declare_restricted.js
        */
       console.log('Asset chain accout declare',  env.chainHost);
+      
+      
       
     }else{
       res = await getAccoutState(wallet.address, env.chainId);
