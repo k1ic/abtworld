@@ -74,39 +74,50 @@ async function getAccoutState(accoutAddr, connId){
     }
     
     /*declare account on app default chain*/
-    res = await getAccoutState(wallet.address, env.chainId);
-    if(!res || !res.getAccountState || !res.getAccountState.state){
-      res = await ForgeSDK.sendDeclareTx({
-          tx: {
-            itx: {
-              moniker: 'abtworld',
-            },
-          },
-          wallet: appWallet,
-        },
-        { conn: env.chainId }
-      );
+    if(env.chainHost === 'xenon'){
+      /*1. Need another account multi-sign to declare
+        2. The account need some ABT on account
+       */
+      console.log('Asset chain accout declare',  env.chainHost);
       
-      console.log('abtworld account declared on default chain',  env.chainHost);
     }else{
-      console.log('abtworld account already on default chain',  env.chainHost);
-    }
-    res = await getAccoutState(newsflashWallet.address, env.chainId);
-    if(!res || !res.getAccountState || !res.getAccountState.state){
-      res = await ForgeSDK.sendDeclareTx({
-          tx: {
-            itx: {
-              moniker: 'hashnews',
+      res = await getAccoutState(wallet.address, env.chainId);
+      if(!res || !res.getAccountState || !res.getAccountState.state){
+        console.log('abtworld account not exist on default chain',  env.chainHost);
+      
+        res = await ForgeSDK.sendDeclareTx({
+            tx: {
+              itx: {
+                moniker: 'abtworld',
+              },
             },
+            wallet: appWallet,
           },
-          wallet: newsflashAppWallet,
-        },
-        { conn: env.chainId }
-      );
+          { conn: env.chainId }
+        );
+      
+        console.log('abtworld account declared on default chain',  env.chainHost);
+      }else{
+        console.log('abtworld account already on default chain',  env.chainHost);
+      }
+      res = await getAccoutState(newsflashWallet.address, env.chainId);
+      if(!res || !res.getAccountState || !res.getAccountState.state){
+         console.log('hashnews account not exist on default chain',  env.chainHost);
+        res = await ForgeSDK.sendDeclareTx({
+            tx: {
+              itx: {
+                moniker: 'hashnews',
+              },
+            },
+            wallet: newsflashAppWallet,
+          },
+          { conn: env.chainId }
+        );
 
-      console.log('hashnews account declared on default chain',  env.chainHost);
-    }else{
-      console.log('hashnews account already on default chain',  env.chainHost);
+        console.log('hashnews account declared on default chain',  env.chainHost);
+      }else{
+        console.log('hashnews account already on default chain',  env.chainHost);
+      }
     }
     
     /*declare accout on app data chain.*/

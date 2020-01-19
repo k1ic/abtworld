@@ -49,7 +49,7 @@ export default function Layout({ title, children, contentOnly }) {
         <title>{`${title}`}</title> 
         {/*<!-- 安卓平台 chrome -->*/}
         <meta name="mobile-web-app-capable" content="yes" />
-        <link rel="icon" sizes="192x192" href="/static/images/abtworld/abtworld-apple-touch-icon.png" />
+        <link rel="icon" sizes="192x192" href="/static/images/abtworld/abtworld_icon.png" />
         
         {/*<!-- ios平台 safari -->*/}
         <link rel="apple-touch-icon" href="/static/images/abtworld/abtworld-apple-touch-icon.png" />
@@ -60,13 +60,13 @@ export default function Layout({ title, children, contentOnly }) {
         <meta name="mobile-web-app-capable" content="yes" />
 
         {/*<!-- win8以上 平台 磁贴 -->*/}
-        <meta name="msapplication-TileImage" content="/static/images/abtworld/abtworld-apple-touch-icon.png" />
+        <meta name="msapplication-TileImage" content="/static/images/abtworld/abtworld_icon.png" />
         <meta name="msapplication-TileColor" content="#0e90d2" />
         
         <meta property="og:site_name" content={`${title}`} />
         <meta name="twitter:card" content="summary" />
-        <meta name="twitter:image" content="/static/images/abtworld/abtworld-apple-touch-icon.png" />
-        <meta property="og:image" content="/static/images/abtworld/abtworld-apple-touch-icon.png" />
+        <meta name="twitter:image" content="/static/images/abtworld/abtworld_icon.png" />
+        <meta property="og:image" content="/static/images/abtworld/abtworld_icon.png" />
         <meta property="og:url" content={`${env.baseUrl}`} />
         <meta name="twitter:url" content={`${env.baseUrl}`} />
         <meta property="og:title" content={`${title}`} />
