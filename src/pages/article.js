@@ -24,6 +24,7 @@ import 'antd/dist/antd.css';
 import Auth from '@arcblock/did-react/lib/Auth';
 import AutoLinkText from 'react-autolink-text2';
 
+import Share from '../components/share';
 import Layout from '../components/layout';
 import useSession from '../hooks/session';
 import forge from '../libs/sdk';
@@ -83,7 +84,7 @@ class App extends Component {
       minning: false,
       comment_input_visible: false,
       comment_to_send: '',
-      share_news_user_slogan_input_visible: false,
+      share_dialog_visible: false,
     };
     
     this.winW = 0;
@@ -399,6 +400,20 @@ class App extends Component {
     });
   };
   
+  handleShareDialogOk = e => {
+    this.setState({
+      share_dialog_visible: false
+    },()=>{
+    });
+  }
+  
+  handleShareDialogCancel = e => {
+    this.setState({
+      share_dialog_visible: false
+    },()=>{
+    });
+  }
+  
   onListItemActionClick = async (action_type) => {
     const { session, asset_did, news_item } = this.state;
     const { user, token } = session;
@@ -480,10 +495,24 @@ class App extends Component {
         this.share_asset_did = asset_did;
         this.share_news_items[0] = newsflashItem;
         
-        this.setState({
-          share_news_user_slogan_input_visible: true
-        }, async ()=>{
-        });
+        //const Navigator = window.navigator;
+
+        //if(Navigator && typeof(Navigator.canShare) != "undefined" && Navigator.canShare() && typeof(Navigator.share) != "undefined"){
+        console.log('navigator=',navigator);
+        
+        if(navigator && navigator.canShare){
+          navigator.share({
+            title: '哈希文章',
+            text: newsflashItem.news_title,
+            url: location.href,
+          });
+        }else{
+          console.log('Navigator not support share');
+          this.setState({
+            share_dialog_visible: true
+          },()=>{
+          });
+        }
         
         break;
       default:
@@ -514,7 +543,7 @@ class App extends Component {
         }}
       > 
         {action_type=='like'&&like_status==true?<Icon type={type} theme="twoTone" twoToneColor="#0000FF" style={{ fontSize: '16px', marginLeft: 0, marginRight: 4 }} />:<Icon type={type} style={{ fontSize: '16px', marginLeft: 0, marginRight: 8 }} />}
-        <span>{text}</span>
+        {typeof(text) != "undefined" && <span>{text}</span>}
       </a>
       {total_min_rem>0 && (<br/>)}
       {total_min_rem>0 && (<span style={{ fontSize: '10px', color: '#FF6600' }}>{balance}</span>)}
@@ -536,14 +565,15 @@ class App extends Component {
       open_payment,
       user_to_pay,
       comment_input_visible,
-      comment_to_send
+      comment_to_send,
+      share_dialog_visible
     } = this.state;
     //console.log('render session=', session);
     //console.log('render props=', this.props);
     
     if (!session || !news_item || user_to_pay === null) {
       return (
-        <Layout title="文章">
+        <Layout title="哈希文章">
           <Main>
             <CircularProgress />
           </Main>
@@ -590,6 +620,11 @@ class App extends Component {
     }else{
       news_list[0]['comment_min_rem_number'] = 0;
     }
+    if(news_item.remain_forward_minner_balance > 0 && news_item.each_forward_minner_balance > 0){
+      news_list[0]['share_min_rem_number'] = Math.round(news_item.remain_forward_minner_balance/news_item.each_forward_minner_balance);
+    }else{
+      news_list[0]['share_min_rem_number'] = 0;
+    }
     news_list[0]['author_did_abbr'] = getUserDidFragment(news_item.author_did);
     
     var content_preview_length = Math.round(news_item.news_content.length * 0.20);
@@ -598,7 +633,7 @@ class App extends Component {
     
     var list_action_show = true;
     if(user_to_pay > 0){
-      list_action_show = false;
+      list_action_show = true; /*forge to show*/
     }
     
     //payment parameter
@@ -608,7 +643,7 @@ class App extends Component {
     const para = JSON.stringify(para_obj);
     
     return (
-      <Layout title="文章">
+      <Layout title="哈希文章">
         <Main>
           <link
             rel="stylesheet"
@@ -629,7 +664,11 @@ class App extends Component {
                       actions={list_action_show?[
                         <this.IconText type="like-o" text={item.like_counter} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.remain_like_minner_balance} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like"+item.news_hash} />,
                         <this.IconText type="message" text={item.comment_counter} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.remain_comment_minner_balance} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message"+item.news_hash} />,
-                      ]:[]}
+                        <this.IconText type="share-alt" action_type='share' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.remain_forward_minner_balance} minner_num={item.share_min_rem_number} asset_did={item.asset_did}  key={"list-item-message"+item.news_hash} />,
+                      ]:
+                      [
+                        <this.IconText type="share-alt" action_type='share' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.remain_forward_minner_balance} minner_num={item.share_min_rem_number} asset_did={item.asset_did}  key={"list-item-message"+item.news_hash} />,
+                      ]}
                       extra={null}
                       className="antd-list-item"
                     >
@@ -663,17 +702,6 @@ class App extends Component {
                         }
                         <br/>
                         
-                        {(user_to_pay == 0) && (
-                          <div>
-                            <img src={item.news_images[0]} alt="HashNews" width="100%" style={{ borderRadius: '10px' }}/>
-                            {(item.news_origin.length > 0) &&
-                              <div>
-                                <br/>
-                                <span style={{ fontSize: '10px', color: '#888888' }}>来源：{item.news_origin}  查看次数：{item.article_payed_counter}</span>
-                              </div>
-                            }
-                          </div>
-                        )}
                         {(user_to_pay > 0) && (
                           <div align='center'>
                             <Button
@@ -683,6 +711,17 @@ class App extends Component {
                               <br/>
                               <span style={{ fontSize: '15px', fontWeight: 600, color: "#339966" }}>查看完整内容</span>
                             </Button>
+                          </div>
+                        )}
+                        
+                        {(user_to_pay == 0) && (
+                          <img src={item.news_images[0]} alt="HashNews" width="100%" style={{ borderRadius: '10px' }}/>
+                        )}
+                       
+                        {(item.news_origin.length > 0) && (
+                          <div>
+                            <br/>
+                            <span style={{ fontSize: '10px', color: '#888888' }}>来源：{item.news_origin}  查看次数：{item.article_payed_counter}</span>
                           </div>
                         )}
                         
@@ -714,6 +753,29 @@ class App extends Component {
                 maxLength={news_comment_max_length}
               />
             </Modal>
+            <Modal
+             title='文章分享'
+             closable={true}
+             visible={share_dialog_visible}
+             onOk={this.handleShareDialogOk}
+             okText='确定'
+             onCancel={this.handleShareDialogCancel}
+             destroyOnClose={true}
+             wrapClassName={'web'}
+            >              
+              <span style={{ fontSize: '15px', color: '#000000' }}>分享链接:</span>
+              <br/>
+              <span>{location.href}</span>
+              <br/>
+              <br/>
+              <Share
+                description={news_item.news_title}
+                title={news_item.news_title}
+                summary={news_item.news_content.slice(0, 100)+'......'}
+                disabled={['tencent', 'douban', 'linkedin', 'google', 'facebook', 'twitter']}
+              >
+              </Share>
+            </Modal>
           </LocaleProvider>
         </Main>
         {open_payment && (
@@ -743,7 +805,6 @@ const Main = styled.main`
   margin: 20px 0 0;
   
   .article-body {
-    pointer-event:none;-webkit-user-select:none;-moz-user-select:none;user-select:none;
   }
   
   .antd-list-item{

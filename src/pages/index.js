@@ -496,6 +496,18 @@ class App extends Component {
         },()=>{
           console.log('componentDidMount news_type=', this.state.news_type);
           
+          let sub_menu_title = '快讯';
+          for(var i=0;i<flash_news_sub_menu.length;i++){
+            if(this.state.news_type === flash_news_sub_menu[i].key){
+              sub_menu_title = flash_news_sub_menu[i].value;
+              break;
+            }
+          }
+          this.setState({
+            flash_news_sub_menu_title: sub_menu_title
+          },()=>{
+          });
+          
           /*update state value*/
           if(this.state.news_type == 'test2' || this.state.news_type == 'articles'){
             this.setState({
