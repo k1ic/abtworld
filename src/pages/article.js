@@ -498,9 +498,9 @@ class App extends Component {
         //const Navigator = window.navigator;
 
         //if(Navigator && typeof(Navigator.canShare) != "undefined" && Navigator.canShare() && typeof(Navigator.share) != "undefined"){
-        console.log('navigator=',navigator);
+        //console.log('navigator=',navigator);
         
-        if(navigator && navigator.canShare){
+        if(navigator && navigator.share){
           navigator.share({
             title: '哈希文章',
             text: newsflashItem.news_title,
