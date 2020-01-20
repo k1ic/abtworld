@@ -12,6 +12,7 @@ const {
 const {
   getUserDidFragment
 } = require('../libs/user');
+const { forgeTokenStateGet } = require('./session');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
@@ -45,6 +46,7 @@ async function getPictureListFromDb(){
 async function getPicsByFilter(params){
   var new_docs = [];
   var found = 0;
+  const token = await forgeTokenStateGet();
   
   console.log('getPicsByFilter params=', params);
   
@@ -70,6 +72,14 @@ async function getPicsByFilter(params){
   
   console.log('getPicsByFilter wait counter', wait_counter);
   
+  if (new_docs.length > 0) {
+    new_docs = new_docs.map(function( e ) {
+      var doc = e;
+      doc.token_sym = token.symbol;
+      return doc;
+    });
+  }
+  
   //console.log(new_docs);
   
   return new_docs;
@@ -78,6 +88,7 @@ async function getPicsByFilter(params){
 async function getOwnerPicsByFilter(params){
   var new_docs = [];
   var found = 0;
+  const token = await forgeTokenStateGet();
   
   console.log('getOwnerPicsByFilter params=', params);
   
@@ -103,6 +114,14 @@ async function getOwnerPicsByFilter(params){
   
   console.log('getOwnerPicsByFilter wait counter', wait_counter);
   
+  if (new_docs.length > 0) {
+    new_docs = new_docs.map(function( e ) {
+      var doc = e;
+      doc.token_sym = token.symbol;
+      return doc;
+    });
+  }
+  
   //console.log(new_docs);
   
   return new_docs;
@@ -113,6 +132,7 @@ async function getMyPayedPics(req){
   var new_docs = [];
   var found = 0;
   var wait_counter = 0;
+  const token = await forgeTokenStateGet();
   
   if(!req || !req.query){
     console.log('getMyPayedPics invalid request');
@@ -159,6 +179,14 @@ async function getMyPayedPics(req){
     //console.log('getMyPayedPics wait counter', wait_counter);
   }
   
+  if (new_docs.length > 0) {
+    new_docs = new_docs.map(function( e ) {
+      var doc = e;
+      doc.token_sym = token.symbol;
+      return doc;
+    });
+  }
+  
   //console.log('getMyPayedPics new_docs=', new_docs);
   console.log('getMyPayedPics new_docs.length=', new_docs.length);
   
@@ -169,6 +197,7 @@ async function getPicsForPreview(strCategory, user_did, iStart, iEnd){
   var new_docs = [];
   var found = 0;
   var myPayedData = [];
+  const token = await forgeTokenStateGet();
   
   if (typeof(strCategory) != "undefined" && strCategory && strCategory === 'hot'){
     await Picture.find().hotByHotIndex().exec(function(err, docs){
@@ -270,7 +299,7 @@ async function getPicsForPreview(strCategory, user_did, iStart, iEnd){
       doc['title'] = e.title;
       doc['description'] = e.description;
       doc['worth'] = e.worth;
-      doc['token_sym'] = e.token_sym;
+      doc['token_sym'] = token.symbol;
       doc['hot_index'] = e.hot_index;
       doc['star_level'] = e.star_level;
       return doc;
@@ -288,6 +317,7 @@ async function getPicsForPreview(strCategory, user_did, iStart, iEnd){
 async function getPicsForPayShow(strAssetDid){
   var new_docs = [];
   var found = 0;
+  const token = await forgeTokenStateGet();
   
   Picture.find().byAssetDid(strAssetDid).exec(function(err, docs){
     if(docs && docs.length>0){
@@ -321,6 +351,7 @@ async function getPicsForPayShow(strAssetDid){
       }else{
         doc.owner = e.owner;
       }
+      doc.token_sym = token.symbol;
       return doc;
     });
   }
@@ -331,6 +362,8 @@ async function getPicsForPayShow(strAssetDid){
 async function getApprovedPics(){
   var new_docs = [];
   var found = 0;
+  const token = await forgeTokenStateGet();
+  
   await Picture.find().byState('approved').exec(function(err, docs){
     if(docs && docs.length>0){
       console.log('Found', docs.length, 'approved docs');
@@ -352,6 +385,14 @@ async function getApprovedPics(){
   }
   
   console.log('getApprovedPics wait counter', wait_counter);
+  
+  if (new_docs.length > 0) {
+    new_docs = new_docs.map(function( e ) {
+      var doc = e;
+      doc.token_sym = token.symbol;
+      return doc;
+    });
+  }
   //console.log(new_docs);
   
   return new_docs;
@@ -360,6 +401,8 @@ async function getApprovedPics(){
 async function getCommitedPics(){
   var new_docs = [];
   var found = 0;
+  const token = await forgeTokenStateGet();
+  
   await Picture.find().byState('commited').exec(function(err, docs){
     if(docs && docs.length>0){
       console.log('Found', docs.length, 'commited docs');
@@ -381,6 +424,14 @@ async function getCommitedPics(){
   }
   
   console.log('getCommitedPics wait counter', wait_counter);
+  
+  if (new_docs.length > 0) {
+    new_docs = new_docs.map(function( e ) {
+      var doc = e;
+      doc.token_sym = token.symbol;
+      return doc;
+    });
+  }
   //console.log(new_docs);
   
   return new_docs;
@@ -389,6 +440,8 @@ async function getCommitedPics(){
 async function getRejectedPics(){
   var new_docs = [];
   var found = 0;
+  const token = await forgeTokenStateGet();
+  
   await Picture.find().byState('rejected').exec(function(err, docs){
     if(docs && docs.length>0){
       console.log('Found', docs.length, 'rejected docs');
@@ -410,6 +463,14 @@ async function getRejectedPics(){
   }
   
   console.log('getRejectedPics wait counter', wait_counter);
+  
+  if (new_docs.length > 0) {
+    new_docs = new_docs.map(function( e ) {
+      var doc = e;
+      doc.token_sym = token.symbol;
+      return doc;
+    });
+  }
   //console.log(new_docs);
   
   return new_docs;

@@ -33,13 +33,11 @@ async function pictureDappDbReset(){
   /*reset dbs*/
   console.log('Reset ' + found_docs.length + ' picture docs');
   for(var i=0;i<found_docs.length;i++){
-    /*
     var doc = found_docs[i];
     doc.payed_balance = 0;
     doc.payer_list = [];
     doc.payed_counter = 0;
     await doc.save();
-    */
   }
 }
 
@@ -69,7 +67,6 @@ async function newsflashDappDbReset(){
   /*reset dbs*/
   console.log('Reset ' + found_docs.length + ' newsflash docs');
   for(var i=0;i<found_docs.length;i++){
-    /*
     var doc = found_docs[i];
     if(doc.asset_did && doc.content_did && doc.news_type && doc.news_content){
       doc.total_comment_minner_balance = 0;
@@ -106,7 +103,6 @@ async function newsflashDappDbReset(){
     }else{
       await doc.remove();
     }
-    */
   }
 }
 
@@ -148,10 +144,10 @@ async function newsflashDappDbReset(){
     }
  
     // reset picture dapp db
-    await pictureDappDbReset();
+    //await pictureDappDbReset();
     
     // reset newsflash dapp db
-    await newsflashDappDbReset();
+    //await newsflashDappDbReset();
     
     mongoose.disconnect();
     process.exit(0);

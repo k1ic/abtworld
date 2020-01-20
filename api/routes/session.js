@@ -6,10 +6,17 @@ const tba_token = {
   symbol: 'TBA'
 };
 
+const abt_token = {
+  decimal: 18,
+  symbol: 'ABT'
+};
+
 async function forgeTokenStateGet(){
   var token = null;
   if(env.chainHost === 'https://zinc.abtnetwork.io/api'){
     token = tba_token;
+  }else if(env.chainHost === 'https://xenon.network.arcblockio.cn/api'){
+    token = abt_token;
   }else{
     const query_res = await ForgeSDK.doRawQuery(`{
       getForgeState {

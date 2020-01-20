@@ -4,7 +4,8 @@ const mongoose = require('mongoose');
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const ForgeSDK = require('@arcblock/forge-sdk');
-const { fromJSON } = require('@arcblock/forge-wallet');
+const Mcrypto = require('@arcblock/mcrypto');
+const { fromJSON, fromRandom, fromSecretKey, WalletType } = require('@arcblock/forge-wallet');
 const { wallet, newsflashWallet } = require('../api/libs/auth');
 const env = require('../api/libs/env');
 const { getDatachainList, forgeChainConnect } = require('../api/routes/datachains');
@@ -74,15 +75,62 @@ async function getAccoutState(accoutAddr, connId){
     }
     
     /*declare account on app default chain*/
-    if(env.chainHost === 'xenon'){
-      /*1. Need another account multi-sign to declare
+    if(env.chainName === 'xenon'){
+      /*1. Asset chain need restricted declare with another account multi-sing
         2. The account need some ABT on account
         3. Example: https://github.com/ArcBlock/forge-js/blob/master/forge/graphql-client/examples/declare_restricted.js
        */
-      console.log('Asset chain accout declare',  env.chainHost);
+      console.log('Asset chain accout restricted declare',  env.chainHost);
+      const issuer_sk = '0x8eda2938de698bc6f316ca6bdd491ac41e9b1c82e64fd13db8438eee692f722e1d176e5176e0086e76fa04a89cc80f329428ab3f23b96d8681971ba87480246d';
+      const issuer = fromSecretKey(issuer_sk, WalletType({ role: Mcrypto.types.RoleType.ROLE_ACCOUNT }));
+      console.log(issuer.toJSON());
+      const endpoint = env.chainHost.replace('/api', '');
+      console.log('issuer', `${endpoint}/node/explorer/accounts/${issuer.toAddress()}`);
       
+      // Sign and then send: sendDeclareTx - default
+      var tx1;
+      var tx2;
+      res = await getAccoutState(wallet.address, env.chainId);
+      if(!res || !res.getAccountState || !res.getAccountState.state){
+        console.log('abtworld account not exist on default chain',  env.chainHost);
+        
+        tx1 = await ForgeSDK.prepareDeclare({
+          issuer: issuer.toAddress(),
+          moniker: 'abtworld',
+          wallet: appWallet,
+        });
+        tx2 = await ForgeSDK.finalizeDeclare({
+          tx: tx1,
+          wallet: issuer,
+        });
+        res = await ForgeSDK.sendDeclareTx({ tx: tx2, wallet: issuer });
+        console.log('appWallet', `${endpoint}/node/explorer/accounts/${appWallet.toAddress()}`);
+        console.log('tx', `${endpoint}/node/explorer/txs/${res}`);
+      }else{
+        console.log('abtworld account already on default chain',  env.chainHost);
+      }
       
-      
+      // Sign and then send: sendDeclareTx - hashnews
+      res = await getAccoutState(newsflashWallet.address, env.chainId);
+      if(!res || !res.getAccountState || !res.getAccountState.state){
+        console.log('hashnews account not exist on default chain',  env.chainHost);
+
+        tx1 = await ForgeSDK.prepareDeclare({
+          issuer: issuer.toAddress(),
+          moniker: 'hashnews',
+          wallet: newsflashAppWallet,
+        });
+        tx2 = await ForgeSDK.finalizeDeclare({
+          tx: tx1,
+          wallet: issuer,
+        });
+        res = await ForgeSDK.sendDeclareTx({ tx: tx2, wallet: issuer });
+     
+        console.log('newsflashAppWallet', `${endpoint}/node/explorer/accounts/${newsflashAppWallet.toAddress()}`);
+        console.log('tx', `${endpoint}/node/explorer/txs/${res}`);
+      }else{
+        console.log('hashnews account already on default chain',  env.chainHost);
+      }      
     }else{
       res = await getAccoutState(wallet.address, env.chainId);
       if(!res || !res.getAccountState || !res.getAccountState.state){
@@ -105,7 +153,7 @@ async function getAccoutState(accoutAddr, connId){
       }
       res = await getAccoutState(newsflashWallet.address, env.chainId);
       if(!res || !res.getAccountState || !res.getAccountState.state){
-         console.log('hashnews account not exist on default chain',  env.chainHost);
+        console.log('hashnews account not exist on default chain',  env.chainHost);
         res = await ForgeSDK.sendDeclareTx({
             tx: {
               itx: {

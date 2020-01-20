@@ -1,6 +1,13 @@
 //data chains array
 module.exports = [
   {
+    name: 'xenon',
+    chain_host: 'https://xenon.network.arcblockio.cn/api',
+    chain_id: 'xenon-2020-01-15',
+    hot_index: 101,
+    state: 'online',
+  },
+  {
     name: 'zinc',
     chain_host: 'https://zinc.network.arcblockio.cn/api',
     chain_id: 'zinc-2019-05-17',

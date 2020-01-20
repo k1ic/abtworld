@@ -77,7 +77,7 @@ const news_type_default = 'chains';
 const news_fetch_mode = 'localdb';
 
 /*pay valye*/
-const toPayEachChar = 0.001;
+const toPayEachChar = 0.0001;
 
 /*news weights*/
 const news_weights_value_min = 1;
@@ -339,12 +339,19 @@ class App extends Component {
       },
       type: 'json',
     }).then(data => {
-    
       this.datachainsToSendSlecterChildren = [];
       this.datachainsToViewSlecterChildren = [];
       this.datachainsToSendSlecterChildren.push(<Select.Option key="default" value="default">默认</Select.Option>);
       this.datachainsToViewSlecterChildren.push(<Select.Option key="all" value="all">所有</Select.Option>);
       if(data && data.length > 0){
+        
+        /*1.ABT AssetChain xenon filter data chain
+          2.TBP chain version is too low, Temp filter out data chain
+         */
+        data = data.filter(function (e) {
+          return (e.name != 'xenon' && e.name != 'tpb');
+        });
+        
         for(var i=0;i<data.length;i++){
           var chainNameToShow = data[i].name.substring(0,1).toUpperCase()+data[i].name.substring(1);
           this.datachainsToSendSlecterChildren.push(<Select.Option key={data[i].name} value={data[i].name}>{chainNameToShow}</Select.Option>);
@@ -1942,6 +1949,7 @@ class App extends Component {
                 <Select value={this.state.news_content_origin} style={{ fontSize: '15px', color: '#000000', width: 120 }} onChange={this.onNewsOriginTypeChange} className="antd-select">
                   <Option value="原创">原创</Option>
                   <Option value="翻译">翻译</Option>
+                  <Option value="ABT技术社区">ABT技术社区</Option>
                   <Option value="微信">微信</Option>
                   <Option value="微博">微博</Option>
                   <Option value="币乎">币乎</Option>

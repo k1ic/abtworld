@@ -33,6 +33,7 @@ import theme from '../libs/theme';
 import forge from '../libs/sdk';
 import api from '../libs/api';
 import { getUserDidFragment } from '../libs/user';
+import env from '../libs/env';
 
 const history = createMemoryHistory();
 const { Title, Paragraph, Text } = Typography;
@@ -158,6 +159,15 @@ class App extends Component {
       type: 'json',
     }).then(data => {
       if(data && data.length > 0){
+      
+        data = data.filter(function (e) {
+          if(env.chainName != 'xenon'){
+            return e.name != 'xenon';
+          }else{
+            return true;
+          }
+        });
+          
         this.setState({
           datachains_list: data,
         }, ()=>{
