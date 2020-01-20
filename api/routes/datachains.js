@@ -70,31 +70,6 @@ async function doRawQuery(params){
   return res;
 }
 
-async function getForgeState(connId) {
-  var res = null;
-  
-  //connect to chain
-  await forgeChainConnect(connId);
-  
-  //console.log('getForgeState asset_addr=', asset_addr);
-  
-  res = await ForgeSDK.doRawQuery(`{
-      getForgeState {
-        code
-        state {
-          token {
-            symbol
-            decimal
-          }
-        }
-      }
-    }`,
-    { conn: connId }
-  );
-  
-  return res;
-}
-
 async function getAssetState(asset_addr, connId){
   var res = null;
   
@@ -288,6 +263,8 @@ async function getAccoutState(accoutAddr, connId){
   var res = null;
   //console.log('getAccoutState accoutAddr=', accoutAddr, 'connId=', connId);
   
+  await forgeChainConnect(connId);
+  
   res = await ForgeSDK.doRawQuery(`{
       getAccountState(address: "${accoutAddr}") {
         code
@@ -297,6 +274,109 @@ async function getAccoutState(accoutAddr, connId){
           moniker
           pk
         }
+      }
+    }`, 
+    { conn: connId }
+  ); 
+  return res;
+}
+
+async function getForgeState(connId){
+  var res = null;
+  
+  await forgeChainConnect(connId);
+  
+  res = await ForgeSDK.doRawQuery(`{
+      getForgeState {
+        code
+        state {
+          version
+          token {
+            decimal
+            description
+            inflationRate
+            initialSupply
+            name
+            symbol
+            totalSupply
+            unit
+          }
+          txConfig {
+            maxAssetSize
+            maxListSize
+            maxMultisig
+            minimumStake
+          }
+        }
+      }
+    }`, 
+    { conn: connId }
+  ); 
+  return res;
+}
+
+async function getForgeStats(connId){
+  var res = null;
+  
+  await forgeChainConnect(connId);
+  
+  res = await ForgeSDK.doRawQuery(`{
+      getForgeStats {
+        forgeStats {
+          numStakeTxs
+          numDeclareTxs
+          numCreateAssetTxs
+          numValidators
+        }
+        code
+      }
+    }`, 
+    { conn: connId }
+  ); 
+  return res;
+}
+
+async function getChainInfo(connId){
+  var res = null;
+  
+  await forgeChainConnect(connId);
+  
+  res = await ForgeSDK.doRawQuery(`{
+      getChainInfo {
+        info {
+          address
+          appHash
+          blockHash
+          blockHeight
+          blockTime
+          consensusVersion
+          id
+          moniker
+          network
+          synced
+          totalTxs
+          version
+          votingPower
+        }
+        code
+      }
+    }`, 
+    { conn: connId }
+  ); 
+  return res;
+}
+
+async function getNetInfo(connId){
+  var res = null;
+  
+  await forgeChainConnect(connId);
+  
+  res = await ForgeSDK.doRawQuery(`{
+      getNetInfo {
+        netInfo {
+          nPeers
+        }
+        code
       }
     }`, 
     { conn: connId }
@@ -429,6 +509,82 @@ async function getDatachainList(){
   return found_docs;
 }
 
+async function apiGetChainNodeInfo(params){
+  var chainName = 'titanium';
+  var pagingCursor = '';
+  var pagingSize = 10;
+  var chainHost = env.assetChainHost;
+  var connId = env.assetChainId;
+  if(typeof(params.chainName) != "undefined"){
+    chainName = params.chainName;
+  }
+  var doc = await Datachain.findOne({ name: chainName });
+  if(doc){
+    chainHost = doc.chain_host;
+    connId = doc.chain_id;
+  }
+  
+  var chainNodeInfo = {};
+  chainNodeInfo['chainName'] = chainName;
+  chainNodeInfo['chainHost'] = chainHost.replace('/api', '');
+  
+  var res;
+  res = await getForgeState(connId);
+  if(res && res.getForgeState && res.getForgeState.code === 'OK'){
+    chainNodeInfo['version'] = res.getForgeState.state.version;
+    chainNodeInfo['tokenSymbol'] = res.getForgeState.state.token.symbol;
+    chainNodeInfo['tokenTotalSupply'] = res.getForgeState.state.token.totalSupply;
+    chainNodeInfo['tokenDecimal'] = res.getForgeState.state.token.decimal;
+    chainNodeInfo['maxAssetSize'] = res.getForgeState.state.txConfig.maxAssetSize;
+    chainNodeInfo['minimumStake'] = fromUnitToToken(res.getForgeState.state.txConfig.minimumStake, 
+      res.getForgeState.state.token.decimal);
+  }
+  
+  res = await getForgeStats(connId);
+  if(res && res.getForgeStats && res.getForgeStats.code === 'OK'){
+    if(res.getForgeStats.forgeStats.numValidators && res.getForgeStats.forgeStats.numValidators.length > 0){
+      let numValidators = 0;
+      for(var i=0;i<res.getForgeStats.forgeStats.numValidators.length;i++){
+        numValidators += res.getForgeStats.forgeStats.numValidators[i];
+      }
+      chainNodeInfo['numValidators'] = String(numValidators);
+    }else{
+      chainNodeInfo['numValidators'] = '0';
+    }
+    
+    if(res.getForgeStats.forgeStats.numDeclareTxs && res.getForgeStats.forgeStats.numDeclareTxs.length > 0){
+      chainNodeInfo['numAccounts'] = res.getForgeStats.forgeStats.numDeclareTxs[0];
+    }else{
+      chainNodeInfo['numAccounts'] = '0';
+    }
+    
+    if(res.getForgeStats.forgeStats.numStakeTxs && res.getForgeStats.forgeStats.numStakeTxs.length > 0){
+      chainNodeInfo['numStakes'] = res.getForgeStats.forgeStats.numStakeTxs[0];
+    }else{
+      chainNodeInfo['numStakes'] = '0';
+    }
+    
+    if(res.getForgeStats.forgeStats.numCreateAssetTxs && res.getForgeStats.forgeStats.numCreateAssetTxs.length > 0){
+      chainNodeInfo['numAssets'] = res.getForgeStats.forgeStats.numCreateAssetTxs[0];
+    }else{
+      chainNodeInfo['numAssets'] = '0';
+    }
+  }
+  
+  res = await getChainInfo(connId);
+  if(res && res.getChainInfo && res.getChainInfo.code === 'OK'){
+    chainNodeInfo['blockHeight'] = res.getChainInfo.info.blockHeight;
+    chainNodeInfo['chainId'] = res.getChainInfo.info.network;
+    chainNodeInfo['totalTxs'] = res.getChainInfo.info.totalTxs;
+  }
+  
+  res = await getNetInfo(connId);
+  if(res && res.getNetInfo && res.getNetInfo.code === 'OK'){
+    chainNodeInfo['nPeers'] = String(res.getNetInfo.netInfo.nPeers);
+  }
+  
+  return chainNodeInfo;
+}
 
 async function apiListChainAssets(params){
   var chainName = 'titanium';
@@ -548,6 +704,13 @@ module.exports = {
                     res.json(dataChainList);
                     return;
                   }
+                }
+                break;
+              case 'getNodeInfo':
+                var nodeInfo = await apiGetChainNodeInfo(params);
+                if(nodeInfo && Object.keys(nodeInfo).length > 0){
+                  res.json(nodeInfo);
+                  return;
                 }
                 break;
               case 'listAssets':

@@ -20,6 +20,7 @@ import {
   Tooltip,
   Tabs,
   Table,
+  Descriptions
 } from "antd";
 import zh_CN from 'antd/lib/locale-provider/zh_CN'
 import reqwest from 'reqwest';
@@ -134,6 +135,7 @@ class App extends Component {
       datachains_list: [],
       chain_name: 'zinc',
       chain_token_symbol: '',
+      chain_node_info: null,
       chain_assets: [],
       chain_accounts: [],
       chain_assets_page_cursor: '',
@@ -142,6 +144,7 @@ class App extends Component {
       chain_accounts_page_cursor: '',
       chain_accounts_page_next: true,
       chain_accounts_page_total: 0,
+      nodeinfo_loading: false,
       assets_loading: false,
       accounts_loading: false,
     };
@@ -163,6 +166,7 @@ class App extends Component {
         data = data.filter(function (e) {
           if(env.chainName != 'xenon'){
             return e.name != 'xenon';
+            //return true;
           }else{
             return true;
           }
@@ -171,8 +175,35 @@ class App extends Component {
         this.setState({
           datachains_list: data,
         }, ()=>{
+          this.fetchNodeInfo();
           this.fetchAssets(true);
           this.fetchAccounts(true);
+        });
+      }
+    });
+  }
+  
+  /*Fetch node info*/
+  async fetchNodeInfo(){
+    this.setState({
+      nodeinfo_loading: true
+    });
+    
+    reqwest({
+      url: '/api/datachainsget',
+      method: 'get',
+      data: {
+        cmd: 'getNodeInfo',
+        chainName: this.state.chain_name,
+      },
+      type: 'json',
+    }).then(data => {
+      if(data){
+        this.setState({
+          nodeinfo_loading: false,
+          chain_node_info: data,
+        }, ()=>{
+          console.log('fetchNodeInfo chain_node_info='+ JSON.stringify(this.state.chain_node_info));
         });
       }
     });
@@ -324,6 +355,7 @@ class App extends Component {
     this.setState({
       chain_name: value,
       chain_token_symbol: '',
+      chain_node_info: null,
       chain_assets: [],
       chain_accounts: [],
       chain_assets_page_cursor: '',
@@ -334,6 +366,7 @@ class App extends Component {
       chain_accounts_page_total: 0,
     }, ()=>{
       window.location.hash = `#name=${value}`;
+      this.fetchNodeInfo();
       this.fetchAssets(true);
       this.fetchAccounts(true);
     });
@@ -362,6 +395,7 @@ class App extends Component {
       datachains_list, 
       chain_name,
       chain_token_symbol,
+      chain_node_info,
       chain_assets,
       chain_accounts,
     } = this.state;
@@ -381,7 +415,7 @@ class App extends Component {
               </Router>
             </div>*/}
           </div>
-          <div style={{ margin: '20px 0' }}/>
+          <div style={{ margin: '10px 0' }}/>
           <Tabs activeKey={chain_name} 
             onChange={this.handleChainNameChange}
             type="card"
@@ -392,6 +426,33 @@ class App extends Component {
           >
             {datachains_list.map(x => renderTabPaneList(x))}
           </Tabs>
+          {(chain_node_info != null) && (
+            <div style={{ margin: '10px 0' }}>
+              <Descriptions
+                title={<div align='center'>Node Info</div>}
+                size={'small'}
+                bordered
+                column={{ xxl: 4, xl: 3, lg: 3, md: 3, sm: 2, xs: 1 }}
+              >
+                <Descriptions.Item label="Host"><a href={chain_node_info.chainHost} target="_blank">{chain_node_info.chainName}</a></Descriptions.Item>
+                <Descriptions.Item label="ID">{chain_node_info.chainId}</Descriptions.Item>
+                <Descriptions.Item label="Version">{chain_node_info.version}</Descriptions.Item>
+                <Descriptions.Item label="Symbol">{chain_node_info.tokenSymbol}</Descriptions.Item>
+                <Descriptions.Item label="TotalSupply">{chain_node_info.tokenTotalSupply}</Descriptions.Item>
+                <Descriptions.Item label="Decimal">{chain_node_info.tokenDecimal}</Descriptions.Item>
+                <Descriptions.Item label="AssetSize">{chain_node_info.maxAssetSize}</Descriptions.Item>
+                <Descriptions.Item label="MinStake">{chain_node_info.minimumStake}</Descriptions.Item>
+                <Descriptions.Item label="Accounts">{chain_node_info.numAccounts}</Descriptions.Item>
+                <Descriptions.Item label="Assets">{chain_node_info.numAssets}</Descriptions.Item>
+                <Descriptions.Item label="Blocks">{chain_node_info.blockHeight}</Descriptions.Item>
+                <Descriptions.Item label="Stakes">{chain_node_info.numStakes}</Descriptions.Item>
+                <Descriptions.Item label="TotalTxs">{chain_node_info.totalTxs}</Descriptions.Item>
+                <Descriptions.Item label="Validators">{chain_node_info.numValidators}</Descriptions.Item>
+                <Descriptions.Item label="Peers">{chain_node_info.nPeers}</Descriptions.Item>
+              </Descriptions>
+            </div>
+          )}
+          <div style={{ margin: '20px 0' }}/>
           <Table 
             columns={AssetsColumns} 
             dataSource={chain_assets} 
@@ -403,9 +464,9 @@ class App extends Component {
                 <Typography component="h2" variant="h5" color="primary" style={{ fontSize: '16px'}}>
                   Assets
                 </Typography>
-                <div>
+                {/*<div>
                   Asset number: {this.state.chain_assets_page_total}
-                  </div>
+                </div>*/}
               </div>
             }
             footer={() => 
@@ -427,9 +488,9 @@ class App extends Component {
                 <Typography component="h2" variant="h5" color="primary" style={{ fontSize: '16px'}}>
                   Top {this.state.chain_token_symbol} Accounts
                 </Typography>
-                <div>
+                {/*<div>
                   Account number: {this.state.chain_accounts_page_total}
-                </div>
+                </div>*/}
               </div>
             }
             footer={() => 
