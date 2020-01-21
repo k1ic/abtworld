@@ -1766,6 +1766,7 @@ class App extends Component {
               title={
                 <span style={{ fontSize: '14px' }}>
                   {this.state.flash_news_sub_menu_title}
+                  <Icon type="caret-down" />
                 </span>
               }
             >

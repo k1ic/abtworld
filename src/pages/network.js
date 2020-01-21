@@ -165,8 +165,8 @@ class App extends Component {
       
         data = data.filter(function (e) {
           if(env.chainName != 'xenon'){
-            return e.name != 'xenon';
-            //return true;
+            //return e.name != 'xenon';
+            return true;
           }else{
             return true;
           }
