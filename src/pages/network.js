@@ -452,54 +452,62 @@ class App extends Component {
               </Descriptions>
             </div>
           )}
-          <div style={{ margin: '20px 0' }}/>
-          <Table 
-            columns={AssetsColumns} 
-            dataSource={chain_assets} 
-            pagination={false}
-            loading={this.state.assets_loading}
-            size={'small'}
-            title={()=>
-              <div align="center">
-                <Typography component="h2" variant="h5" color="primary" style={{ fontSize: '16px'}}>
-                  Assets
-                </Typography>
-                {/*<div>
-                  Asset number: {this.state.chain_assets_page_total}
-                </div>*/}
-              </div>
-            }
-            footer={() => 
-              <div align="center">
-                <Button onClick={this.onAssetsLoadMore} disabled={this.state.chain_assets_page_next == false} loading={this.state.assets_loading} style={{ fontSize: '13px', color: '#0000FF', marginRight: 20 }}><Icon type="caret-down" />更多</Button>
-                <Button onClick={this.onAssetsLoadMoreBack} loading={this.state.assets_loading} style={{ fontSize: '13px', color: '#009933' }}><Icon type="caret-up" />返回</Button>
-              </div>
-            }
-          />
-          <div style={{ margin: '20px 0' }}/>
-          <Table 
-            columns={AccountsColumns} 
-            dataSource={chain_accounts} 
-            pagination={false}
-            loading={this.state.accounts_loading}
-            size={'small'}
-            title={()=>
-              <div align="center">
-                <Typography component="h2" variant="h5" color="primary" style={{ fontSize: '16px'}}>
-                  Top {this.state.chain_token_symbol} Accounts
-                </Typography>
-                {/*<div>
-                  Account number: {this.state.chain_accounts_page_total}
-                </div>*/}
-              </div>
-            }
-            footer={() => 
-              <div align="center">
-                <Button onClick={this.onAccountsLoadMore} disabled={this.state.chain_accounts_page_next == false} loading={this.state.accounts_loading} style={{ fontSize: '13px', color: '#0000FF', marginRight: 20 }}><Icon type="caret-down" />更多</Button>
-                <Button onClick={this.onAccountsLoadMoreBack} loading={this.state.accounts_loading} style={{ fontSize: '13px', color: '#009933' }}><Icon type="caret-up" />返回</Button>
-              </div>
-            }
-          />
+          {(chain_assets && chain_assets.length > 0) && (
+            <div style={{ margin: '20px 0' }}>
+              <Table 
+                columns={AssetsColumns} 
+                dataSource={chain_assets} 
+                pagination={false}
+                loading={this.state.assets_loading}
+                size={'small'}
+                title={()=>
+                  <div align="center">
+                    <Typography component="h2" variant="h5" color="primary" style={{ fontSize: '16px'}}>
+                      Assets
+                    </Typography>
+                    {/*<div>
+                      Asset number: {this.state.chain_assets_page_total}
+                    </div>*/}
+                  </div>
+                }
+                footer={() => 
+                  <div align="center">
+                    <Button onClick={this.onAssetsLoadMore} disabled={this.state.chain_assets_page_next == false} loading={this.state.assets_loading} style={{ fontSize: '13px', color: '#0000FF', marginRight: 20 }}><Icon type="caret-down" />更多</Button>
+                    <Button onClick={this.onAssetsLoadMoreBack} loading={this.state.assets_loading} style={{ fontSize: '13px', color: '#009933' }}><Icon type="caret-up" />返回</Button>
+                  </div>
+                }
+              />
+            </div>
+          )}
+          
+          {(chain_accounts && chain_accounts.length > 0) && (
+            <div style={{ margin: '20px 0' }}>
+              <Table 
+                columns={AccountsColumns} 
+                dataSource={chain_accounts} 
+                pagination={false}
+                loading={this.state.accounts_loading}
+                size={'small'}
+                title={()=>
+                  <div align="center">
+                    <Typography component="h2" variant="h5" color="primary" style={{ fontSize: '16px'}}>
+                      Top {this.state.chain_token_symbol} Accounts
+                    </Typography>
+                    {/*<div>
+                      Account number: {this.state.chain_accounts_page_total}
+                    </div>*/}
+                  </div>
+                }
+                footer={() => 
+                  <div align="center">
+                    <Button onClick={this.onAccountsLoadMore} disabled={this.state.chain_accounts_page_next == false} loading={this.state.accounts_loading} style={{ fontSize: '13px', color: '#0000FF', marginRight: 20 }}><Icon type="caret-down" />更多</Button>
+                    <Button onClick={this.onAccountsLoadMoreBack} loading={this.state.accounts_loading} style={{ fontSize: '13px', color: '#009933' }}><Icon type="caret-up" />返回</Button>
+                  </div>
+                }
+              />
+            </div>
+          )}
+          
           <LocaleProvider locale={zh_CN}>
             <div className="clearfix">
             </div>
