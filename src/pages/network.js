@@ -434,21 +434,21 @@ class App extends Component {
                 bordered
                 column={{ xxl: 4, xl: 3, lg: 3, md: 3, sm: 2, xs: 1 }}
               >
-                <Descriptions.Item label="Host"><a href={chain_node_info.chainHost} target="_blank">{chain_node_info.chainName}</a></Descriptions.Item>
-                <Descriptions.Item label="ID">{chain_node_info.chainId}</Descriptions.Item>
-                <Descriptions.Item label="Version">{chain_node_info.version}</Descriptions.Item>
-                <Descriptions.Item label="Symbol">{chain_node_info.tokenSymbol}</Descriptions.Item>
-                <Descriptions.Item label="TotalSupply">{chain_node_info.tokenTotalSupply}</Descriptions.Item>
-                <Descriptions.Item label="Decimal">{chain_node_info.tokenDecimal}</Descriptions.Item>
-                <Descriptions.Item label="AssetSize">{chain_node_info.maxAssetSize}</Descriptions.Item>
-                <Descriptions.Item label="MinStake">{chain_node_info.minimumStake}</Descriptions.Item>
-                <Descriptions.Item label="Accounts">{chain_node_info.numAccounts}</Descriptions.Item>
-                <Descriptions.Item label="Assets">{chain_node_info.numAssets}</Descriptions.Item>
-                <Descriptions.Item label="Blocks">{chain_node_info.blockHeight}</Descriptions.Item>
-                <Descriptions.Item label="Stakes">{chain_node_info.numStakes}</Descriptions.Item>
-                <Descriptions.Item label="TotalTxs">{chain_node_info.totalTxs}</Descriptions.Item>
-                <Descriptions.Item label="Validators">{chain_node_info.numValidators}</Descriptions.Item>
-                <Descriptions.Item label="Peers">{chain_node_info.nPeers}</Descriptions.Item>
+                <Descriptions.Item label="Host"><a href={chain_node_info.chainHost} target="_blank" style={{ fontSize: '18px', fontWeight: 600 }}>{chain_node_info.chainName}</a></Descriptions.Item>
+                <Descriptions.Item label="ID"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.chainId}</span></Descriptions.Item>
+                <Descriptions.Item label="Version"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.version}</span></Descriptions.Item>
+                <Descriptions.Item label="Symbol"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.tokenSymbol}</span></Descriptions.Item>
+                <Descriptions.Item label="TotalSupply"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.tokenTotalSupply}</span></Descriptions.Item>
+                <Descriptions.Item label="Decimal"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.tokenDecimal}</span></Descriptions.Item>
+                <Descriptions.Item label="AssetSize"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.maxAssetSize}</span></Descriptions.Item>
+                <Descriptions.Item label="MinStake"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.minimumStake}</span></Descriptions.Item>
+                <Descriptions.Item label="Accounts"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.numAccounts}</span></Descriptions.Item>
+                <Descriptions.Item label="Assets"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.numAssets}</span></Descriptions.Item>
+                <Descriptions.Item label="Blocks"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.blockHeight}</span></Descriptions.Item>
+                <Descriptions.Item label="Stakes"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.numStakes}</span></Descriptions.Item>
+                <Descriptions.Item label="TotalTxs"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.totalTxs}</span></Descriptions.Item>
+                <Descriptions.Item label="Validators"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.numValidators}</span></Descriptions.Item>
+                <Descriptions.Item label="Peers"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.nPeers}</span></Descriptions.Item>
               </Descriptions>
             </div>
           )}

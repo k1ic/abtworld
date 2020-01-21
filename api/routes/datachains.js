@@ -336,6 +336,56 @@ async function getForgeStats(connId){
   return res;
 }
 
+async function getTotalAssets(connId){
+  var res = null;
+  var totalAssets = 0;
+  
+  await forgeChainConnect(connId);
+  
+  res = await ForgeSDK.doRawQuery(`{
+      listTransactions(typeFilter: {types: "create_asset"}) {
+        page {
+          total
+        }
+        code
+      }
+    }`, 
+    { conn: connId }
+  ); 
+  
+  if(res && res.listTransactions && res.listTransactions.code === 'OK'){
+    totalAssets = res.listTransactions.page.total;
+  }
+  
+  return totalAssets;
+}
+
+
+async function getTotalAccounts(connId){
+  var res = null;
+  var totalAccounts = 0;
+  
+  await forgeChainConnect(connId);
+  
+  res = await ForgeSDK.doRawQuery(`{
+      listTopAccounts {
+        page {
+          total
+        }
+        code
+      }
+    }`, 
+    { conn: connId }
+  ); 
+  
+  if(res && res.listTopAccounts && res.listTopAccounts.code === 'OK'){
+    totalAccounts = res.listTopAccounts.page.total;
+  }
+  
+  return totalAccounts;
+}
+
+
 async function getChainInfo(connId){
   var res = null;
   
@@ -552,24 +602,15 @@ async function apiGetChainNodeInfo(params){
       chainNodeInfo['numValidators'] = '0';
     }
     
-    if(res.getForgeStats.forgeStats.numDeclareTxs && res.getForgeStats.forgeStats.numDeclareTxs.length > 0){
-      chainNodeInfo['numAccounts'] = res.getForgeStats.forgeStats.numDeclareTxs[0];
-    }else{
-      chainNodeInfo['numAccounts'] = '0';
-    }
-    
     if(res.getForgeStats.forgeStats.numStakeTxs && res.getForgeStats.forgeStats.numStakeTxs.length > 0){
       chainNodeInfo['numStakes'] = res.getForgeStats.forgeStats.numStakeTxs[0];
     }else{
       chainNodeInfo['numStakes'] = '0';
     }
-    
-    if(res.getForgeStats.forgeStats.numCreateAssetTxs && res.getForgeStats.forgeStats.numCreateAssetTxs.length > 0){
-      chainNodeInfo['numAssets'] = res.getForgeStats.forgeStats.numCreateAssetTxs[0];
-    }else{
-      chainNodeInfo['numAssets'] = '0';
-    }
   }
+  
+  chainNodeInfo['numAccounts'] = String(await getTotalAccounts(connId));
+  chainNodeInfo['numAssets'] = String(await getTotalAssets(connId));
   
   res = await getChainInfo(connId);
   if(res && res.getChainInfo && res.getChainInfo.code === 'OK'){
