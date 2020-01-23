@@ -172,7 +172,11 @@ async function getAccoutState(accoutAddr, connId){
     }
     
     /*declare accout on app data chain.*/
-    const dataChainList = await getDatachainList(); 
+    var dataChainList = await getDatachainList();
+    /*filter out some chain node which need restricted declare */
+    dataChainList = dataChainList.filter(function (e) {
+      return (e.name != 'xenon');
+    });
     for(var i=0;i<dataChainList.length;i++){
       /*connect to chain*/
       await forgeChainConnect(dataChainList[i].chain_id);

@@ -293,6 +293,7 @@ class App extends Component {
     console.log('tab_pics_total=', tab_pics_total);
     console.log('currPage=', currPage);
     
+    /*
     var show_upload_permistion = false;
     if(isProduction){
       if( user && (-1 != admin_account.indexOf(user.did)) ){
@@ -310,7 +311,10 @@ class App extends Component {
     }else{
       show_upload_permistion = true;
     }
-
+    */
+    var show_upload_permistion = true;
+    
+    /*
     var show_hot_permistion = false;
     if(isProduction){
       if( user && (-1 != admin_account.indexOf(user.did)) ){
@@ -321,6 +325,8 @@ class App extends Component {
     }else{
       show_hot_permistion = true;
     }
+    */
+    var show_hot_permistion = true;
     
     return (
       <Layout title="ABT图片">

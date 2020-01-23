@@ -86,6 +86,7 @@ async function getAccoutState(accoutAddr){
           
           /*Transfer to app owner account*/
           /*
+          transferValue = 0.8;
           transferHash = await ForgeSDK.sendTransferTx({
             tx: {
               itx: {
