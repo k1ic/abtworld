@@ -81,9 +81,9 @@ const toPayEachChar = 0.0001;
 
 /*news weights*/
 const news_weights_value_min = 1;
-const news_weights_value_max = 10000;
+const news_weights_value_max = 1000000;
 const news_weights_value_step = 1;
-const news_weights_level_important = 10;
+const news_weights_level_important = 1000;
 
 /*minner numbers*/
 const newsSendCfgWinWidth = 300;

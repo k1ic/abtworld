@@ -133,7 +133,7 @@ class App extends Component {
     this.state = {
       session: null,
       datachains_list: [],
-      chain_name: 'zinc',
+      chain_name: 'xenon',
       chain_token_symbol: '',
       chain_node_info: null,
       chain_assets: [],
@@ -444,9 +444,9 @@ class App extends Component {
                 <Descriptions.Item label="MinStake"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.minimumStake}</span></Descriptions.Item>
                 <Descriptions.Item label="Accounts"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.numAccounts}</span></Descriptions.Item>
                 <Descriptions.Item label="Assets"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.numAssets}</span></Descriptions.Item>
+                <Descriptions.Item label="TotalTxs"><a href={chain_node_info.chainHost+'/node/explorer/txs'} target="_blank" style={{ fontSize: '15px', fontWeight: 600 }}>{chain_node_info.totalTxs}</a></Descriptions.Item>
                 <Descriptions.Item label="Blocks"><a href={chain_node_info.chainHost+'/node/explorer/blocks'} target="_blank" style={{ fontSize: '15px', fontWeight: 600 }}>{chain_node_info.blockHeight}</a></Descriptions.Item>
                 <Descriptions.Item label="Stakes"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.numStakes}</span></Descriptions.Item>
-                <Descriptions.Item label="TotalTxs"><a href={chain_node_info.chainHost+'/node/explorer/txs'} target="_blank" style={{ fontSize: '15px', fontWeight: 600 }}>{chain_node_info.totalTxs}</a></Descriptions.Item>
                 <Descriptions.Item label="Validators"><span style={{ fontSize: '15px', fontWeight: 600, color: '#000000' }}>{chain_node_info.numValidators}</span></Descriptions.Item>
                 <Descriptions.Item label="Peers"><a href={chain_node_info.chainHost+'/node/peers'} target="_blank" style={{ fontSize: '15px', fontWeight: 600 }}>{chain_node_info.nPeers}</a></Descriptions.Item>
               </Descriptions>
