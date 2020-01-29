@@ -80,25 +80,23 @@ export default function Header() {
         <Typography href="/network" component="a" variant="h6" color="inherit" className="text">
           链网
         </Typography>
-        <Menu onClick={handleMoreClick} selectedKeys={[state.current]} mode="horizontal" theme="light" className="antd-menu" >
-        <SubMenu
-          title={
-            <span className="submenu-title-wrapper">
-              {/*<Icon type="appstore" />*/}
-              更多
-            </span>
-          }
-        >
-          <Menu.ItemGroup title="">
-          </Menu.ItemGroup>
-          <Menu.Item key="more:1"><a href="/wools" target="_parent">薅羊毛</a></Menu.Item>
-          <Menu.Item key="more:2"><a href="/about" target="_parent">关于我们</a></Menu.Item>
-          {/*<Menu.Item key="more:1"><a href={env.chainHost.replace('/api', '/node/explorer/txs')} target="_blank">资产链</a></Menu.Item>*/}
-          {/*<Menu.ItemGroup title="应用">
-            <Menu.Item key="more:3.1"><a href="/wools" target="_parent">薅羊毛</a></Menu.Item>
-          </Menu.ItemGroup>*/}
-        </SubMenu>
-       </Menu>
+        <Typography href="/about" component="a" variant="h6" color="inherit" className="text">
+          关于
+        </Typography>
+        {/*<Menu onClick={handleMoreClick} selectedKeys={[state.current]} mode="horizontal" theme="light" className="antd-menu" >
+          <SubMenu
+            title={
+              <span className="submenu-title-wrapper">
+                更多
+              </span>
+            }
+          >
+            <Menu.ItemGroup title="">
+            </Menu.ItemGroup>
+            <Menu.Item key="more:1"><a href="/wools" target="_parent">薅羊毛</a></Menu.Item>
+            <Menu.Item key="more:2"><a href="/about" target="_parent">关于我们</a></Menu.Item>
+          </SubMenu>
+         </Menu>*/}
       </div>
       <div className="nav-right">
         {session.loading && (

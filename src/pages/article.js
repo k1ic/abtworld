@@ -48,7 +48,9 @@ const news_comment_max_length = 100;
 
 const renderCommentList = (x, token) => (
   <span>
-    <span style={{ fontSize: '14px', color: '#3CB371' }}>{x.uname}：</span>
+    <span style={{ fontSize: '14px', color: '#3CB371' }}>{x.uname}</span>
+    <span style={{ fontSize: '12px', color: '#888888' }}> - {x.time}</span>
+    <br/>
     <span style={{ fontSize: '14px', color: '#0', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'normal' }}>{x.comment}</span>
     {(x.mbalance>0)?<span style={{ fontSize: '10px', color: '#FF6600' }}> +{x.mbalance} {token.symbol}</span>:''}
     <br/>
@@ -552,7 +554,7 @@ class App extends Component {
   );
   
   CommentList = ({ asset_did, comment_cnt, comment_list, token }) => (
-    <Paragraph className="antd-list-comment-list-text" ellipsis={{ rows: 10, expandable: true }}>
+    <Paragraph className="antd-list-comment-list-text" ellipsis={{ rows: 12, expandable: true }}>
       {comment_list.map(x => renderCommentList(x, token))}
     </Paragraph>
   );

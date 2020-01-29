@@ -238,7 +238,9 @@ const limit2Decimals = (value) => {
 
 const renderCommentList = (x, token) => (
   <span className="antd-list-comment-list-item-text">
-    <span style={{ fontSize: '14px', color: '#3CB371' }}>{x.uname}：</span>
+    <span style={{ fontSize: '14px', color: '#3CB371' }}>{x.uname}</span>
+    <span style={{ fontSize: '12px', color: '#888888' }}> - {x.time}</span>
+    <br/>
     <span style={{ fontSize: '14px', color: '#0', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'normal' }}>{x.comment}</span>
     {(x.mbalance>0)?<span style={{ fontSize: '10px', color: '#FF6600' }}> +{x.mbalance} {token.symbol}</span>:''}
     <br/>
@@ -1248,13 +1250,14 @@ class App extends Component {
         <span>{text}</span>
       </a>
       {total_min_rem>0 && (<br/>)}
-      {total_min_rem>0 && (<span style={{ fontSize: '10px', color: '#FF6600' }}>{balance}</span>)}
-      {total_min_rem>0 && (<span style={{ fontSize: '10px', color: '#FF6600' }}>({minner_num}个)</span>)}
+      {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>{balance}</span>)}
+      {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>{token_symbol}</span>)}
+      {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>({minner_num}个)</span>)}
     </span>
   );
   
   CommentList = ({ asset_did, comment_cnt, comment_list, token }) => (
-    <Paragraph className="antd-list-comment-list-text" ellipsis={{ rows: 6, expandable: true }}>
+    <Paragraph className="antd-list-comment-list-text" ellipsis={{ rows: 10, expandable: true }}>
       {comment_list.map(x => renderCommentList(x, token))}
     </Paragraph>
   );
