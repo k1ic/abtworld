@@ -311,7 +311,10 @@ class App extends Component {
     this.share_news_items = [];
     this.winW = 0;
     this.winH = 0;
-    this.shareNewsPicTime = null;
+    this.sendNewsDialogWinWidth = 0;
+    this.commentInpuTopOffset = 0;
+    this.shareNewsPicTimeout = null;
+    this.newsToPayCalcTimeout = null;
     this.onListItemActionClick = this.onListItemActionClick.bind(this);
   }
   
@@ -467,6 +470,11 @@ class App extends Component {
     //console.log('handleScroll', scrollTop); //滚动条距离页面的高度
     this.winW = window.innerWidth;  //浏览器窗口的内部宽度
     this.winH = window.innerHeight; //浏览器窗口的内部高度
+    this.sendNewsDialogWinWidth = this.winW>20?this.winW - 10:this.winW;
+    this.commentInpuTopOffset = this.winH/2;
+    if(this.commentInpuTopOffset == 0){
+      this.commentInpuTopOffset = 20;
+    }
     this.setState({
       sendAffixOffsetTop: this.winH>100?this.winH - 100:10,
     },()=>{
@@ -476,6 +484,11 @@ class App extends Component {
   resizeHandler = (event) => {
     this.winW = window.innerWidth;  //浏览器窗口的内部宽度
     this.winH = window.innerHeight; //浏览器窗口的内部高度
+    this.sendNewsDialogWinWidth = this.winW>20?this.winW - 10:this.winW;
+    this.commentInpuTopOffset = this.winH/2;
+    if(this.commentInpuTopOffset == 0){
+      this.commentInpuTopOffset = 20;
+    }
     this.setState({
       sendAffixOffsetTop: this.winH>100?this.winH - 100:10,
     },()=>{
@@ -487,6 +500,11 @@ class App extends Component {
     
     this.winW = window.innerWidth;  //浏览器窗口的内部宽度
     this.winH = window.innerHeight; //浏览器窗口的内部高度
+    this.sendNewsDialogWinWidth = this.winW>20?this.winW - 10:this.winW;
+    this.commentInpuTopOffset = this.winH/2;
+    if(this.commentInpuTopOffset == 0){
+      this.commentInpuTopOffset = 20;
+    }
     window.addEventListener('scroll', this.scrollHandler);
     window.addEventListener('resize', this.resizeHandler);
     this.setState({
@@ -562,19 +580,19 @@ class App extends Component {
     
     var toPay = 0;
     var newsLength = 0;
-    if(news_title_enabled && news_title_to_send && news_title_to_send.length > 0){
+    if(news_title_enabled && news_title_to_send){
       newsLength += news_title_to_send.length;
     }
-    if(news_content_to_send && news_content_to_send.length > 0){
+    if(news_content_to_send){
       newsLength += news_content_to_send.length;
     }
     
     if(news_type != 'test2' && news_type != 'articles' && newsLength > 0){
       toPay = forgeTxValueSecureConvert((toPayEachChar*news_to_send_weight)*newsLength);
     }
+    
     this.setState({
       toPay: toPay,
-    },()=>{
     });
   }
   
@@ -722,6 +740,14 @@ class App extends Component {
   }
   
   onOpenSendNewsDialogButtonClick = () => {
+    const { session } = this.state;
+    const { user, token } = session;
+    
+    if(isProduction && !user){
+      window.location.href = '/?openLogin=true';
+      return null;
+    }
+   
     this.setState({
       send_news_dialog_visible: true,
     },()=>{
@@ -778,8 +804,18 @@ class App extends Component {
     this.setState({
       news_title_to_send: value,
     },()=>{
-      this.updateToPayValue();
     });
+    
+    if(this.newsToPayCalcTimeout){
+      clearTimeout(this.newsToPayCalcTimeout);
+      this.newsToPayCalcTimeout = null;
+    }
+    
+    this.newsToPayCalcTimeout = setTimeout(() => {
+       this.updateToPayValue();
+       this.newsToPayCalcTimeout = null;
+    }, 1000);
+    
   };
   
   onNewsContentToSendChange = ({ target: { value } }) => {    
@@ -788,8 +824,17 @@ class App extends Component {
     this.setState({
       news_content_to_send: value,
     },()=>{
-      this.updateToPayValue();
     });
+    
+    if(this.newsToPayCalcTimeout){
+      clearTimeout(this.newsToPayCalcTimeout);
+      this.newsToPayCalcTimeout = null;
+    }
+    
+    this.newsToPayCalcTimeout = setTimeout(() => {
+       this.updateToPayValue();
+       this.newsToPayCalcTimeout = null;
+    }, 1000);
   };
   
   onNewsArticleWorthChange = value => {
@@ -909,6 +954,11 @@ class App extends Component {
   
   /*Send news handler*/
   handleSendNews = () => {
+    console.log('handleSendNews');
+    
+    /*Update to pay value*/
+    this.updateToPayValue();
+    
     const { 
       session,
       datachain_node_name_to_send,
@@ -925,8 +975,6 @@ class App extends Component {
       news_forward_minner_number 
     } = this.state;
     const { user, token } = session;
-    
-    console.log('handleSendNews');
     
     if(news_content_to_send.length > 0){
       const asset_did = HashString('sha1', news_content_to_send);
@@ -1154,7 +1202,7 @@ class App extends Component {
       return null;
     }
     
-    if(!user && action_type != 'share'){
+    if(isProduction && !user && action_type != 'share'){
       window.location.href = '/?openLogin=true';
       return null;
     }
@@ -1362,12 +1410,12 @@ class App extends Component {
   
   handleShareNewsPicContextMenu = e => {
     //console.log('handleShareNewsPicContextMenu, e=', e);
-    if(this.shareNewsPicTime){
-      clearTimeout(this.shareNewsPicTime);
-      this.shareNewsPicTime = null;
+    if(this.shareNewsPicTimeout){
+      clearTimeout(this.shareNewsPicTimeout);
+      this.shareNewsPicTimeout = null;
     }
     
-    this.shareNewsPicTime = setTimeout(() => {
+    this.shareNewsPicTimeout = setTimeout(() => {
       this.setState({
         shared_btn_disabled: false
       },()=>{
@@ -1617,25 +1665,10 @@ class App extends Component {
     //  return null;
     //}
     
-    this.winW = window.innerWidth;  //浏览器窗口的内部宽度
-    this.winH = window.innerHeight; //浏览器窗口的内部高度
-    //this.winW = window.screen.width; //显示屏幕的高度
-    //this.winH = window.screen.height;  //显示屏幕的宽度
-    //console.log('render winW=', this.winW, 'winH=', this.winH);
-    const sendNewsDialogWinWidth = this.winW>20?this.winW - 10:this.winW;
-    var commentInpuTopOffset = this.winH/2;
-    if(commentInpuTopOffset == 0){
-      commentInpuTopOffset = 20;
-    }
-    
-    if(news_to_chain_mode === 'indirect'){
-      if(news_type === 'test2' || news_type === 'articles'){
-        news_content_max_length = 5000;
-      }else{
-        news_content_max_length = 1000;
-      }
+    if(news_type === 'test2' || news_type === 'articles'){
+      news_content_max_length = 5000;
     }else{
-      news_content_max_length = 100;
+      news_content_max_length = 1000;
     }
     
     const { user, token } = session;
@@ -1643,20 +1676,8 @@ class App extends Component {
     //console.log('render session.token=', token);
     
     const dapp = 'newsflash';
-    var para_obj = null;
-    var para = '';
-    
-    if(news_to_chain_mode === 'direct'){
-      if(user){
-         para_obj = {type: news_type, uname: user.name, content: news_content_to_send};
-      }else{
-         para_obj = {type: news_type, uname: '匿名', content: news_content_to_send};
-      }
-      para = JSON.stringify(para_obj);
-    }else{
-      para_obj = {asset_did: this.state.asset_did};
-      para = JSON.stringify(para_obj);
-    }
+    var para_obj = {asset_did: this.state.asset_did};
+    var para = JSON.stringify(para_obj);
     
     //if(this.state.newsflash_list && this.state.newsflash_list.length > 0){
       //console.log('render newsflash_list=', this.state.newsflash_list);
@@ -1665,38 +1686,14 @@ class App extends Component {
     
     /*send permission*/
     var send_permission = false;
-    if(user){
-      if(-1 != admin_account.indexOf(user.did)){
-        switch(news_type){
-          case 'hot':
-            send_permission = false;
-            break;
-          default:
-            send_permission = true;
-            break;
-        }
-      }else{
-        switch(news_type){
-          case 'amas':
-            if(-1 != ama_send_perm_udid.indexOf(user.did)){
-              send_permission = true;
-            }else{
-              send_permission = false;
-            }
-            break;
-          case 'hot':
-            send_permission = false;
-            break;
-          default:
-            send_permission = true;
-            break;
-        }
-      }
-    }else{
-      send_permission = false;
+    switch(news_type){
+      case 'hot':
+        send_permission = false;
+        break;
+      default:
+        send_permission = true;
+        break;
     }
-    
-    var list_action_show = true;
     
     const newsImageUploadprops = {
       onRemove: (file) => {
@@ -1836,101 +1833,103 @@ class App extends Component {
             </div>
           )}
           <LocaleProvider locale={zh_CN}>
-            <List
-              itemLayout="vertical"
-              size="large"
-              loadMore={loadMore}
-              dataSource={this.state.newsflash_list?this.state.newsflash_list:[]}
-              footer={null}
-              renderItem={item => (
-                <List.Item
-                  key={item.hash}
-                  actions={((item.news_type != 'test2') && (item.news_type != 'articles'))?
-                    [
-                      <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.like_min_rem} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like"+item.hash} />,
-                      <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.comment_min_rem} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message"+item.hash} />,
-                      <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.forward_min_rem} minner_num={item.forward_min_rem_number} asset_did={item.asset_did}  key={"list-item-share"+item.hash} />,
-                    ]:
-                    []
-                  }
-                  extra={null}
-                  className="antd-list-item"
-                >
-                  <div>
-                    <span style={{ float: 'left', marginRight: 10 }}>
-                      {item.uavatar.length>0?
-                        <img src={item.uavatar} height="65" width="65" style={{ borderRadius: '50%' }}/>:
-                        <Avatar size={65} did={item.sender} style={{ borderRadius: '50%' }} />}
-                    </span>
-                    <span style={{ fontSize: '15px', color: '#000000', marginRight: 0 }}>{item.uname}</span>
-                    {((item.news_type != 'test2') && (item.news_type != 'articles') && (item.weights > 1)) && (
-                      <span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>
+            {(this.state.send_news_dialog_visible === false && this.state.gen_share_news_visible === false && this.state.share_news_pic_visible === false) && (
+              <List
+                itemLayout="vertical"
+                size="large"
+                loadMore={loadMore}
+                dataSource={this.state.newsflash_list?this.state.newsflash_list:[]}
+                footer={null}
+                renderItem={item => (
+                  <List.Item
+                    key={item.hash}
+                    actions={((item.news_type != 'test2') && (item.news_type != 'articles'))?
+                      [
+                        <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.like_min_rem} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like"+item.hash} />,
+                        <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.comment_min_rem} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message"+item.hash} />,
+                        <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.forward_min_rem} minner_num={item.forward_min_rem_number} asset_did={item.asset_did}  key={"list-item-share"+item.hash} />,
+                      ]:
+                      []
+                    }
+                    extra={null}
+                    className="antd-list-item"
+                  >
+                    <div>
+                      <span style={{ float: 'left', marginRight: 10 }}>
+                        {item.uavatar.length>0?
+                          <img src={item.uavatar} height="65" width="65" style={{ borderRadius: '50%' }}/>:
+                          <Avatar size={65} did={item.sender} style={{ borderRadius: '50%' }} />}
+                      </span>
+                      <span style={{ fontSize: '15px', color: '#000000', marginRight: 0 }}>{item.uname}</span>
+                      {((item.news_type != 'test2') && (item.news_type != 'articles') && (item.weights > 1)) && (
+                        <span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>
+                      )}
+                      {((item.news_type === 'test2') || (item.news_type === 'articles')) && (
+                        <span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}> {item.news_article_worth} {token.symbol}</span>
+                      )}
+                      <br/>
+                      {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
+                      <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
+                      <span style={{ fontSize: '15px', color: '#000000' }}> {item.sender}</span> <br/>
+                      <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.time}</a> <br/>        
+                    </div>
+                  
+                    {(item.news_type != 'test2') && (item.news_type != 'articles') && (
+                      <div id={item.asset_did}>
+                        {(item.news_title.length > 0) && 
+                          <span style={{ fontSize: '17px', fontWeight: 600, color: '#000000' }}>{item.news_title}</span>
+                        }
+                        {(item.news_title.length > 0) && <br/>}
+                        {(item.news_title.length > 0) && <br/>}
+                        {(item.news_content.length > 400)
+                          ?
+                          (item.weights >= news_weights_level_important
+                            ?
+                            <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#FF0000' }}>
+                              {item.news_content}
+                            </Paragraph> 
+                            :
+                            <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#000000' }}>
+                              {item.news_content}
+                            </Paragraph>
+                          )
+                          :
+                          (item.weights >= news_weights_level_important
+                            ?
+                            <span style={{ fontSize: '16px', color: '#FF0000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
+                            :
+                            <span style={{ fontSize: '16px', color: '#000000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
+                          )
+                        }
+                      </div>
                     )}
+                  
                     {((item.news_type === 'test2') || (item.news_type === 'articles')) && (
-                      <span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}> {item.news_article_worth} {token.symbol}</span>
+                      <div id={item.asset_did} style={{ display: 'flex' , alignItems: 'center', justifyContent: 'flex-start'}}>
+                        <a href={`/article?asset_did=${item.asset_did}`} style={{ width: '100%' }}>
+                          <img src={item.news_images[0]} alt="HashNews" width='156' height="100" style={{ float: 'left', marginRight: 10, borderRadius: '10px' }}/>
+                          <span style={{ fontSize: '17px', fontWeight: 500, color: '#000000' }}>{item.news_title}</span> <br/>
+                          <span style={{ fontSize: '13px', color: '#888888' }}>{item.news_content.slice(0, 50)}...</span> <br/>
+                        </a>            
+                      </div>
                     )}
-                    <br/>
-                    {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
-                    <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
-                    <span style={{ fontSize: '15px', color: '#000000' }}> {item.sender}</span> <br/>
-                    <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.time}</a> <br/>        
-                  </div>
                   
-                  {(item.news_type != 'test2') && (item.news_type != 'articles') && (
-                    <div id={item.asset_did}>
-                      {(item.news_title.length > 0) && 
-                        <span style={{ fontSize: '17px', fontWeight: 600, color: '#000000' }}>{item.news_title}</span>
-                      }
-                      {(item.news_title.length > 0) && <br/>}
-                      {(item.news_title.length > 0) && <br/>}
-                      {(item.news_content.length > 400)
-                        ?
-                        (item.weights >= news_weights_level_important
-                          ?
-                          <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#FF0000' }}>
-                            {item.news_content}
-                          </Paragraph> 
-                          :
-                          <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#000000' }}>
-                            {item.news_content}
-                          </Paragraph>
-                        )
-                        :
-                        (item.weights >= news_weights_level_important
-                          ?
-                          <span style={{ fontSize: '16px', color: '#FF0000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
-                          :
-                          <span style={{ fontSize: '16px', color: '#000000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
-                        )
-                      }
-                    </div>
-                  )}
-                  
-                  {((item.news_type === 'test2') || (item.news_type === 'articles')) && (
-                    <div id={item.asset_did} style={{ display: 'flex' , alignItems: 'center', justifyContent: 'flex-start'}}>
-                      <a href={`/article?asset_did=${item.asset_did}`} style={{ width: '100%' }}>
-                        <img src={item.news_images[0]} alt="HashNews" width='156' height="100" style={{ float: 'left', marginRight: 10, borderRadius: '10px' }}/>
-                        <span style={{ fontSize: '17px', fontWeight: 500, color: '#000000' }}>{item.news_title}</span> <br/>
-                        <span style={{ fontSize: '13px', color: '#888888' }}>{item.news_content.slice(0, 50)}...</span> <br/>
-                      </a>            
-                    </div>
-                  )}
-                  
-                  {(item.news_origin.length > 0) &&
-                    <div>
-                      <br/>
-                      <span style={{ fontSize: '10px', color: '#888888' }}>来源：{item.news_origin}</span>
-                    </div>
-                  }
-                  {(item.comment_list.length > 0) &&
-                    <div>
-                      <br/>
-                      <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />
-                    </div> 
-                  }
-                </List.Item>
-              )}
-            />
+                    {(item.news_origin.length > 0) &&
+                      <div>
+                        <br/>
+                        <span style={{ fontSize: '10px', color: '#888888' }}>来源：{item.news_origin}</span>
+                      </div>
+                    }
+                    {(item.comment_list.length > 0) &&
+                      <div>
+                        <br/>
+                        <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />
+                      </div> 
+                    }
+                  </List.Item>
+                )}
+              />
+            )}
             <Modal
              title="发布资讯"
              closable={false}
@@ -1942,7 +1941,7 @@ class App extends Component {
              okButtonProps={{ disabled: false }}
              destroyOnClose={true}
              forceRender={true}
-             width = {sendNewsDialogWinWidth}
+             width = {this.sendNewsDialogWinWidth}
             >
               <Text style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>发布节点</Text>
               <Select value={this.state.datachain_node_name_to_send} style={{ fontSize: '15px', color: '#000000', width: 120 }} onChange={this.onDatachainNodeToSendChange} className="antd-select">
@@ -2176,7 +2175,7 @@ class App extends Component {
               <span style={{ fontSize: '15px', color: '#000000' }}>个</span>
             </Modal>
             <Modal
-             style={{ top: commentInpuTopOffset }}
+             style={{ top: this.commentInpuTopOffset }}
              title={null}
              closable={false}
              visible={this.state.comment_input_visible}
@@ -2247,10 +2246,10 @@ class App extends Component {
                   renderItem={item => (
                     <List.Item
                       key={"share"+item.hash}
-                      actions={list_action_show?[
+                      actions={[
                         <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.like_min_rem} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like-share"+item.hash} />,
                         <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.comment_min_rem} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message-share"+item.hash} />,
-                      ]:[]}
+                      ]}
                       extra={null}
                       className="antd-list-item"
                     >
