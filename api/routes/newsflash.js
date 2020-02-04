@@ -718,77 +718,85 @@ async function getNewsForShow(module_para){
   console.log('getNewsForShow wait counter', wait_counter);
   //console.log(new_docs);
   
-  /*slice the new doc*/
-  if(new_docs && new_docs.length > 0){
-    if(module_para.slice_end > module_para.slice_start){
-      console.log('getNewsForShow slice start=', module_para.slice_start, 'end=', module_para.slice_end, 'new_docs.length=', new_docs.length);
-      if(module_para.slice_start < new_docs.length){
-        new_docs = new_docs.slice(module_para.slice_start, module_para.slice_end);
-      }else{
-        new_docs = [];
+  if(typeof(module_para.get_mode) != "undefined" && module_para.get_mode === 'get_total_num'){
+    if(new_docs && new_docs.length > 0){
+      return new_docs.length;
+    }else{
+      return 0;
+    }
+  }else{
+    /*slice the new doc*/
+    if(new_docs && new_docs.length > 0){
+      if(module_para.slice_end > module_para.slice_start){
+        console.log('getNewsForShow slice start=', module_para.slice_start, 'end=', module_para.slice_end, 'new_docs.length=', new_docs.length);
+        if(module_para.slice_start < new_docs.length){
+          new_docs = new_docs.slice(module_para.slice_start, module_para.slice_end);
+        }else{
+          new_docs = [];
+        }
       }
     }
+  
+    /*remap news for frontEnd UI show */
+    if(new_docs && new_docs.length > 0){
+      new_docs = await Promise.all(new_docs.map( async (e) => {
+        var temp_doc = {};
+        temp_doc['data_chain_nodes'] = e.data_chain_nodes;
+        temp_doc['loading'] = false;
+        temp_doc['state'] = e.state;
+        temp_doc['time'] = e.news_time;
+        temp_doc['sender'] = getUserDidFragment(e.author_did);
+        temp_doc['hash'] = e.news_hash;
+        temp_doc['href'] = e.hash_href[0];
+        temp_doc['news_type'] = e.news_type;
+        temp_doc['news_title'] = e.news_title;
+        temp_doc['news_content'] = e.news_content;
+        temp_doc['news_origin'] = e.news_origin;
+        temp_doc['news_images'] = e.news_images;
+        temp_doc['news_article_worth'] = e.news_article_worth;
+        temp_doc['weights'] = e.news_weights;
+        temp_doc['asset_did'] = e.asset_did;
+        temp_doc['uname'] = e.author_name;
+        temp_doc['uavatar'] = e.author_avatar;
+        temp_doc['title'] = e.author_name+'('+getUserDidFragment(e.author_did)+')';
+        temp_doc['comment_min_rem'] = forgeTxValueSecureConvert(e.remain_comment_minner_balance);
+        temp_doc['like_min_rem'] = forgeTxValueSecureConvert(e.remain_like_minner_balance);
+        temp_doc['forward_min_rem'] = forgeTxValueSecureConvert(e.remain_forward_minner_balance);
+        if(e.remain_comment_minner_balance > 0 && e.each_comment_minner_balance > 0){
+          temp_doc['comment_min_rem_number'] = Math.round(e.remain_comment_minner_balance/e.each_comment_minner_balance);
+        }else{
+          temp_doc['comment_min_rem_number'] = 0;
+        }
+        if(e.remain_like_minner_balance > 0 && e.each_like_minner_balance > 0){
+          temp_doc['like_min_rem_number'] = Math.round(e.remain_like_minner_balance/e.each_like_minner_balance);
+        }else{
+          temp_doc['like_min_rem_number'] = 0;
+        }
+        if(e.remain_forward_minner_balance > 0 && e.each_forward_minner_balance > 0){
+          temp_doc['forward_min_rem_number'] = Math.round(e.remain_forward_minner_balance/e.each_forward_minner_balance);
+        }else{
+          temp_doc['forward_min_rem_number'] = 0;
+        }
+        temp_doc['total_min_rem'] = temp_doc.comment_min_rem + temp_doc.like_min_rem + temp_doc.forward_min_rem;
+        temp_doc['comment_cnt'] = e.comment_counter;
+        temp_doc['like_cnt'] = e.like_counter;
+        temp_doc['forward_cnt'] = e.forward_counter;
+        temp_doc['comment_list'] = e.comment_list;
+        temp_doc['like_list'] = e.like_list;
+        temp_doc['forward_list'] = e.forward_list;
+        if(module_para.udid && module_para.udid.length > 0){
+          temp_doc['like_status'] = newsflashDocLikeStatusGet(e, module_para.udid);
+        }else{
+          temp_doc['like_status'] = false;
+        }
+        return temp_doc;
+      }));
+    }
+  
+    //console.log('getNewsForShow final new_docs.length=', new_docs.length);
+  
+    return new_docs;
   }
-  
-  /*remap news for frontEnd UI show */
-  if(new_docs && new_docs.length > 0){
-    new_docs = await Promise.all(new_docs.map( async (e) => {
-      var temp_doc = {};
-      temp_doc['data_chain_nodes'] = e.data_chain_nodes;
-      temp_doc['loading'] = false;
-      temp_doc['state'] = e.state;
-      temp_doc['time'] = e.news_time;
-      temp_doc['sender'] = getUserDidFragment(e.author_did);
-      temp_doc['hash'] = e.news_hash;
-      temp_doc['href'] = e.hash_href[0];
-      temp_doc['news_type'] = e.news_type;
-      temp_doc['news_title'] = e.news_title;
-      temp_doc['news_content'] = e.news_content;
-      temp_doc['news_origin'] = e.news_origin;
-      temp_doc['news_images'] = e.news_images;
-      temp_doc['news_article_worth'] = e.news_article_worth;
-      temp_doc['weights'] = e.news_weights;
-      temp_doc['asset_did'] = e.asset_did;
-      temp_doc['uname'] = e.author_name;
-      temp_doc['uavatar'] = e.author_avatar;
-      temp_doc['title'] = e.author_name+'('+getUserDidFragment(e.author_did)+')';
-      temp_doc['comment_min_rem'] = forgeTxValueSecureConvert(e.remain_comment_minner_balance);
-      temp_doc['like_min_rem'] = forgeTxValueSecureConvert(e.remain_like_minner_balance);
-      temp_doc['forward_min_rem'] = forgeTxValueSecureConvert(e.remain_forward_minner_balance);
-      if(e.remain_comment_minner_balance > 0 && e.each_comment_minner_balance > 0){
-        temp_doc['comment_min_rem_number'] = Math.round(e.remain_comment_minner_balance/e.each_comment_minner_balance);
-      }else{
-        temp_doc['comment_min_rem_number'] = 0;
-      }
-      if(e.remain_like_minner_balance > 0 && e.each_like_minner_balance > 0){
-        temp_doc['like_min_rem_number'] = Math.round(e.remain_like_minner_balance/e.each_like_minner_balance);
-      }else{
-        temp_doc['like_min_rem_number'] = 0;
-      }
-      if(e.remain_forward_minner_balance > 0 && e.each_forward_minner_balance > 0){
-        temp_doc['forward_min_rem_number'] = Math.round(e.remain_forward_minner_balance/e.each_forward_minner_balance);
-      }else{
-        temp_doc['forward_min_rem_number'] = 0;
-      }
-      temp_doc['total_min_rem'] = temp_doc.comment_min_rem + temp_doc.like_min_rem + temp_doc.forward_min_rem;
-      temp_doc['comment_cnt'] = e.comment_counter;
-      temp_doc['like_cnt'] = e.like_counter;
-      temp_doc['forward_cnt'] = e.forward_counter;
-      temp_doc['comment_list'] = e.comment_list;
-      temp_doc['like_list'] = e.like_list;
-      temp_doc['forward_list'] = e.forward_list;
-      if(module_para.udid && module_para.udid.length > 0){
-        temp_doc['like_status'] = newsflashDocLikeStatusGet(e, module_para.udid);
-      }else{
-        temp_doc['like_status'] = false;
-      }
-      return temp_doc;
-    }));
-  }
-  
-  //console.log('getNewsForShow final new_docs.length=', new_docs.length);
-  
-  return new_docs;
 }
 
 async function NewsflashStateManager(action, asset_did){
@@ -850,6 +858,21 @@ module.exports = {
               if(news && news.length > 0){
                 console.log('api.newsflashget.ok - news.length', news.length);
                 res.json(news);
+                return;
+              }
+              break;
+            case 'getNewsTotalNum':
+              var module_para = {
+                  data_chain_name: req.query.data_chain_name,
+                  news_type: req.query.news_type, 
+                  udid: req.query.udid, 
+                  udid_to_show: req.query.udid_to_show,
+                  get_mode: 'get_total_num',
+               };
+              const num = await getNewsForShow(module_para);
+              if(num){
+                console.log('api.newsflashget.ok - news number', num);
+                res.json(num);
                 return;
               }
               break;

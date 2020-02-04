@@ -11,7 +11,8 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import { 
   LocaleProvider, 
   Upload, 
-  Icon, 
+  Icon,
+  Pagination, 
   Modal, 
   Button, 
   message, 
@@ -60,7 +61,7 @@ const { SubMenu } = Menu;
 const isProduction = process.env.NODE_ENV === 'production';
 const admin_account = env.appAdminAccounts;
 
-/*direct or indirect*/
+/*news parameter*/
 const news_to_chain_mode = 'indirect';
 const news_title_max_length = 100;
 var news_content_max_length = 0;
@@ -75,6 +76,12 @@ const news_type_default = 'chains';
  *2.localdb
  */
 const news_fetch_mode = 'localdb';
+
+/*news list show mode
+ *1.more
+ *2.page
+ */
+const news_list_show_mode = 'page';
 
 /*pay valye*/
 const toPayEachChar = 0.0001;
@@ -290,6 +297,7 @@ class App extends Component {
       datachain_node_name_to_view: 'all',
       datachain_node_name_to_send: 'default',
       newsflash_list: [],
+      newsflash_total_num: 0,
       loading: false,
       page_number: 1,
       more_to_load: true,
@@ -316,6 +324,7 @@ class App extends Component {
     this.shareNewsPicTimeout = null;
     this.newsToPayCalcTimeout = null;
     this.onListItemActionClick = this.onListItemActionClick.bind(this);
+    this.onNewsPaginationChange = this.onNewsPaginationChange.bind(this);
   }
   
   /*Fetch App data*/
@@ -326,6 +335,9 @@ class App extends Component {
         session: data
       },()=>{
         this.fetchDatachainsList();
+        if(news_list_show_mode === 'page'){
+          this.fetchNewsFlash({}, 'total_num');
+        }
         this.fetchNewsFlash();
       });
     } catch (err) {
@@ -372,7 +384,7 @@ class App extends Component {
   }
   
   /*Fetch news flash */
-  fetchNewsFlash = (params = {}) => {
+  fetchNewsFlash = (params = {}, get_mode = 'list') => {
     const { 
       news_type
     } = this.state;
@@ -397,53 +409,106 @@ class App extends Component {
       }
     }
     
-    var api_url = '/api/payments';
-    if(news_fetch_mode === 'localdb'){
-      api_url = '/api/newsflashget';
-    }
+    if(get_mode === 'list'){
+      var api_url = '/api/payments';
+      if(news_fetch_mode === 'localdb'){
+        api_url = '/api/newsflashget';
+      }
     
-    reqwest({
-      url: api_url,
-      method: 'get',
-      data: {
-        cmd: 'getNewsList',
-        data_chain_name: this.state.datachain_node_name_to_view,
-        module: 'newsflash',
-        news_type: this.state.news_type,
-        udid: udid,
-        udid_to_show: udid_to_show,
-        page: this.state.page_number,
-        count: list_items_per_page,
-        ...params,
-      },
-      type: 'json',
-    }).then(data => {
+      reqwest({
+        url: api_url,
+        method: 'get',
+        data: {
+          cmd: 'getNewsList',
+          data_chain_name: this.state.datachain_node_name_to_view,
+          module: 'newsflash',
+          news_type: this.state.news_type,
+          udid: udid,
+          udid_to_show: udid_to_show,
+          page: this.state.page_number,
+          count: list_items_per_page,
+          ...params,
+        },
+        type: 'json',
+      }).then(data => {
       
-      console.log('End fetchNewsFlash');
-      //if(data && data.length > 0){
-      //  console.log(data.slice(0, 9));
-      //}
+        console.log('End fetchNewsFlash');
+        //if(data && data.length > 0){
+        //  console.log(data.slice(0, 9));
+        //}
       
-      let newsflash_list = this.state.newsflash_list;
-      if(data && data.length > 0){
-        if(newsflash_list && newsflash_list.length > 0){
-          newsflash_list = newsflash_list.concat(data);
+        if(news_list_show_mode === 'more'){
+          let newsflash_list = this.state.newsflash_list;
+          if(data && data.length > 0){
+            if(newsflash_list && newsflash_list.length > 0){
+              newsflash_list = newsflash_list.concat(data);
+            }else{
+              newsflash_list = data;
+            }
+          }
+          let more_to_load = false;
+          if(data && data.length >= list_items_per_page){
+            more_to_load = true;
+          }
+      
+          this.setState({
+            newsflash_list: newsflash_list,
+            more_to_load: more_to_load,
+            loading: false
+          });
         }else{
-          newsflash_list = data;
-        }
-      }
-      let more_to_load = false;
-      if(data && data.length >= list_items_per_page){
-        more_to_load = true;
-      }
+          /*paging mode*/
+          let newsflash_list = this.state.newsflash_list;
+          if(data && data.length > 0){
+            newsflash_list = data;
+          }
       
-      this.setState({
-        newsflash_list: newsflash_list,
-        more_to_load: more_to_load,
-        loading: false
+          this.setState({
+            newsflash_list: newsflash_list,
+            loading: false
+          });
+        }
       });
-    });
+    }else{
+      /*get total num*/    
+      reqwest({
+        url: '/api/newsflashget',
+        method: 'get',
+        data: {
+          cmd: 'getNewsTotalNum',
+          data_chain_name: this.state.datachain_node_name_to_view,
+          module: 'newsflash',
+          news_type: this.state.news_type,
+          udid: udid,
+          udid_to_show: udid_to_show,
+          ...params,
+        },
+        type: 'json',
+      }).then(data => {
+        console.log('End fetchNewsFlash, totalNum=', data);
+        this.setState({
+          newsflash_total_num: data,
+          loading: false
+        });
+      });
+    }
   };
+  
+  /*News pagination change*/
+  onNewsPaginationChange(pageNumber) {
+    console.log('onNewsPaginationChange Page: ', pageNumber);
+    this.setState({
+      newsflash_list: [],
+      loading: false,
+      page_number: pageNumber,
+    },()=>{
+      const location_hash = '#type='+this.state.news_type+'&page='+String(this.state.page_number);
+      window.location.hash = location_hash;
+      //document.getElementById('HashNewsList').scrollIntoView();
+      document.body.scrollIntoView();
+      this.fetchNewsFlash();
+    });
+  }
   
   /*Load more news flash */
   onLoadMore = () => {
@@ -517,38 +582,44 @@ class App extends Component {
     if(typeof(location_hash) != "undefined" && location_hash && location_hash.length > 0) {
       const hashArr = location_hash.split('?');
       const params = qs.parse(hashArr[0]);
+      var news_type = this.state.news_type;
+      var page_number = this.state.page_number;
       if(params.type){
-        this.setState({
-          news_type: params.type
-        },()=>{
-          console.log('componentDidMount news_type=', this.state.news_type);
+        news_type = params.type;
+      }
+      if(params.page){
+        page_number = parseInt(params.page, 10);
+      }
+      
+      this.setState({
+        news_type: news_type,
+        page_number: page_number,
+      },()=>{
+        console.log('componentDidMount news_type=', this.state.news_type);
           
-          let sub_menu_title = '快讯';
-          for(var i=0;i<flash_news_sub_menu.length;i++){
-            if(this.state.news_type === flash_news_sub_menu[i].key){
-              sub_menu_title = flash_news_sub_menu[i].value;
-              break;
-            }
+        let sub_menu_title = '快讯';
+        for(var i=0;i<flash_news_sub_menu.length;i++){
+          if(this.state.news_type === flash_news_sub_menu[i].key){
+            sub_menu_title = flash_news_sub_menu[i].value;
+            break;
           }
+        }
+        this.setState({
+          flash_news_sub_menu_title: sub_menu_title
+        },()=>{
+        });
+          
+        /*update state value*/
+        if(this.state.news_type == 'test2' || this.state.news_type == 'articles'){
           this.setState({
-            flash_news_sub_menu_title: sub_menu_title
+            news_title_enabled: true
           },()=>{
           });
+        }
           
-          /*update state value*/
-          if(this.state.news_type == 'test2' || this.state.news_type == 'articles'){
-            this.setState({
-              news_title_enabled: true
-            },()=>{
-            });
-          }
-          
-          /*fetch app data*/
-          this.fetchAppData();
-        });
-      }else{
+        /*fetch app data*/
         this.fetchAppData();
-      }
+      });
     }else{
       this.fetchAppData();
     }
@@ -614,13 +685,18 @@ class App extends Component {
           news_type: menu_key,
           flash_news_sub_menu_title: sub_menu_title,
           newsflash_list: [],
+          newsflash_total_num: 0,
           loading: false,
           more_to_load: true,
           page_number: 1,
           news_title_enabled: true,
         },()=>{
           this.updateToPayValue();
-          window.location.hash = `#type=${menu_key}`;
+          const location_hash = '#type='+menu_key+'&page='+String(this.state.page_number);
+          window.location.hash = location_hash;
+          if(news_list_show_mode === 'page'){
+            this.fetchNewsFlash({}, 'total_num');
+          }
           this.fetchNewsFlash();
         });
       }else{
@@ -628,13 +704,18 @@ class App extends Component {
           news_type: menu_key,
           flash_news_sub_menu_title: sub_menu_title,
           newsflash_list: [],
+          newsflash_total_num: 0,
           loading: false,
           more_to_load: true,
           page_number: 1,
           news_title_enabled: false,
         },()=>{
           this.updateToPayValue();
-          window.location.hash = `#type=${menu_key}`;
+          const location_hash = '#type='+menu_key+'&page='+String(this.state.page_number);
+          window.location.hash = location_hash;
+          if(news_list_show_mode === 'page'){
+            this.fetchNewsFlash({}, 'total_num');
+          }
           this.fetchNewsFlash();
         });
       }
@@ -650,13 +731,18 @@ class App extends Component {
       this.setState({
         news_type: news_type,
         newsflash_list: [],
+        newsflash_total_num: 0,
         loading: false,
         more_to_load: true,
         page_number: 1,
         news_title_enabled: false,
       },()=>{
         this.updateToPayValue();
-        window.location.hash = `#type=${news_type}`;
+        const location_hash = '#type='+news_type+'&page='+String(this.state.page_number);
+        window.location.hash = location_hash;
+        if(news_list_show_mode === 'page'){
+          this.fetchNewsFlash({}, 'total_num');
+        }
         this.fetchNewsFlash();
       });
     }
@@ -669,26 +755,36 @@ class App extends Component {
       this.setState({
         news_type: value,
         newsflash_list: [],
+        newsflash_total_num: 0,
         loading: false,
         more_to_load: true,
         page_number: 1,
         news_title_enabled: true,
       },()=>{
         this.updateToPayValue();
-        window.location.hash = `#type=${value}`;
+        const location_hash = '#type='+value+'&page='+String(this.state.page_number);
+        window.location.hash = location_hash;
+        if(news_list_show_mode === 'page'){
+          this.fetchNewsFlash({}, 'total_num');
+        }
         this.fetchNewsFlash();
       });
     }else{
       this.setState({
         news_type: value,
         newsflash_list: [],
+        newsflash_total_num: 0,
         loading: false,
         more_to_load: true,
         page_number: 1,
         news_title_enabled: false,
       },()=>{
         this.updateToPayValue();
-        window.location.hash = `#type=${value}`;
+        const location_hash = '#type='+value+'&page='+String(this.state.page_number);
+        window.location.hash = location_hash;
+        if(news_list_show_mode === 'page'){
+          this.fetchNewsFlash({}, 'total_num');
+        }
         this.fetchNewsFlash();
       });
     }
@@ -699,10 +795,14 @@ class App extends Component {
     this.setState({ 
       datachain_node_name_to_view: value,
       newsflash_list: [],
+      newsflash_total_num: 0,
       loading: false,
       more_to_load: true,
       page_number: 1,
     }, ()=>{
+      if(news_list_show_mode === 'page'){
+        this.fetchNewsFlash({}, 'total_num');
+      }
       this.fetchNewsFlash();
     });
   }
@@ -729,12 +829,16 @@ class App extends Component {
     }
     this.setState({
       newsflash_list: [],
+      newsflash_total_num: 0,
       loading: false,
       more_to_load: true,
       page_number: 1,
       show_mode: show_mode,
     },()=>{
       console.log('show mode change to', this.state.show_mode);
+      if(news_list_show_mode === 'page'){
+        this.fetchNewsFlash({}, 'total_num');
+      }
       this.fetchNewsFlash();
     });
   }
@@ -1041,10 +1145,14 @@ class App extends Component {
                 try {
                   this.setState({
                     newsflash_list: [],
+                    newsflash_total_num: 0,
                     loading: false,
                     more_to_load: true,
                     page_number: 1,
                   },()=>{
+                    if(news_list_show_mode === 'page'){
+                      this.fetchNewsFlash({}, 'total_num');
+                    }
                     this.fetchNewsFlash();
                   });
                 } catch (err) {
@@ -1586,10 +1694,14 @@ class App extends Component {
       try {
         this.setState({
           newsflash_list: [],
+          newsflash_total_num: 0,
           loading: false,
           more_to_load: true,
           page_number: 1,
         },()=>{
+          if(news_list_show_mode === 'page'){
+            this.fetchNewsFlash({}, 'total_num');
+          }
           this.fetchNewsFlash();
         });
       } catch (err) {
@@ -1834,101 +1946,108 @@ class App extends Component {
           )}
           <LocaleProvider locale={zh_CN}>
             {(this.state.send_news_dialog_visible === false && this.state.gen_share_news_visible === false && this.state.share_news_pic_visible === false) && (
-              <List
-                itemLayout="vertical"
-                size="large"
-                loadMore={loadMore}
-                dataSource={this.state.newsflash_list?this.state.newsflash_list:[]}
-                footer={null}
-                renderItem={item => (
-                  <List.Item
-                    key={item.hash}
-                    actions={((item.news_type != 'test2') && (item.news_type != 'articles'))?
-                      [
-                        <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.like_min_rem} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like"+item.hash} />,
-                        <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.comment_min_rem} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message"+item.hash} />,
-                        <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.forward_min_rem} minner_num={item.forward_min_rem_number} asset_did={item.asset_did}  key={"list-item-share"+item.hash} />,
-                      ]:
-                      []
-                    }
-                    extra={null}
-                    className="antd-list-item"
-                  >
-                    <div>
-                      <span style={{ float: 'left', marginRight: 10 }}>
-                        {item.uavatar.length>0?
-                          <img src={item.uavatar} height="65" width="65" style={{ borderRadius: '50%' }}/>:
-                          <Avatar size={65} did={item.sender} style={{ borderRadius: '50%' }} />}
-                      </span>
-                      <span style={{ fontSize: '15px', color: '#000000', marginRight: 0 }}>{item.uname}</span>
-                      {((item.news_type != 'test2') && (item.news_type != 'articles') && (item.weights > 1)) && (
-                        <span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>
+              <div id="HashNewsList">
+                <List
+                  itemLayout="vertical"
+                  size="large"
+                  loadMore={news_list_show_mode === 'more'?loadMore:null}
+                  dataSource={this.state.newsflash_list?this.state.newsflash_list:[]}
+                  footer={null}
+                  renderItem={item => (
+                    <List.Item
+                      key={item.hash}
+                      actions={((item.news_type != 'test2') && (item.news_type != 'articles'))?
+                        [
+                          <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.like_min_rem} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like"+item.hash} />,
+                          <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.comment_min_rem} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message"+item.hash} />,
+                          <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.forward_min_rem} minner_num={item.forward_min_rem_number} asset_did={item.asset_did}  key={"list-item-share"+item.hash} />,
+                        ]:
+                        []
+                      }
+                      extra={null}
+                      className="antd-list-item"
+                    >
+                      <div>
+                        <span style={{ float: 'left', marginRight: 10 }}>
+                          {item.uavatar.length>0?
+                            <img src={item.uavatar} height="65" width="65" style={{ borderRadius: '50%' }}/>:
+                            <Avatar size={65} did={item.sender} style={{ borderRadius: '50%' }} />}
+                        </span>
+                        <span style={{ fontSize: '15px', color: '#000000', marginRight: 0 }}>{item.uname}</span>
+                        {((item.news_type != 'test2') && (item.news_type != 'articles') && (item.weights > 1)) && (
+                          <span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}>  权重:{item.weights}</span>
+                        )}
+                        {((item.news_type === 'test2') || (item.news_type === 'articles')) && (
+                          <span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}> {item.news_article_worth} {token.symbol}</span>
+                        )}
+                        <br/>
+                        {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
+                        <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
+                        <span style={{ fontSize: '15px', color: '#000000' }}> {item.sender}</span> <br/>
+                        <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.time}</a> <br/>        
+                      </div>
+                  
+                      {(item.news_type != 'test2') && (item.news_type != 'articles') && (
+                        <div id={item.asset_did}>
+                          {(item.news_title.length > 0) && 
+                            <span style={{ fontSize: '17px', fontWeight: 600, color: '#000000' }}>{item.news_title}</span>
+                          }
+                          {(item.news_title.length > 0) && <br/>}
+                          {(item.news_title.length > 0) && <br/>}
+                          {(item.news_content.length > 400)
+                            ?
+                            (item.weights >= news_weights_level_important
+                              ?
+                              <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#FF0000' }}>
+                                {item.news_content}
+                              </Paragraph> 
+                              :
+                              <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#000000' }}>
+                                {item.news_content}
+                              </Paragraph>
+                            )
+                            :
+                            (item.weights >= news_weights_level_important
+                              ?
+                              <span style={{ fontSize: '16px', color: '#FF0000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
+                              :
+                              <span style={{ fontSize: '16px', color: '#000000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
+                            )
+                          }
+                        </div>
                       )}
+                  
                       {((item.news_type === 'test2') || (item.news_type === 'articles')) && (
-                        <span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}> {item.news_article_worth} {token.symbol}</span>
+                        <div id={item.asset_did} style={{ display: 'flex' , alignItems: 'center', justifyContent: 'flex-start'}}>
+                          <a href={`/article?asset_did=${item.asset_did}`} style={{ width: '100%' }}>
+                            <img src={item.news_images[0]} alt="HashNews" width='156' height="100" style={{ float: 'left', marginRight: 10, borderRadius: '10px' }}/>
+                            <span style={{ fontSize: '17px', fontWeight: 500, color: '#000000' }}>{item.news_title}</span> <br/>
+                            <span style={{ fontSize: '13px', color: '#888888' }}>{item.news_content.slice(0, 50)}...</span> <br/>
+                          </a>            
+                        </div>
                       )}
-                      <br/>
-                      {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
-                      <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
-                      <span style={{ fontSize: '15px', color: '#000000' }}> {item.sender}</span> <br/>
-                      <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.time}</a> <br/>        
-                    </div>
                   
-                    {(item.news_type != 'test2') && (item.news_type != 'articles') && (
-                      <div id={item.asset_did}>
-                        {(item.news_title.length > 0) && 
-                          <span style={{ fontSize: '17px', fontWeight: 600, color: '#000000' }}>{item.news_title}</span>
-                        }
-                        {(item.news_title.length > 0) && <br/>}
-                        {(item.news_title.length > 0) && <br/>}
-                        {(item.news_content.length > 400)
-                          ?
-                          (item.weights >= news_weights_level_important
-                            ?
-                            <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#FF0000' }}>
-                              {item.news_content}
-                            </Paragraph> 
-                            :
-                            <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#000000' }}>
-                              {item.news_content}
-                            </Paragraph>
-                          )
-                          :
-                          (item.weights >= news_weights_level_important
-                            ?
-                            <span style={{ fontSize: '16px', color: '#FF0000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
-                            :
-                            <span style={{ fontSize: '16px', color: '#000000' }}><AutoLinkText text={item.news_content} linkProps={{ target: '_blank' }}/></span>
-                          )
-                        }
-                      </div>
-                    )}
-                  
-                    {((item.news_type === 'test2') || (item.news_type === 'articles')) && (
-                      <div id={item.asset_did} style={{ display: 'flex' , alignItems: 'center', justifyContent: 'flex-start'}}>
-                        <a href={`/article?asset_did=${item.asset_did}`} style={{ width: '100%' }}>
-                          <img src={item.news_images[0]} alt="HashNews" width='156' height="100" style={{ float: 'left', marginRight: 10, borderRadius: '10px' }}/>
-                          <span style={{ fontSize: '17px', fontWeight: 500, color: '#000000' }}>{item.news_title}</span> <br/>
-                          <span style={{ fontSize: '13px', color: '#888888' }}>{item.news_content.slice(0, 50)}...</span> <br/>
-                        </a>            
-                      </div>
-                    )}
-                  
-                    {(item.news_origin.length > 0) &&
-                      <div>
-                        <br/>
-                        <span style={{ fontSize: '10px', color: '#888888' }}>来源：{item.news_origin}</span>
-                      </div>
-                    }
-                    {(item.comment_list.length > 0) &&
-                      <div>
-                        <br/>
-                        <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />
-                      </div> 
-                    }
-                  </List.Item>
+                      {(item.news_origin.length > 0) &&
+                        <div>
+                          <br/>
+                          <span style={{ fontSize: '10px', color: '#888888' }}>来源：{item.news_origin}</span>
+                        </div>
+                      }
+                      {(item.comment_list.length > 0) &&
+                        <div>
+                          <br/>
+                          <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />
+                        </div> 
+                      }
+                    </List.Item>
+                  )}
+                />
+                {(news_list_show_mode === 'page') && (
+                  <div className="pagination">
+                    <Pagination showQuickJumper defaultCurrent={this.state.page_number} defaultPageSize={list_items_per_page} current={this.state.page_number} total={this.state.newsflash_total_num} onChange={this.onNewsPaginationChange} />
+                  </div>
                 )}
-              />
+              </div>
             )}
             <Modal
              title="发布资讯"
@@ -2420,6 +2539,12 @@ const Main = styled.main`
       font-size: 0 !important;
       line-height: 1 !important;
     }
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
 `;
