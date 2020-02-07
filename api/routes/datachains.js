@@ -581,7 +581,7 @@ async function apiGetChainNodeInfo(params){
   var res;
   res = await getForgeState(connId);
   if(res && res.getForgeState && res.getForgeState.code === 'OK'){
-    chainNodeInfo['version'] = res.getForgeState.state.version;
+    //chainNodeInfo['version'] = res.getForgeState.state.version;
     chainNodeInfo['tokenSymbol'] = res.getForgeState.state.token.symbol;
     chainNodeInfo['tokenTotalSupply'] = res.getForgeState.state.token.totalSupply;
     chainNodeInfo['tokenDecimal'] = res.getForgeState.state.token.decimal;
@@ -617,6 +617,7 @@ async function apiGetChainNodeInfo(params){
     chainNodeInfo['blockHeight'] = res.getChainInfo.info.blockHeight;
     chainNodeInfo['chainId'] = res.getChainInfo.info.network;
     chainNodeInfo['totalTxs'] = res.getChainInfo.info.totalTxs;
+    chainNodeInfo['version'] = res.getChainInfo.info.version;
   }
   
   res = await getNetInfo(connId);

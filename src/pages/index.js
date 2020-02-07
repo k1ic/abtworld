@@ -953,7 +953,7 @@ class App extends Component {
       const file = fileList[i];
       const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
       if (!isJpgOrPng) {
-        Modal.error({title: '只能添加JPG/PNG图片!'});
+        Modal.error({title: '只能添加JPG/PNG图片!', maskClosable: 'true'});
         
         const index = fileList.indexOf(file);
         const newFileList = fileList.slice();
@@ -962,7 +962,7 @@ class App extends Component {
       }else{
         const isLt1M = file.size / 1024 / 1024 < 1;
         if (!isLt1M) {
-          Modal.error({title: '图片大小需小于1MB!'});
+          Modal.error({title: '图片大小需小于1MB!', maskClosable: 'true'});
         
           const index = fileList.indexOf(file);
           const newFileList = fileList.slice();
@@ -1160,7 +1160,7 @@ class App extends Component {
                 }
               }, 5000);
               
-              Modal.success({title: '发布成功'});
+              Modal.success({title: '发布成功', maskClosable: 'true'});
             }else{
               this.setState({
                 asset_did: asset_did,
@@ -1176,7 +1176,7 @@ class App extends Component {
               });
             }
             
-            Modal.error({title: '发布失败'});
+            Modal.error({title: '发布失败', maskClosable: 'true'});
           },
         });
       }
@@ -1356,7 +1356,7 @@ class App extends Component {
                 newsflashItem.like_min_rem -= parseFloat(result.response);
                 newsflashItem.like_min_rem = forgeTxValueSecureConvert(newsflashItem.like_min_rem);
                 const modal_content = '获得'+result.response+token.symbol+"，请到ABT钱包中查看!";
-                Modal.success({title: modal_content});
+                Modal.success({title: modal_content, maskClosable: 'true'});
               }else{
                 console.log('like minning poll is empty');
               }
@@ -1476,7 +1476,7 @@ class App extends Component {
           newsflashItem.comment_min_rem -= parseFloat(result.response);
           newsflashItem.comment_min_rem = forgeTxValueSecureConvert(newsflashItem.comment_min_rem);
           const modal_content = '获得'+result.response+token.symbol+"，请到ABT钱包中查看!";
-          Modal.success({title: modal_content});
+          Modal.success({title: modal_content, maskClosable: 'true'});
         }else{
           console.log('comment minning poll is empty');
         }
@@ -1491,7 +1491,7 @@ class App extends Component {
       },
       error: (result) => {
         console.log('comment minning error with response=', result.response);
-        Modal.error({title: '评论失败，请检查是否刷屏!'});
+        Modal.error({title: '评论失败', maskClosable: 'true'});
         this.setState({
           minning: false
         });
@@ -1624,7 +1624,7 @@ class App extends Component {
             newsflashItem.forward_min_rem -= parseFloat(result.response);
             newsflashItem.forward_min_rem = forgeTxValueSecureConvert(newsflashItem.forward_min_rem);
             const modal_content = '获得'+result.response+token.symbol+"，请到ABT钱包中查看!";
-            Modal.success({title: modal_content});
+            Modal.success({title: modal_content, maskClosable: 'true'});
           }else{
             console.log('forward minning poll is empty or already minned');
           }
