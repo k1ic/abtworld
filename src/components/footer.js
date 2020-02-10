@@ -75,7 +75,7 @@ export default function Footer() {
       title: '社区',
       items: [
         { 
-          title: 'ABT世界', 
+          title: '哈希快讯', 
           link: '/',
         },
         {

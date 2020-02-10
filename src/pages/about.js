@@ -90,7 +90,7 @@ class App extends Component {
           <Typography component="p" variant="h6" className="page-description" color="textSecondary">
             欢迎进入ABT世界，这里是链网世界的入口，用于收录和展示ABT生态产品。
           </Typography>*/}
-          <Typography component="h2" variant="h5" className="page-header" color="primary" style={{ fontSize: '16px' }}>
+          {/*<Typography component="h2" variant="h5" className="page-header" color="primary" style={{ fontSize: '16px' }}>
             图片
           </Typography>
           <Typography component="p" variant="h6" className="page-description" color="textSecondary" style={{ fontSize: '15px' }}>
@@ -98,7 +98,7 @@ class App extends Component {
             2. 支付数据上链不可篡改，支付后用户拥有该图片的永久浏览权; <br/>
             3. 用户付费浏览后，提交者的DID账户中将实时收到付费收益; <br/>
             4. 图片的所有权归属用户，如发现侵权，可联系下架！<br/>
-          </Typography>
+          </Typography>*/}
           <Typography component="h2" variant="h5" className="page-header" color="primary" style={{ fontSize: '16px' }}>
             资讯
           </Typography>

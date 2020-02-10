@@ -72,11 +72,11 @@ export default function Header() {
       <div className="nav-left">
         <Typography href="/" component="a" variant="h6" color="inherit" noWrap className="brand">
           {<img className="logo" src="/static/images/logo.png" alt="hashnews" />}
-          资讯
+          首页
         </Typography>
-        <Typography href="/picture" component="a" variant="h6" color="inherit" className="text">
+        {/*<Typography href="/picture" component="a" variant="h6" color="inherit" className="text">
           图片
-        </Typography>
+        </Typography>*/}
         <Typography href="/network" component="a" variant="h6" color="inherit" className="text">
           链网
         </Typography>

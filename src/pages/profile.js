@@ -108,17 +108,17 @@ export default function ProfilePage() {
                 签到
               </Button>
             )*/}
-            <Button color="primary" variant="contained" onClick={onMyPayed} style={{ marginTop: '30px' }}>
+            {/*<Button color="primary" variant="contained" onClick={onMyPayed} style={{ marginTop: '30px' }}>
               已付列表
-            </Button>
-            <Button color="primary" variant="outlined" onClick={onMyUploads} style={{ marginTop: '30px' }}>
+            </Button>*/}
+            {/*<Button color="primary" variant="outlined" onClick={onMyUploads} style={{ marginTop: '30px' }}>
               已传列表
-            </Button>
-            {(-1 != admin_account.indexOf(user.did)) && (
+            </Button>*/}
+            {/*(-1 != admin_account.indexOf(user.did)) && (
               <Button color="primary" variant="contained" onClick={onAdmin} style={{ marginTop: '30px' }}>
                 后台管理
               </Button>
-            )}
+            )*/}
           </Grid>
           <Grid item xs={12} md={9} className="meta">
             <Typography component="h3" variant="h4">

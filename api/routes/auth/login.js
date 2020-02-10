@@ -1,5 +1,6 @@
 /* eslint-disable object-curly-newline */
 /* eslint-disable no-console */
+const semver = require('semver');
 const env = require('../../libs/env');
 const { User } = require('../../models');
 const { login } = require('../../libs/jwt');
@@ -22,13 +23,35 @@ const loginReqFields = ['fullName', 'email', 'avatar'];
 /*The ios wallet 1.0 will crash when request avatar*/
 //const loginReqFields = ['fullName', 'email'];
 
+const MIN_VERSION_SUPPORT = { android: '2.1.0', ios: '2.1.0'};
+const unSupportWalletError = {
+  en: 'Your wallet version is lower, please update to the latest version',
+  zh: '您的钱包版本太低，请更新到最新版本',
+};
+const verifyWalletRequirements = ({ os = '', version = '', locale = 'zh'}) => {
+  if (os.toLocaleLowerCase() === 'ios' && version === '2.0') {
+    return true;
+  }
+  
+  const minVersion = MIN_VERSION_SUPPORT[os.toLocaleLowerCase()];
+  if(!minVersion || !semver.valid(version) || semver.lt(version, minVersion)) {
+    throw new Error(unSupportWalletError[locale]);
+  }
+  
+  return true;
+};
+
 module.exports = {
   action: 'login',
   claims: {
-    profile: ({ extraParams: { locale } }) => ({
-      fields: loginReqFields,
-      description: description[locale] || description.en,
-    }),
+    profile: ({ walletOS, walletVersion, extraParams: { locale } }) => {
+      verifyWalletRequirements({ os: walletOS, version: walletVersion, locale});
+      
+      return {
+        fields: loginReqFields,
+        description: description[locale] || description.en,
+      };
+    },
   },
   onAuth: async ({ claims, userDid, token, storage }) => {
     try {
