@@ -46,6 +46,7 @@ import useSession from '../hooks/session';
 import forge from '../libs/sdk';
 import api from '../libs/api';
 import env from '../libs/env';
+import { decimalConvert } from '../libs/util';
 import { forgeTxValueSecureConvert, HashString } from '../libs/crypto';
 import { getCurrentTime } from '../libs/time';
 import { getUserDidFragment } from '../libs/user';
@@ -1406,6 +1407,23 @@ class App extends Component {
         <span>{text}</span>
       </a>
       {total_min_rem>0 && (<br/>)}
+      {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>₳ {balance}</span>)}
+      {/*total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>{token_symbol}</span>)*/}
+      {/*total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>({minner_num}个)</span>)*/}
+    </span>
+  );
+  
+  IconTextForShare = ({ type, text, token_symbol, total_min_rem, balance, minner_num, action_type, like_status, asset_did }) => (
+    <span>
+      {/*<img className="list-item-action-img" src="/static/images/hashnews/ABT.png" alt="ABT" height="25" width="25" />*/}
+      <a onClick={e => {
+          this.onListItemActionClick(action_type, asset_did);
+        }}
+      > 
+        {action_type=='like'&&like_status==true?<Icon type={type} theme="twoTone" twoToneColor="#0000FF" style={{ fontSize: '16px', marginLeft: 0, marginRight: 4 }} />:<Icon type={type} style={{ fontSize: '16px', marginLeft: 0, marginRight: 8 }} />}
+        <span>{text}</span>
+      </a>
+      {total_min_rem>0 && (<br/>)}
       {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>{balance}</span>)}
       {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>{token_symbol}</span>)}
       {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>({minner_num}个)</span>)}
@@ -1958,9 +1976,9 @@ class App extends Component {
                       key={item.hash}
                       actions={((item.news_type != 'test2') && (item.news_type != 'articles'))?
                         [
-                          <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.like_min_rem} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like"+item.hash} />,
-                          <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.comment_min_rem} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message"+item.hash} />,
-                          <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.forward_min_rem} minner_num={item.forward_min_rem_number} asset_did={item.asset_did}  key={"list-item-share"+item.hash} />,
+                          <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={decimalConvert(item.like_min_rem, 4, 'ceil')} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like"+item.hash} />,
+                          <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={decimalConvert(item.comment_min_rem, 4, 'ceil')} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message"+item.hash} />,
+                          <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={decimalConvert(item.forward_min_rem, 4, 'ceil')} minner_num={item.forward_min_rem_number} asset_did={item.asset_did}  key={"list-item-share"+item.hash} />,
                         ]:
                         []
                       }
@@ -1983,8 +2001,8 @@ class App extends Component {
                         <br/>
                         {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
                         <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
-                        <span style={{ fontSize: '15px', color: '#000000' }}> {item.sender}</span> <br/>
-                        <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.time}</a> <br/>        
+                        <a href={item.sender_href} target="_blank" style={{ fontSize: '15px', color: '#000000' }}> {item.sender}</a> <br/>
+                        <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#000000' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.time}</a> <br/>        
                       </div>
                   
                       {(item.news_type != 'test2') && (item.news_type != 'articles') && (
@@ -2366,8 +2384,8 @@ class App extends Component {
                     <List.Item
                       key={"share"+item.hash}
                       actions={[
-                        <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.like_min_rem} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like-share"+item.hash} />,
-                        <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={item.comment_min_rem} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message-share"+item.hash} />,
+                        <this.IconTextForShare type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={decimalConvert(item.like_min_rem, 4, 'ceil')} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like-share"+item.hash} />,
+                        <this.IconTextForShare type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={decimalConvert(item.comment_min_rem, 4, 'ceil')} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message-share"+item.hash} />,
                       ]}
                       extra={null}
                       className="antd-list-item"

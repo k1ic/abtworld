@@ -746,6 +746,7 @@ async function getNewsForShow(module_para){
         temp_doc['state'] = e.state;
         temp_doc['time'] = e.news_time;
         temp_doc['sender'] = getUserDidFragment(e.author_did);
+        temp_doc['sender_href'] = env.chainHost.replace('/api', '/node/explorer/accounts/')+e.author_did;
         temp_doc['hash'] = e.news_hash;
         temp_doc['href'] = e.hash_href[0];
         temp_doc['news_type'] = e.news_type;
