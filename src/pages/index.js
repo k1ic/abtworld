@@ -246,7 +246,7 @@ const limit2Decimals = (value) => {
 
 const renderCommentList = (x, token) => (
   <span className="antd-list-comment-list-item-text">
-    <span style={{ fontSize: '14px', color: '#3CB371' }}>{x.uname}</span>
+    <a href={env.chainHost.replace('/api', '/node/explorer/accounts/')+x.udid} target="_blank" style={{ fontSize: '14px', color: '#3CB371' }}>{x.uname}</a>
     <span style={{ fontSize: '12px', color: '#888888' }}> - {x.time}</span>
     <br/>
     <span style={{ fontSize: '14px', color: '#0', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'normal' }}>{x.comment}</span>
