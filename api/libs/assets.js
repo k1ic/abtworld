@@ -10,7 +10,6 @@ const { fromSecretKey, WalletType } = require('@arcblock/forge-wallet');
 
 const { wallet, newsflashWallet, type } = require('./auth');
 const { Datachain, Newsflash } = require('../models');
-const { getNewsForUploadToChain } = require('../routes/newsflash');
 const { forgeChainConnect } = require('../routes/datachains');
 const {
   hashnews_enc_key,
@@ -53,10 +52,10 @@ const genNewsFlashAsset = async (cdid, connId) => {
    type: news.news_type, 
    uname: news.author_name, 
    udid: news.author_did, 
-   uavatar: news.author_avatar, 
    title: news.news_title, 
    content: news_content,
    origin:  news.news_origin,
+   uavatar: news.author_avatar, 
    images: news.news_images};
   newsflash_tx_memo['para'] = para_obj;
   

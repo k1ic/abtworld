@@ -716,9 +716,9 @@ class App extends Component {
                           </div>
                         )}
                         
-                        {(user_to_pay == 0) && (
+                        {/*(user_to_pay == 0) && (
                           <img src={item.news_images[0]} alt="HashNews" width="100%" style={{ borderRadius: '10px' }}/>
-                        )}
+                        )*/}
                        
                         {(item.news_origin.length > 0) && (
                           <div>

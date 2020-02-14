@@ -10,7 +10,6 @@ const { fromTokenToUnit, fromUnitToToken } = require('@arcblock/forge-util');
 const { fromAddress } = require('@arcblock/forge-wallet');
 const { fromSecretKey, WalletType } = require('@arcblock/forge-wallet');
 
-const { getNewsForUploadToChain } = require('../api/routes/newsflash');
 const env = require('../api/libs/env');
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 

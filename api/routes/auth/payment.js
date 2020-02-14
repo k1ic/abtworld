@@ -10,7 +10,7 @@ const env = require('../../libs/env');
 //const AssetPicList = require('../../../src/libs/asset_pic');
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 const { Picture, Newsflash } = require('../../models');
-const { getNewsForUploadToChain, cleanUserDeadNews } = require('../newsflash');
+const { cleanUserDeadNews } = require('../newsflash');
 const { forgeTxValueSecureConvert, waitAndGetTxHash } = require('../../libs/transactions');
 
 //const appWallet = fromJSON(wallet);

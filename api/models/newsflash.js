@@ -31,6 +31,15 @@ forward_list = [
     mbalance: { type: Number, default: 0 },
   },
 ];
+
+paytip_list = [
+  {
+    uname: { type: String, default: '' },
+    udid: { type: String, default: '' },
+    mbalance: { type: Number, default: 0 },
+    time: { type: String, default: '' },
+  },
+];
 */
 
 const NewsflashSchema = new mongoose.Schema({
@@ -57,6 +66,7 @@ const NewsflashSchema = new mongoose.Schema({
   state: { type: String, required: true, default: 'commit' },
   minner_state: { type: String, required: true, default: 'idle' },
   total_payed_balance: { type: Number, default: 0 },
+  total_paytip_balance: { type: Number, default: 0 },
   total_comment_minner_balance: { type: Number, default: 0 },
   total_like_minner_balance: { type: Number, default: 0 },
   total_forward_minner_balance: { type: Number, default: 0 },
@@ -72,11 +82,13 @@ const NewsflashSchema = new mongoose.Schema({
   comment_counter: { type: Number, default: 0 },
   like_counter: { type: Number, default: 0 },
   forward_counter: { type: Number, default: 0 },
+  paytip_counter: { type: Number, default: 0 },
   hot_index: { type: Number, default: 0 },
   star_level: { type: Number, default: 0 },
   comment_list: { type: Array, default: [] },
   like_list: { type: Array, default: [] },
   forward_list: { type: Array, default: [] },
+  paytip_list: { type: Array, default: [] },
   createdAt: { type: Date },
   updatedAt: { type: Date },
 });

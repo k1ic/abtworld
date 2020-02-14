@@ -626,7 +626,7 @@ async function cleanUserDeadNews(strAuthorDid){
   return;
 }
 
-async function getNewsForUploadToChain(strAssetDid){
+async function getNewsByAssetDid(strAssetDid){
   var doc = await Newsflash.findOne({ asset_did: strAssetDid });
   return doc;
 }
@@ -779,9 +779,11 @@ async function getNewsForShow(module_para){
           temp_doc['forward_min_rem_number'] = 0;
         }
         temp_doc['total_min_rem'] = temp_doc.comment_min_rem + temp_doc.like_min_rem + temp_doc.forward_min_rem;
+        temp_doc['total_paytip_balance'] = e.total_paytip_balance;
         temp_doc['comment_cnt'] = e.comment_counter;
         temp_doc['like_cnt'] = e.like_counter;
         temp_doc['forward_cnt'] = e.forward_counter;
+        temp_doc['paytip_cnt'] = e.paytip_counter;
         temp_doc['comment_list'] = e.comment_list;
         temp_doc['like_list'] = e.like_list;
         temp_doc['forward_list'] = e.forward_list;
@@ -993,6 +995,6 @@ module.exports = {
   },
   
   newsflashDocLikeStatusGet,
-  getNewsForUploadToChain,
+  getNewsByAssetDid,
   cleanUserDeadNews,
 };

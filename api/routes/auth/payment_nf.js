@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+﻿/* eslint-disable no-console */
 const multibase = require('multibase');
 const ForgeSDK = require('@arcblock/forge-sdk');
 const { fromJSON } = require('@arcblock/forge-wallet');
@@ -10,7 +10,7 @@ const env = require('../../libs/env');
 //const AssetPicList = require('../../../src/libs/asset_pic');
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 const { Picture } = require('../../models');
-const { getNewsForUploadToChain, cleanUserDeadNews } = require('../newsflash');
+const { getNewsByAssetDid, cleanUserDeadNews } = require('../newsflash');
 const { createNewsflahAsset } = require('../../libs/assets');
 const { forgeTxValueSecureConvert, waitAndGetTxHash } = require('../../libs/transactions');
 const { utcToLocalTime } = require('../../libs/time');
@@ -45,7 +45,7 @@ async function newsflashPaymentHookV2(hash, forgeState, userDid) {
         console.log('newsflash tx hook');
               
         if(typeof(tx_memo.para.asset_did) != "undefined" && tx_memo.para.asset_did.length > 0){
-          var newsflash_doc = await getNewsForUploadToChain(tx_memo.para.asset_did);
+          var newsflash_doc = await getNewsByAssetDid(tx_memo.para.asset_did);
           if(newsflash_doc){
             /*create asset*/
             transferHash = await createNewsflahAsset(tx_memo.para.asset_did, newsflash_doc.data_chain_nodes[0].chain_id);

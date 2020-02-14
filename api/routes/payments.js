@@ -11,7 +11,7 @@ const {
 } = require('../libs/transactions');
 const env = require('../libs/env');
 const { HashString } = require('../libs/crypto');
-const { getNewsForUploadToChain } = require('./newsflash');
+const { getNewsByAssetDid } = require('./newsflash');
 const { getAssetGenesisHash } = require('../libs/assets');
 const {
   getUserDidFragment
@@ -69,7 +69,7 @@ module.exports = {
                 //console.log('UTC=',e.genesisTime, 'local time=', local);
                 
                 temp_tx['loading'] = false;
-                var doc = await getNewsForUploadToChain(e.address);
+                var doc = await getNewsByAssetDid(e.address);
                 if(doc){
                   temp_tx['weights'] = doc.news_weights;
                   if(doc.state === 'chained'){
@@ -174,7 +174,7 @@ module.exports = {
                 if(memo && typeof(memo.para.content) != "undefined"){
                   asset_did = HashString('sha1', memo.para.content);
                   //console.log('asset_did=',asset_did);
-                  doc = await getNewsForUploadToChain(asset_did);
+                  doc = await getNewsByAssetDid(asset_did);
                   if(doc && doc.state === 'chained'){
                     temp_tx['weights'] = doc.news_weights;
                     author_did = doc.author_did;
