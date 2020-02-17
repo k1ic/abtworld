@@ -22,7 +22,7 @@ let tbawoolport+=$i;
 echo $tbawoolport
 cd tbawool${tbawoolport}
 pwd
-yarn start
+#yarn start
 cd ../
 done
 #cd ~/charging-block

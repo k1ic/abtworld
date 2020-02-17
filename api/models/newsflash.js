@@ -37,6 +37,7 @@ paytip_list = [
     uname: { type: String, default: '' },
     udid: { type: String, default: '' },
     mbalance: { type: Number, default: 0 },
+    comment: { type: String, default: '' },
     time: { type: String, default: '' },
   },
 ];

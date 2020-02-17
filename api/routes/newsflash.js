@@ -745,7 +745,7 @@ async function getNewsForShow(module_para){
         temp_doc['loading'] = false;
         temp_doc['state'] = e.state;
         temp_doc['time'] = e.news_time;
-        temp_doc['sender'] = getUserDidFragment(e.author_did);
+        temp_doc['sender'] = e.author_did;
         temp_doc['sender_href'] = env.chainHost.replace('/api', '/node/explorer/accounts/')+e.author_did;
         temp_doc['hash'] = e.news_hash;
         temp_doc['href'] = e.hash_href[0];
@@ -787,6 +787,7 @@ async function getNewsForShow(module_para){
         temp_doc['comment_list'] = e.comment_list;
         temp_doc['like_list'] = e.like_list;
         temp_doc['forward_list'] = e.forward_list;
+        temp_doc['paytip_list'] = e.paytip_list;
         if(module_para.udid && module_para.udid.length > 0){
           temp_doc['like_status'] = newsflashDocLikeStatusGet(e, module_para.udid);
         }else{

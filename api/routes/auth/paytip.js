@@ -12,6 +12,7 @@ const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 const { Picture, Newsflash } = require('../../models');
 const { getNewsByAssetDid, cleanUserDeadNews } = require('../newsflash');
 const { forgeTxValueSecureConvert, waitAndGetTxHash } = require('../../libs/transactions');
+const { utcToLocalTime } = require('../../libs/time');
 
 //const appWallet = fromJSON(wallet);
 //const newsflashAppWallet = fromJSON(newsflashWallet);
@@ -49,9 +50,10 @@ async function paytipHook(hash, forgeState, userDid) {
             newsflash_doc.hot_index += (5*newsflash_doc.news_weights);
             newsflash_doc.total_paytip_balance += tx_value;
             var paytip_list_item = {
-              uname: tx_memo.payer_uname,
+              uname: tx_memo.para.payer_uname,
               udid: tx_from,
               mbalance: tx_value,
+              comment: tx_memo.para.comment,
               time: tx_local_time
             };
             newsflash_doc.paytip_list.push(paytip_list_item);
@@ -79,13 +81,13 @@ module.exports = {
       );
       var tx_memo = {};
       
-      console.log('pay tip value=', toPay, 'addr=', tipAddr);
+      console.log('pay tip value=', tipValue, 'addr=', tipAddr);
       console.log('dapp=', dapp);
       console.log('para=', para);
       
       /*Init tx_memo*/
       /*tx memo example
-       *{module: 'newsflash', para: {action: 'pay_tip', asset_did:'xxx', payer_uname:''}}
+       *{module: 'newsflash', para: {action: 'pay_tip', asset_did:'xxx', payer_uname:'', comment: ''}}
        */
       tx_memo['module'] = dapp;
       tx_memo['para'] = JSON.parse(para);
@@ -93,8 +95,8 @@ module.exports = {
       console.log('tx_memo=', tx_memo);
       
       const description = {
-        en: `Pay tip ${toPay} ${state.token.symbol}`,
-        zh: `支付小费 ${toPay} ${state.token.symbol}`,
+        en: `Pay tip ${tipValue} ${state.token.symbol}`,
+        zh: `打赏支付 ${tipValue} ${state.token.symbol}`,
       };
 
       return {
@@ -102,7 +104,7 @@ module.exports = {
         data: {
           itx: {
             to: tipAddr,
-            value: fromTokenToUnit(toPay, state.token.decimal),
+            value: fromTokenToUnit(tipValue, state.token.decimal),
             data: {
               typeUrl: 'json',
               value: tx_memo,

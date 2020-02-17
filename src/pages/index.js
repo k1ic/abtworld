@@ -68,6 +68,7 @@ const news_title_max_length = 100;
 var news_content_max_length = 0;
 const list_items_per_page = 10;
 const news_comment_max_length = 100;
+const paytip_comment_max_length = 20;
 
 /*news type default value*/
 const news_type_default = 'chains';
@@ -255,6 +256,20 @@ const renderCommentList = (x, token) => (
   </span>
 );
 
+const renderPaytipList = (x, token) => (
+  <span className="antd-list-comment-list-item-text">
+    <a href={env.chainHost.replace('/api', '/node/explorer/accounts/')+x.udid} target="_blank" style={{ fontSize: '14px', color: '#3CB371' }}>{x.uname}</a>
+    <span style={{ fontSize: '12px', color: '#888888' }}> - {x.time}</span>
+    <br/>
+    {(x.comment && x.comment.length>0) && (
+      <span style={{ fontSize: '14px', color: '#0', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'normal' }}>{x.comment}，</span>
+    )}
+    <span style={{ fontSize: '14px', color: '#0', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'normal' }}>打赏 </span>
+    <span style={{ fontSize: '14px', color: '#FF6600' }}>{x.mbalance} {token.symbol}</span>
+    <br/>
+  </span>
+);
+
 class App extends Component {  
   static async getInitialProps({pathname, query, asPath, req}) {
     //console.log('getInitialProps pathname=', pathname);
@@ -294,6 +309,7 @@ class App extends Component {
       show_mode: 'all',
       sending: false,
       asset_sending: false,
+      paytip_sending: false,
       datachains_list: [],
       datachain_node_name_to_view: 'all',
       datachain_node_name_to_send: 'default',
@@ -311,12 +327,17 @@ class App extends Component {
       share_news_pic_visible: false,
       shared_btn_disabled: true,
       flash_news_sub_menu_title: '快讯',
+      paytip_input_visible: false,
+      paytip_input_value: '',
+      paytip_comment: '',
+      paytip_target_did: '',
     };
     
     this.datachainsToViewSlecterChildren = [];
     this.datachainsToSendSlecterChildren = [];
     this.comment_asset_did = '';
     this.share_asset_did = '';
+    this.paytip_asset_did = '';
     this.share_news_items = [];
     this.winW = 0;
     this.winH = 0;
@@ -1388,7 +1409,17 @@ class App extends Component {
           share_news_user_slogan_input_visible: true
         }, async ()=>{
         });
-        
+        break;
+      case 'paytip':
+        this.paytip_asset_did = asset_did;
+        if(user && user.did === newsflashItem.sender){
+          Modal.error({title: '不能打赏给自己！', maskClosable: 'true'});          
+        }else{
+          this.setState({
+            paytip_input_visible: true
+          }, async ()=>{
+          });
+        }
         break;
       default:
         break;
@@ -1396,7 +1427,7 @@ class App extends Component {
     
   };
   
-  IconText = ({ type, text, token_symbol, total_min_rem, balance, minner_num, action_type, like_status, asset_did }) => (
+  IconText = ({ type, text, token_symbol, show_extra_info, balance, minner_num, action_type, like_status, asset_did }) => (
     <span>
       {/*<img className="list-item-action-img" src="/static/images/hashnews/ABT.png" alt="ABT" height="25" width="25" />*/}
       <a onClick={e => {
@@ -1406,10 +1437,10 @@ class App extends Component {
         {action_type=='like'&&like_status==true?<Icon type={type} theme="twoTone" twoToneColor="#0000FF" style={{ fontSize: '16px', marginLeft: 0, marginRight: 4 }} />:<Icon type={type} style={{ fontSize: '16px', marginLeft: 0, marginRight: 8 }} />}
         <span>{text}</span>
       </a>
-      {total_min_rem>0 && (<br/>)}
-      {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>₳ {balance}</span>)}
-      {/*total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>{token_symbol}</span>)*/}
-      {/*total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>({minner_num}个)</span>)*/}
+      {show_extra_info && (<br/>)}
+      {show_extra_info && (<span style={{ fontSize: '9px', color: '#FF6600' }}>₳ {balance}</span>)}
+      {/*show_extra_info && (<span style={{ fontSize: '9px', color: '#FF6600' }}>{token_symbol}</span>)*/}
+      {/*show_extra_info && (<span style={{ fontSize: '9px', color: '#FF6600' }}>({minner_num}个)</span>)*/}
     </span>
   );
   
@@ -1425,14 +1456,20 @@ class App extends Component {
       </a>
       {total_min_rem>0 && (<br/>)}
       {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>{balance}</span>)}
-      {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>{token_symbol}</span>)}
+      {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}> {token_symbol}</span>)}
       {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>({minner_num}个)</span>)}
     </span>
   );
   
   CommentList = ({ asset_did, comment_cnt, comment_list, token }) => (
-    <Paragraph className="antd-list-comment-list-text" ellipsis={{ rows: 10, expandable: true }}>
+    <Paragraph className="antd-list-comment-list-text" ellipsis={{ rows: 8, expandable: true }}>
       {comment_list.map(x => renderCommentList(x, token))}
+    </Paragraph>
+  );
+  
+  PaytipList = ({ asset_did, paytip_cnt, paytip_list, token }) => (
+    <Paragraph className="antd-list-comment-list-text" ellipsis={{ rows: 6, expandable: true }}>
+      {paytip_list.map(x => renderPaytipList(x, token))}
     </Paragraph>
   );
   
@@ -1682,18 +1719,72 @@ class App extends Component {
     });
   };
   
+  handlePaytipDialogOk = e => {   
+    const { session, newsflash_list, paytip_input_value } = this.state;
+    const { user, token } = session;
+    var newsflashItem = this.newsflashListItemFind(this.paytip_asset_did);
+    
+    if(!newsflashItem){
+      console.log('handlePaytipDialogOk invalid newsflash item');
+      return null;
+    }
+  
+    //verify input parameter
+    if(!this.paytip_asset_did || this.paytip_asset_did.length == 0){
+      console.log('handlePaytipDialogOk invalid asset_did');
+      return null;
+    }
+    if(paytip_input_value === '' || parseFloat(paytip_input_value) <= 0){
+      console.log('handlePaytipDialogOk paytip_input_value is zero');
+      return null;
+    }
+  
+    console.log('handlePaytipDialogOk, asset_did=', this.paytip_asset_did);
+    console.log('paytip_input_value=', paytip_input_value);
+    
+    this.setState({
+      paytip_input_visible: false,
+      paytip_target_did: newsflashItem.sender,
+      paytip_sending: true,
+    },()=>{
+    });
+  };
+  
+  handlePaytipDialogCancel = e => {
+    console.log('handlePaytipDialogCancel, asset_did=', this.paytip_asset_did);
+    
+    this.setState({
+      paytip_input_visible: false
+    },()=>{
+      this.paytip_asset_did = '';
+    });
+  };
+  
+  onPaytipValueChange = value => {
+    this.setState({ paytip_input_value: value });
+  };
+  
+  onPaytipCommentChange = ({ target: { value } }) => {
+    //console.log('onPaytipCommentChange value='+value+' length='+value.length);
+    this.setState({ paytip_comment: value });
+  };
+  
   onPaymentClose = async result => {
     console.log('onPaymentClose');
     this.setState({
       sending: false,
+      paytip_sending: false,
     });
+    window.location.reload();
   };
 
   onPaymentError = async result => {
     console.log('onPaymentError');
     this.setState({
       sending: false,
+      paytip_sending: false,
     });
+    window.location.reload();
   };
 
   onPaymentSuccess = async result => {
@@ -1706,25 +1797,11 @@ class App extends Component {
       news_image_url: null,
       toPay: 0,
       sending: false,
+      paytip_sending: false,
     });
     
     setTimeout(() => {
-      try {
-        this.setState({
-          newsflash_list: [],
-          newsflash_total_num: 0,
-          loading: false,
-          more_to_load: true,
-          page_number: 1,
-        },()=>{
-          if(news_list_show_mode === 'page'){
-            this.fetchNewsFlash({}, 'total_num');
-          }
-          this.fetchNewsFlash();
-        });
-      } catch (err) {
-        // Do nothing
-      }
+      window.location.reload();
     }, 8000);
   };
 
@@ -1745,6 +1822,7 @@ class App extends Component {
       toPay, 
       sending, 
       asset_sending,
+      paytip_sending,
       datachains_list, 
       newsflash_list, 
       more_to_load, 
@@ -1806,8 +1884,24 @@ class App extends Component {
     //console.log('render session.token=', token);
     
     const dapp = 'newsflash';
-    var para_obj = {asset_did: this.state.asset_did};
-    var para = JSON.stringify(para_obj);
+    let para_obj = {};
+    let para = '';
+    let tipValue = 0;
+    let tipAddr = '';
+    
+    if(sending){
+      para_obj = {asset_did: this.state.asset_did};
+      para = JSON.stringify(para_obj);
+    }else if(paytip_sending){
+      if(user){
+        para_obj = {action: 'pay_tip', asset_did: this.paytip_asset_did, payer_uname: user.name, comment: this.state.paytip_comment};
+      }else{
+        para_obj = {action: 'pay_tip', asset_did: this.paytip_asset_did, payer_uname: 'unknown', comment: this.state.paytip_comment};
+      }
+      para = JSON.stringify(para_obj);
+      tipValue = parseFloat(this.state.paytip_input_value);
+      tipAddr = this.state.paytip_target_did;
+    }
     
     //if(this.state.newsflash_list && this.state.newsflash_list.length > 0){
       //console.log('render newsflash_list=', this.state.newsflash_list);
@@ -1976,9 +2070,10 @@ class App extends Component {
                       key={item.hash}
                       actions={((item.news_type != 'test2') && (item.news_type != 'articles'))?
                         [
-                          <this.IconText type="like-o" text={item.like_cnt} action_type='like' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={decimalConvert(item.like_min_rem, 4, 'ceil')} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like"+item.hash} />,
-                          <this.IconText type="message" text={item.comment_cnt} action_type='comment' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={decimalConvert(item.comment_min_rem, 4, 'ceil')} minner_num={item.comment_min_rem_number} asset_did={item.asset_did}  key={"list-item-message"+item.hash} />,
-                          <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' like_status={item.like_status} token_symbol={token.symbol} total_min_rem={item.total_min_rem} balance={decimalConvert(item.forward_min_rem, 4, 'ceil')} minner_num={item.forward_min_rem_number} asset_did={item.asset_did}  key={"list-item-share"+item.hash} />,
+                          <this.IconText type="like-o" text={item.like_cnt} action_type='like' balance={decimalConvert(item.like_min_rem, 4, 'ceil')} token_symbol={token.symbol} like_status={item.like_status} show_extra_info={item.total_min_rem>0 || item.total_paytip_balance>0} minner_num={item.like_min_rem_number} asset_did={item.asset_did} key={"list-item-like"+item.hash} />,
+                          <this.IconText type="message" text={item.comment_cnt} action_type='comment' balance={decimalConvert(item.comment_min_rem, 4, 'ceil')} token_symbol={token.symbol} like_status={item.like_status} show_extra_info={item.total_min_rem>0 || item.total_paytip_balance>0} minner_num={item.comment_min_rem_number} asset_did={item.asset_did} key={"list-item-message"+item.hash} />,
+                          <this.IconText type="share-alt" text={item.forward_cnt} action_type='share' balance={decimalConvert(item.forward_min_rem, 4, 'ceil')} token_symbol={token.symbol} like_status={item.like_status} show_extra_info={item.total_min_rem>0 || item.total_paytip_balance>0} minner_num={item.forward_min_rem_number} asset_did={item.asset_did} key={"list-item-share"+item.hash} />,
+                          <this.IconText type="pay-circle" text={item.paytip_cnt} action_type='paytip' balance={decimalConvert(item.total_paytip_balance, 6, 'ceil')} token_symbol={token.symbol} like_status={item.like_status} show_extra_info={item.total_min_rem>0 || item.total_paytip_balance>0} minner_num={0} asset_did={item.asset_did} key={"list-item-paytip"+item.hash} />,
                         ]:
                         []
                       }
@@ -2001,7 +2096,7 @@ class App extends Component {
                         <br/>
                         {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
                         <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
-                        <a href={item.sender_href} target="_blank" style={{ fontSize: '15px', color: '#000000' }}> {item.sender}</a> <br/>
+                        <a href={item.sender_href} target="_blank" style={{ fontSize: '15px', color: '#000000' }}> {getUserDidFragment(item.sender)}</a> <br/>
                         <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#000000' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.time}</a> <br/>        
                       </div>
                   
@@ -2051,10 +2146,15 @@ class App extends Component {
                           <span style={{ fontSize: '10px', color: '#888888' }}>来源：{item.news_origin}</span>
                         </div>
                       }
-                      {(item.comment_list.length > 0) &&
+                      {(item.comment_list.length > 0 || item.paytip_list.length > 0) &&
                         <div>
                           <br/>
-                          <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />
+                          {(item.comment_list.length > 0) && (
+                            <this.CommentList asset_did={item.asset_did} comment_cnt={item.comment_cnt} comment_list={item.comment_list} token={token} />
+                          )}
+                          {(item.paytip_list.length > 0) && (
+                            <this.PaytipList asset_did={item.asset_did} paytip_cnt={item.paytip_cnt} paytip_list={item.paytip_list} token={token} />
+                          )}
                         </div> 
                       }
                     </List.Item>
@@ -2400,7 +2500,7 @@ class App extends Component {
                       <br/>
                       {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
                       <i class="icon-did-abt-logo" style={{fontSize: '12px', color: '#000000'}}></i>
-                      <span style={{ fontSize: '12px', fontVariant: 'normal', color: '#000000' }}> {item.sender}</span> <br/>
+                      <span style={{ fontSize: '12px', fontVariant: 'normal', color: '#000000' }}> {getUserDidFragment(item.sender)}</span> <br/>
                       <a href={item.href} target="_blank" style={{ fontSize: '11px', fontVariant: 'normal', color: '#000000' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 20{item.time}</a>
                       <div>
                         <br/>
@@ -2448,6 +2548,35 @@ class App extends Component {
                 <img src="/static/blank.jpg" id="shareNewsPic" alt="HashNews"  width={posterWinWidth - 40} onContextMenu={this.handleShareNewsPicContextMenu} />
               </div>
             </Modal>
+            <Modal
+             title="打赏配置"
+             title={null}
+             closable={false}
+             visible={this.state.paytip_input_visible}
+             okText='确定'
+             onOk={this.handlePaytipDialogOk}
+             onCancel={this.handlePaytipDialogCancel}
+             okButtonProps={{ disabled: (this.state.paytip_input_value === '' || parseFloat(this.state.paytip_input_value) <= 0) }}
+             destroyOnClose={true}
+             forceRender={true}
+            >
+              <div style={{ float: 'left', marginTop: 3, marginRight: 10}}>
+                <Text style={{ fontSize: '15px', color: '#000000' }}>打赏</Text>
+              </div>
+              <div>
+                <NumericInput style={{ width: 120 }} value={this.state.paytip_input_value} onChange={this.onPaytipValueChange} />
+                <span style={{ fontSize: '15px', color: '#000000', marginLeft: 10 }}>{token.symbol}</span>
+              </div>
+              <div style={{ margin: '5px 0' }}/>
+              <Text style={{ fontSize: '15px', color: '#000000' }}>备注</Text>
+              <TextArea
+                value={this.state.paytip_comment}
+                onChange={this.onPaytipCommentChange}
+                placeholder={"可选("+paytip_comment_max_length+"字以内)"}
+                autoSize={{ minRows: 1, maxRows: 3 }}
+                maxLength={paytip_comment_max_length}
+              />
+            </Modal>
           </LocaleProvider>
         </Main>
         {sending && (
@@ -2463,6 +2592,24 @@ class App extends Component {
             messages={{
               title: '支付需求',
               scan: `该快讯需支付 ${toPay} ${token.symbol}`,
+              confirm: '在ABT钱包中确认',
+              success: '支付成功!',
+            }}
+          />
+        )}
+        {paytip_sending && (
+          <Auth
+            responsive
+            action="paytip"
+            locale="zh"
+            checkFn={api.get}
+            onError={this.onPaymentError}
+            onClose={this.onPaymentClose}
+            onSuccess={this.onPaymentSuccess}
+            extraParams={ "zh", { tipValue, tipAddr, dapp, para } }
+            messages={{
+              title: '打赏支付',
+              scan: `打赏需支付 ${tipValue} ${token.symbol}`,
               confirm: '在ABT钱包中确认',
               success: '支付成功!',
             }}
