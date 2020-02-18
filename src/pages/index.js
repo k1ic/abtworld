@@ -106,6 +106,9 @@ var news_like_minner_number_max = news_like_minner_number_default;
 var news_forward_minner_number_min = news_forward_minner_number_default;
 var news_forward_minner_number_max = news_forward_minner_number_default;
 
+/*slogan*/
+const hashnews_slogan = '去中心化资讯平台，数据上链不可篡改！';
+
 /*poster window width*/
 const posterWinWidth = 320;
 var share_news_pic_data = '';
@@ -145,6 +148,23 @@ function getBase64(img, callback) {
   const reader = new FileReader();
   reader.addEventListener('load', () => callback(reader.result));
   reader.readAsDataURL(img);
+}
+
+function dataURLtoFile(dataUrl, fileName) {
+  var arr = dataUrl.split(',');
+  var mime = arr[0].match(/:(.*?);/)[1];
+  var bstr = atob(arr[1]);
+  var n = bstr.length; 
+  var u8arr = new Uint8Array(n);
+  while(n--){
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  
+  //转换成file对象
+  return new File([u8arr], fileName, {type:mime});
+  
+  //转换成成blob对象
+  //return new Blob([u8arr],{type:mime});
 }
 
 function formatNumber(value) {
@@ -1643,12 +1663,10 @@ class App extends Component {
     });
   };
   
-  handleShareNewsPicOk = e => {
+  shareNewsFulfilledProc = () => {
     const { session } = this.state;
     const { user, token } = session;
     
-    console.log('handleShareNewsPicOk share_news_pic_data.length=', share_news_pic_data.length);
-   
     var newsflashItem = this.newsflashListItemFind(this.share_asset_did);
     if(newsflashItem && user){
       newsflashItem.forward_cnt += 1;
@@ -1705,6 +1723,56 @@ class App extends Component {
       share_news_pic_data = '';
       this.share_asset_did = '';
     });
+  }
+  
+  handleShareNewsPicOk = e => {
+    console.log('handleShareNewsPicOk share_news_pic_data.length=', share_news_pic_data.length);
+    
+    if(navigator && navigator.share){
+      let posterImageFile = dataURLtoFile(share_news_pic_data, 'HNPoster.jpg');
+      let shareFilesArray = [
+        posterImageFile,
+      ];
+      
+      /*
+      try {
+        await navigator.share({ 
+          files: shareFilesArray
+        });
+        console.log("Data was shared successfully");
+        this.shareNewsFulfilledProc();
+      } catch (err) {
+        console.error("Share failed:", err.message);
+      }
+      */
+      
+      /*
+      navigator.share({
+        text: hashnews_slogan,
+        files: shareFilesArray
+      })
+      .then(() => {
+        this.shareNewsFulfilledProc();
+      })
+      .catch((error) => {
+        console.log('Error sharing:', error)
+      });
+      */
+      
+      navigator.share({
+        files: shareFilesArray
+      });
+      
+      if(this.shareNewsPicTimeout){
+        clearTimeout(this.shareNewsPicTimeout);
+        this.shareNewsPicTimeout = null;
+      }
+      this.shareNewsPicTimeout = setTimeout(() => {
+        this.shareNewsFulfilledProc();
+      }, 8000);
+    }else{
+      this.shareNewsFulfilledProc();
+    }
   };
   
   handleShareNewsPicCancel = e => {
@@ -1958,7 +2026,7 @@ class App extends Component {
             href="https://cdn.jsdelivr.net/npm/@arcblock/did-logo@latest/style.css"
           />
           <div>
-            <div style={{ fontSize: '15px', color: '#000000' }}>去中心化资讯平台，数据上链不可篡改！</div>
+            <div style={{ fontSize: '15px', color: '#000000' }}>{hashnews_slogan}</div>
             <div style={{ margin: '15px 0' }}/>
             <Text style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>链节点</Text>
             <Select value={this.state.datachain_node_name_to_view} style={{ fontSize: '15px', color: '#000000', width: 120, marginRight: 15 }} onChange={this.onDatachainNodeToViewChange} className="antd-select">
@@ -2533,13 +2601,13 @@ class App extends Component {
             </Modal>
             <Modal
              style={{ top: 10 }}
-             title="长按图片进行分享"
+             title={(navigator && navigator.share)?'点击分享按钮':'长按图片进行分享'}
              closable={false}
              visible={this.state.share_news_pic_visible}
-             okText='已分享'
+             okText={(navigator && navigator.share)?'分享':'已分享'}
              onOk={this.handleShareNewsPicOk}
              onCancel={this.handleShareNewsPicCancel}
-             okButtonProps={{ disabled: this.state.shared_btn_disabled }}
+             okButtonProps={{ disabled: (navigator && navigator.share)?false:this.state.shared_btn_disabled }}
              destroyOnClose={true}
              forceRender={true}
              width = {posterWinWidth}
