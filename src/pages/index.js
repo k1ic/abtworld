@@ -363,6 +363,7 @@ class App extends Component {
     this.winH = 0;
     this.sendNewsDialogWinWidth = 0;
     this.commentInpuTopOffset = 0;
+    this.shareNewsPicUserCancel = false;
     this.shareNewsPicTimeout = null;
     this.newsToPayCalcTimeout = null;
     this.onListItemActionClick = this.onListItemActionClick.bind(this);
@@ -1323,14 +1324,42 @@ class App extends Component {
     }
     console.log('share news pic ready counter=', wait_counter);
     if(share_news_pic_data.length > 0){
-      this.setState({
-        gen_share_news_visible: false,
-        share_news_pic_visible: true,
-        shared_btn_disabled: true,
-      }, ()=>{
-        let posterImage = document.getElementById("shareNewsPic");
-        posterImage.src = share_news_pic_data;
-      });
+      if(navigator && navigator.share){
+        this.setState({
+          gen_share_news_visible: false,
+        }, ()=>{
+          let posterImageFile = dataURLtoFile(share_news_pic_data, 'HNPoster.jpg');
+          let shareFilesArray = [
+            posterImageFile,
+          ];
+          
+          navigator.share({
+            files: shareFilesArray
+          })
+          .then(() => {
+          })
+          .catch((error) => {
+            console.log('Error sharing:', error);
+          });
+      
+          if(this.shareNewsPicTimeout){
+            clearTimeout(this.shareNewsPicTimeout);
+            this.shareNewsPicTimeout = null;
+          }
+          this.shareNewsPicTimeout = setTimeout(() => {
+            this.shareNewsFulfilledProc();
+          }, 8000);
+        });
+      }else{
+        this.setState({
+          gen_share_news_visible: false,
+          share_news_pic_visible: true,
+          shared_btn_disabled: true,
+        }, ()=>{
+          let posterImage = document.getElementById("shareNewsPic");
+          posterImage.src = share_news_pic_data;
+        });
+      }
     }else{
       this.setState({
         gen_share_news_visible: false
@@ -1422,12 +1451,21 @@ class App extends Component {
         });
         break;
       case 'share':
+        this.shareNewsPicUserCancel = false;
         this.share_asset_did = asset_did;
         this.share_news_items[0] = newsflashItem;
         
+        /*
         this.setState({
           share_news_user_slogan_input_visible: true
         }, async ()=>{
+        });
+        */
+        
+        this.setState({
+          gen_share_news_visible: true
+        }, async ()=>{
+          await this.genShareNewsPoster();
         });
         break;
       case 'paytip':
@@ -1667,53 +1705,55 @@ class App extends Component {
     const { session } = this.state;
     const { user, token } = session;
     
-    var newsflashItem = this.newsflashListItemFind(this.share_asset_did);
-    if(newsflashItem && user){
-      newsflashItem.forward_cnt += 1;
-      const forward_list_item = {
-        udid: user.did,
-        mbalance: 0
-      };
-      newsflashItem.forward_list.push(forward_list_item);
+    if(this.shareNewsPicUserCancel === false){
+      var newsflashItem = this.newsflashListItemFind(this.share_asset_did);
+      if(newsflashItem && user){
+        newsflashItem.forward_cnt += 1;
+        const forward_list_item = {
+          udid: user.did,
+          mbalance: 0
+        };
+        newsflashItem.forward_list.push(forward_list_item);
           
-      /*send forward minning request*/
-      this.setState({
-        minning: true
-      });
+        /*send forward minning request*/
+        this.setState({
+          minning: true
+        });
           
-      const formData = new FormData();
-      formData.append('user', JSON.stringify(user));
-      formData.append('cmd', 'forward');
-      formData.append('asset_did', this.share_asset_did);
+        const formData = new FormData();
+        formData.append('user', JSON.stringify(user));
+        formData.append('cmd', 'forward');
+        formData.append('asset_did', this.share_asset_did);
         
-      reqwest({
-        url: '/api/newsflashset',
-        method: 'post',
-        processData: false,
-        data: formData,
-        success: (result) => {
-          console.log('forward minning success with response=', result.response);
-          if(parseFloat(result.response) > 0){
-            newsflashItem.forward_min_rem -= parseFloat(result.response);
-            newsflashItem.forward_min_rem = forgeTxValueSecureConvert(newsflashItem.forward_min_rem);
-            const modal_content = '获得'+result.response+token.symbol+"，请到ABT钱包中查看!";
-            Modal.success({title: modal_content, maskClosable: 'true'});
-          }else{
-            console.log('forward minning poll is empty or already minned');
-          }
-          this.setState({
-            minning: false
-          });
-        },
-        error: (result) => {
-          console.log('forward minning error with response=', result.response);
-          this.setState({
-            minning: false
-          });
-        },
-      });
-    }else{
-      console.log('handleShareNewsPicOk unknown news item or not login.');
+        reqwest({
+          url: '/api/newsflashset',
+          method: 'post',
+          processData: false,
+          data: formData,
+          success: (result) => {
+            console.log('forward minning success with response=', result.response);
+            if(parseFloat(result.response) > 0){
+              newsflashItem.forward_min_rem -= parseFloat(result.response);
+              newsflashItem.forward_min_rem = forgeTxValueSecureConvert(newsflashItem.forward_min_rem);
+              //const modal_content = '获得'+result.response+token.symbol+"，请到ABT钱包中查看!";
+              //Modal.success({title: modal_content, maskClosable: 'true'});
+            }else{
+              console.log('forward minning poll is empty or already minned');
+            }
+            this.setState({
+              minning: false
+            });
+          },
+          error: (result) => {
+            console.log('forward minning error with response=', result.response);
+            this.setState({
+              minning: false
+            });
+          },
+        });
+      }else{
+        console.log('handleShareNewsPicOk unknown news item or not login.');
+      }
     }
    
     this.setState({
@@ -1725,7 +1765,7 @@ class App extends Component {
     });
   }
   
-  handleShareNewsPicOk = e => {
+  handleShareNewsPicOk = async(e) => {
     console.log('handleShareNewsPicOk share_news_pic_data.length=', share_news_pic_data.length);
     
     if(navigator && navigator.share){
@@ -1736,13 +1776,14 @@ class App extends Component {
       
       /*
       try {
-        await navigator.share({ 
+        await navigator.share({
+          text: hashnews_slogan, 
           files: shareFilesArray
         });
         console.log("Data was shared successfully");
         this.shareNewsFulfilledProc();
       } catch (err) {
-        console.error("Share failed:", err.message);
+        console.error("Share failed!");
       }
       */
       
@@ -1755,12 +1796,22 @@ class App extends Component {
         this.shareNewsFulfilledProc();
       })
       .catch((error) => {
-        console.log('Error sharing:', error)
+        console.log('Error sharing:', error);
       });
       */
       
       navigator.share({
         files: shareFilesArray
+      })
+      .then(() => {
+      })
+      .catch((error) => {
+        console.log('Error sharing:', error);
+      });
+      
+      this.setState({
+        share_news_pic_visible: false
+      },()=>{
       });
       
       if(this.shareNewsPicTimeout){
@@ -1770,6 +1821,7 @@ class App extends Component {
       this.shareNewsPicTimeout = setTimeout(() => {
         this.shareNewsFulfilledProc();
       }, 8000);
+      
     }else{
       this.shareNewsFulfilledProc();
     }
@@ -1777,6 +1829,8 @@ class App extends Component {
   
   handleShareNewsPicCancel = e => {
     console.log('handleShareNewsPicCancel share_news_pic_data.length=', share_news_pic_data.length);
+    
+    this.shareNewsPicUserCancel = true;
     
     this.setState({
       share_news_pic_visible: false,
@@ -1839,6 +1893,14 @@ class App extends Component {
   
   onPaymentClose = async result => {
     console.log('onPaymentClose');
+    this.setState({
+      sending: false,
+      paytip_sending: false,
+    });
+  };
+  
+  onPaytipPaymentClose = async result => {
+    console.log('onPaytipPaymentClose');
     this.setState({
       sending: false,
       paytip_sending: false,
@@ -2125,7 +2187,7 @@ class App extends Component {
             </div>
           )}
           <LocaleProvider locale={zh_CN}>
-            {(this.state.send_news_dialog_visible === false && this.state.gen_share_news_visible === false && this.state.share_news_pic_visible === false) && (
+            {(this.state.send_news_dialog_visible === false) && (
               <div id="HashNewsList">
                 <List
                   itemLayout="vertical"
@@ -2672,7 +2734,7 @@ class App extends Component {
             locale="zh"
             checkFn={api.get}
             onError={this.onPaymentError}
-            onClose={this.onPaymentClose}
+            onClose={this.onPaytipPaymentClose}
             onSuccess={this.onPaymentSuccess}
             extraParams={ "zh", { tipValue, tipAddr, dapp, para } }
             messages={{
