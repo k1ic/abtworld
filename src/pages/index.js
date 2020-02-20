@@ -28,6 +28,7 @@ import {
   Divider,
   Slider,
   Affix,
+  BackTop,
   InputNumber,
   Row,
   Col
@@ -1596,7 +1597,8 @@ class App extends Component {
         
         newsflashItem.comment_cnt += 1;
         comment_list_item.mbalance = parseFloat(result.response);
-        newsflashItem.comment_list.push(comment_list_item);
+        //newsflashItem.comment_list.push(comment_list_item); /*Add to tail*/
+        newsflashItem.comment_list.unshift(comment_list_item); /*Add to head*/
         
         this.setState({
           minning: false
@@ -2172,6 +2174,7 @@ class App extends Component {
               </TabPane>
             }
           </Tabs>*/}
+          <BackTop style={{ bottom: '60px', right: '120px' }} />
           {send_permission && (
             <div style={{ float: 'right' }}>
               <Affix offsetTop={sendAffixOffsetTop}>
@@ -2237,7 +2240,7 @@ class App extends Component {
                           }
                           {(item.news_title.length > 0) && <br/>}
                           {(item.news_title.length > 0) && <br/>}
-                          {(item.news_content.length > 400)
+                          {(item.news_content.length > 2000)
                             ?
                             (item.weights >= news_weights_level_important
                               ?
@@ -2549,6 +2552,7 @@ class App extends Component {
              onOk={this.handleCommentInputOk}
              okText='发送'
              onCancel={this.handleCommentInputCancel}
+             okButtonProps={{ disabled: (!comment_to_send || comment_to_send.length < 3) }}
              destroyOnClose={true}
              wrapClassName={'web'}
             >

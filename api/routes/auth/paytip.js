@@ -56,7 +56,8 @@ async function paytipHook(hash, forgeState, userDid) {
               comment: tx_memo.para.comment,
               time: tx_local_time
             };
-            newsflash_doc.paytip_list.push(paytip_list_item);
+            //newsflash_doc.paytip_list.push(paytip_list_item); /*Add to tail*/
+            newsflash_doc.paytip_list.unshift(paytip_list_item); /*Add to head*/
             newsflash_doc.markModified('paytip_list');
             newsflash_doc.updatedAt = Date();
             await newsflash_doc.save();

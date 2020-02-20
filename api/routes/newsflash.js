@@ -309,6 +309,44 @@ const newsflashDocCommentFind = (doc, comment) => {
   return comment_list_item;
 }
 
+const newsflashCommentContentVerify = (doc, comment) => {
+  /*Check duplicate content*/
+  if(newsflashDocCommentFind(doc, comment)){
+    return false;
+  }
+  
+  /*Verify comment content*/  
+  /*1. Verify full number*/
+  if(/^[0-9]+$/.test(comment)){
+    return false;
+  }
+    
+  /*2.duplicate char checking*/
+  let commentLen = comment.length;
+  let fullDuplicateFlag = true;
+  let partDuplicateFlag = false;
+  let startChar = comment[0];
+  let dumpCounter = 0;
+  for(var i=1;i<commentLen;i++){
+    if(startChar == comment[i]){
+      dumpCounter++;
+      if(dumpCounter >= 5){
+        partDuplicateFlag = true;
+        break;
+      }
+    }else{
+      fullDuplicateFlag = false;
+      startChar = comment[i];
+      dumpCounter = 0;
+    }
+  }
+  if(fullDuplicateFlag || partDuplicateFlag){
+    return false;
+  }
+  
+  return true;
+}
+
 const newsflashDocCommentMinableValueGet = (doc, udid, comment) => {
   var minValue = 0;
   var comment_list_item = null;
@@ -537,8 +575,8 @@ async function NewsflashItemAddComment(fields){
   var doc = await Newsflash.findOne({ asset_did: fields.asset_did[0] });
   
   if(doc){
-    if(newsflashDocCommentFind(doc, comment)){
-      console.log('NewsflashItemAddComment comment already in list');
+    if(!newsflashCommentContentVerify(doc, comment)){
+      console.log('NewsflashItemAddComment invalid comment content');
       return null;
     }
     
@@ -579,7 +617,8 @@ async function NewsflashItemAddComment(fields){
     //doc.minner_state = 'idle';
     doc.comment_counter += 1;
     doc.hot_index += (3*doc.news_weights);
-    doc.comment_list.push(comment_list_item);
+    //doc.comment_list.push(comment_list_item); /*Add to tail*/
+    doc.comment_list.unshift(comment_list_item); /*Add to head*/
     doc.markModified('comment_list');
     doc.updatedAt = Date();
     await doc.save();
