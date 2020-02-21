@@ -887,7 +887,7 @@ class App extends Component {
     });
   }
   
-  onOpenSendNewsDialogButtonClick = () => {
+  onOpenSendNewsDialogButtonClick = async() => {
     const { session } = this.state;
     const { user, token } = session;
     
@@ -895,7 +895,9 @@ class App extends Component {
       window.location.href = '/?openLogin=true';
       return null;
     }
-   
+    
+    document.body.scrollIntoView(); /*scroll to top*/
+    await sleep(100);
     this.setState({
       send_news_dialog_visible: true,
     },()=>{
