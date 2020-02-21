@@ -268,8 +268,8 @@ const limit2Decimals = (value) => {
 
 const renderCommentList = (x, token) => (
   <span className="antd-list-comment-list-item-text">
-    <a href={env.chainHost.replace('/api', '/node/explorer/accounts/')+x.udid} target="_blank" style={{ fontSize: '14px', color: '#3CB371' }}>{x.uname}</a>
-    <span style={{ fontSize: '12px', color: '#888888' }}> - {x.time}</span>
+    <a href={env.chainHost.replace('/api', '/node/explorer/accounts/')+x.udid} target="_blank" style={{ fontSize: '14px', fontWeight: 500, color: '#676D91' }}>{x.uname}</a>
+    <span style={{ fontSize: '12px', fontWeight: 500, color: '#888888' }}> - {x.time}</span>
     <br/>
     <span style={{ fontSize: '14px', color: '#0', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'normal' }}>{x.comment}</span>
     {(x.mbalance>0)?<span style={{ fontSize: '10px', color: '#FF6600' }}> +{x.mbalance} {token.symbol}</span>:''}
@@ -899,6 +899,8 @@ class App extends Component {
     this.setState({
       send_news_dialog_visible: true,
     },()=>{
+      let inputArea = this.refs.newsContentTextArea;
+      inputArea.focus();
     });
   }
   
@@ -2313,10 +2315,6 @@ class App extends Component {
              forceRender={true}
              width = {this.sendNewsDialogWinWidth}
             >
-              <Text style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>发布节点</Text>
-              <Select value={this.state.datachain_node_name_to_send} style={{ fontSize: '15px', color: '#000000', width: 120 }} onChange={this.onDatachainNodeToSendChange} className="antd-select">
-                {this.datachainsToSendSlecterChildren}
-              </Select>
               <div style={{ margin: '10px 0' }}>
                 <Text style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>资讯来源</Text>
                 <Select value={this.state.news_content_origin} style={{ fontSize: '15px', color: '#000000', width: 120 }} onChange={this.onNewsOriginTypeChange} className="antd-select">
@@ -2332,6 +2330,57 @@ class App extends Component {
                   <Option value="未知">未知</Option>
                 </Select>
               </div>
+              {((news_type === 'test2') || (news_type === 'articles')) && (
+                <div style={{ margin: '10px 0' }}>
+                  <div style={{ float: 'left', marginTop: 3, marginRight: 10}}>
+                    <Text style={{ fontSize: '15px', color: '#000000' }}>文章定价</Text>
+                  </div>
+                  <div>
+                    <NumericInput style={{ width: 120 }} value={news_article_worth} onChange={this.onNewsArticleWorthChange} />
+                    <span style={{ fontSize: '15px', color: '#000000', marginLeft: 10 }}>{token.symbol}</span>
+                  </div>
+                </div>
+              )}
+              {((news_type === 'test2') || (news_type === 'articles')) && (
+                <div style={{ margin: '10px 0' }}>
+                  <Upload{...newsImageUploadprops}           
+                  >
+                    {news_image_file_list.length >= 1 ? null : newsImageUploadButton}
+                  </Upload>
+                </div>
+              )}
+              {(news_type != 'test2') && (news_type != 'articles') && (
+                <div style={{ margin: '10px 0' }}>
+                  <span style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>添加标题</span>
+                  <Checkbox checked={this.state.news_title_enabled} onChange={this.onNewsTitleCheckBoxChange}></Checkbox>
+                </div>
+              )}
+              {((this.state.news_title_enabled) || (news_type === 'test2') || (news_type === 'articles')) && (
+                <div style={{ margin: '10px 0' }}>
+                  <TextArea
+                    value={news_title_to_send}
+                    onChange={this.onNewsTitleToSendChange}
+                    placeholder={"请输入标题...("+news_title_max_length+"字以内)"}
+                    autoSize={{ minRows: 1, maxRows: 3 }}
+                    maxLength={news_title_max_length}
+                  />
+                </div>
+              )}
+              <div style={{ margin: '5px 0' }}>
+                <TextArea
+                  ref="newsContentTextArea"
+                  value={news_content_to_send}
+                  onChange={this.onNewsContentToSendChange}
+                  placeholder={"请输入内容...("+news_content_max_length+"字以内)"}
+                  autoSize={{ minRows: 3, maxRows: 10 }}
+                  maxLength={news_content_max_length}
+                />
+              </div>
+              <Divider dashed orientation="left">可选</Divider>
+              <Text style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>存储位置</Text>
+              <Select value={this.state.datachain_node_name_to_send} style={{ fontSize: '15px', color: '#000000', width: 120 }} onChange={this.onDatachainNodeToSendChange} className="antd-select">
+                {this.datachainsToSendSlecterChildren}
+              </Select>
               {(news_type != 'test2') && (news_type != 'articles') && (
                 <div style={{ margin: '10px 0' }}>
                   {/*<Slider 
@@ -2399,52 +2448,8 @@ class App extends Component {
                   <span style={{ fontSize: '15px', color: '#000000' }}>个</span>
                 </div>
               )}
-              {((news_type === 'test2') || (news_type === 'articles')) && (
-                <div style={{ margin: '10px 0' }}>
-                  <div style={{ float: 'left', marginTop: 3, marginRight: 10}}>
-                    <Text style={{ fontSize: '15px', color: '#000000' }}>文章定价</Text>
-                  </div>
-                  <div>
-                    <NumericInput style={{ width: 120 }} value={news_article_worth} onChange={this.onNewsArticleWorthChange} />
-                    <span style={{ fontSize: '15px', color: '#000000', marginLeft: 10 }}>{token.symbol}</span>
-                  </div>
-                </div>
-              )}
-              {((news_type === 'test2') || (news_type === 'articles')) && (
-                <div style={{ margin: '10px 0' }}>
-                  <Upload{...newsImageUploadprops}           
-                  >
-                    {news_image_file_list.length >= 1 ? null : newsImageUploadButton}
-                  </Upload>
-                </div>
-              )}
-              {(news_type != 'test2') && (news_type != 'articles') && (
-                <div style={{ margin: '10px 0' }}>
-                  <span style={{ fontSize: '15px', color: '#000000', marginRight: 10 }}>添加标题</span>
-                  <Checkbox checked={this.state.news_title_enabled} onChange={this.onNewsTitleCheckBoxChange}></Checkbox>
-                </div>
-              )}
-              {((this.state.news_title_enabled) || (news_type === 'test2') || (news_type === 'articles')) && (
-                <div style={{ margin: '10px 0' }}>
-                  <TextArea
-                    value={news_title_to_send}
-                    onChange={this.onNewsTitleToSendChange}
-                    placeholder={"请输入标题...("+news_title_max_length+"字以内)"}
-                    autoSize={{ minRows: 1, maxRows: 3 }}
-                    maxLength={news_title_max_length}
-                  />
-                </div>
-              )}
-              <div style={{ margin: '5px 0' }}>
-                <TextArea
-                  value={news_content_to_send}
-                  onChange={this.onNewsContentToSendChange}
-                  placeholder={"请输入内容...("+news_content_max_length+"字以内)"}
-                  autoSize={{ minRows: 3, maxRows: 10 }}
-                  maxLength={news_content_max_length}
-                />
-              </div>
-              <div align="left" style={{ margin: '10px 0' }}>
+              <Divider dashed />
+              <div align="right" style={{ margin: '10px 0' }}>
                 <Button
                   key="submit-cancel"
                   onClick={this.handleSendNewsDialogCancel}
