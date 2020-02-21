@@ -100,14 +100,30 @@ class App extends Component {
             4. 图片的所有权归属用户，如发现侵权，可联系下架！<br/>
           </Typography>*/}
           <Typography component="h2" variant="h5" className="page-header" color="primary" style={{ fontSize: '16px' }}>
-            资讯
+            哈希快讯
           </Typography>
           <Typography component="p" variant="h6" className="page-description" color="textSecondary" style={{ fontSize: '15px' }}>
             1. 使用DID身份发布，数据上链不可篡改，内容全球可见，请谨慎发布；<br/>
-            2. 转发的内容请备注来源，尊重原创；<br/>
+            2. 发布内容请选择来源，尊重原创；<br/>
             3. 用户有权勒令管理员对侵犯其隐私或著作权的内容采取屏蔽显示措施（链上数据无法删除）；<br/>
             4. DID身份言论自由，但自由的前提是承认他人自由，被尊重的同时要也尊重他人；<br/>
             5. 禁止黄赌毒，政治，极端、激进、攻击或侮辱性的言论。
+          </Typography>
+          <Typography component="h2" variant="h5" className="page-header" color="primary" style={{ fontSize: '16px' }}>
+            经济模型
+          </Typography>
+          <Typography component="p" variant="h6" className="page-description" color="textSecondary" style={{ fontSize: '15px' }}>
+            1. 快讯<br/>
+            (1) 发布者付费，浏览者免费挖矿;<br/>
+            (2) 按照发布的内容长度进行计费，原始单字定价0.0001 ABT;<br/>
+            (3) 内容可以设置权重，原始单字定价*权重倍数 = 当前单字价格；权重越高，上热门的速度也成倍增长，同时可设置的挖矿份额越多；通俗理解就是权重越高，快讯内容传播速度越快和人群越广；<br/>
+            (4) 发布者付费的50%给平台，50%给DApp参与者进行点赞/评论/分享挖矿；参与挖矿的ABT，60%给评论，20%给点赞，20%给分享；<br/>
+            (5) 浏览者可以对自己喜欢的快讯进行打赏，打赏ABT 100%给快讯发布者。<br/>
+            <br/>
+            2. 文章<br/>
+            (1) 发布者免费，浏览者付费；<br/>
+            (2) 在未付费时，可以预览20%的文章内容；<br/>
+            (3) 浏览者付费的50%给平台，50%给文章发布者。<br/>
           </Typography>
           <Typography component="h2" variant="h5" className="page-header" color="primary" style={{ fontSize: '16px' }}>
             联系方式
