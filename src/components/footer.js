@@ -21,6 +21,10 @@ export default function Footer() {
           link: 'https://abtwallet.io/',
         },
         {
+          title: '换币',
+          link: 'https://swap.arcblockio.cn/',
+        },
+        {
           title: '文档',
           link: 'https://docs.arcblockio.cn/zh/docs/intro/quickstart',
         },
@@ -37,12 +41,8 @@ export default function Footer() {
           link: 'https://github.com/ArcBlock/weekly-digest',
         },
         {
-          title: 'Github',
+          title: '代码',
           link: 'https://github.com/ArcBlock',
-        },
-        {
-          title: 'Github-2',
-          link: 'https://github.com/wangshijun',
         },
       ],
     },
@@ -83,15 +83,15 @@ export default function Footer() {
           link: 'https://ios.lmxoh.cn/download/5dde26a05f119.html',
         },
         {
-          title: '3456io区块导航',
+          title: '3456区块导航',
           link: 'http://3456.io/',
         },
         {
-          title: 'ABT共识社区',
+          title: '共识社区',
           link: 'https://mp.weixin.qq.com/s/j173J-e_MtnquX7sZPDf7w',
         },
         { 
-          title: 'Github',  
+          title: '代码',  
           link: 'https://github.com/helloabt',
         },
       ],
@@ -100,8 +100,8 @@ export default function Footer() {
       title: '广告',
       items: [
         {
-          title: '大地云仓',
-          link: 'http://wap.bb.dadiyuncang.com/pages/users/register?recommend=11826',
+          title: '招租中',
+          link: '/',
         },
       ],
     },

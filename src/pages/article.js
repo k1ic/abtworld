@@ -645,7 +645,7 @@ class App extends Component {
     const para = JSON.stringify(para_obj);
     
     return (
-      <Layout title="哈希文章">
+      <Layout title={news_item.news_title}>
         <Main>
           <link
             rel="stylesheet"
