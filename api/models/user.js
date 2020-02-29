@@ -7,6 +7,8 @@ const UserSchema = new mongoose.Schema({
   avatar_small: { type: String, default: '' },
   email: { type: String, default: '' },
   mobile: { type: String, default: '' },
+  perm_publish: { type: Boolean, default: true },
+  perm_comment: { type: Boolean, default: true },
   createdAt: { type: Date },
   updatedAt: { type: Date },
 });

@@ -283,7 +283,7 @@ const renderPaytipList = (x, token) => (
     <span style={{ fontSize: '12px', color: '#888888' }}> - {x.time}</span>
     <br/>
     {(x.comment && x.comment.length>0) && (
-      <span style={{ fontSize: '14px', color: '#0', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'normal' }}>{x.comment}，</span>
+      <span style={{ fontSize: '14px', color: '#0', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'normal' }}>{x.comment} - </span>
     )}
     <span style={{ fontSize: '14px', color: '#0', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'normal' }}>打赏 </span>
     <span style={{ fontSize: '14px', color: '#FF6600' }}>{x.mbalance} {token.symbol}</span>
@@ -2046,13 +2046,15 @@ class App extends Component {
     
     /*send permission*/
     var send_permission = false;
-    switch(news_type){
-      case 'hot':
-        send_permission = false;
-        break;
-      default:
-        send_permission = true;
-        break;
+    if(user && user.perm_publish === true){
+      switch(news_type){
+        case 'hot':
+          send_permission = false;
+          break;
+        default:
+          send_permission = true;
+          break;
+      }
     }
     
     const newsImageUploadprops = {
@@ -2559,7 +2561,7 @@ class App extends Component {
              onOk={this.handleCommentInputOk}
              okText='发送'
              onCancel={this.handleCommentInputCancel}
-             okButtonProps={{ disabled: (!comment_to_send || comment_to_send.length < 3) }}
+             okButtonProps={{ disabled: (!comment_to_send || comment_to_send.length < 3 || (user && user.perm_comment === false)) }}
              destroyOnClose={true}
              wrapClassName={'web'}
             >
