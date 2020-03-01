@@ -38,6 +38,8 @@ const { getUserDidFragment } = require('../libs/user');
 const isProduction = process.env.NODE_ENV === 'production';
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
 
+const pay_balance_unit_min = 0.0001;
+
 const data_chain_name_default = 'zinc';
 
 async function NewsflashAdd(fields){
@@ -439,7 +441,12 @@ async function NewsflashItemGiveLike(fields){
       
       /*increate like counter*/
       doc.like_counter += 1;
-      doc.hot_index += (1*doc.news_weights);
+      //doc.hot_index += (1*doc.news_weights);
+      if(doc.total_payed_balance > 0){
+        doc.hot_index += (1*Math.round(doc.total_payed_balance/pay_balance_unit_min));
+      }else{
+        doc.hot_index += (1*doc.news_weights);
+      }
       
       /*like miner*/
       var miner_value = 0;
@@ -503,7 +510,12 @@ async function NewsflashItemForward(fields){
       
       /*increate forward counter*/
       doc.forward_counter += 1;
-      doc.hot_index += (1*doc.news_weights);
+      //doc.hot_index += (1*doc.news_weights);
+      if(doc.total_payed_balance > 0){
+        doc.hot_index += (1*Math.round(doc.total_payed_balance/pay_balance_unit_min));
+      }else{
+        doc.hot_index += (1*doc.news_weights);
+      }
       
       /*forward miner*/
       var miner_value = 0;
@@ -543,7 +555,12 @@ async function NewsflashItemForward(fields){
     }else{
       /*increate forward counter*/
       doc.forward_counter += 1;
-      doc.hot_index += (1*doc.news_weights);
+      //doc.hot_index += (1*doc.news_weights);
+      if(doc.total_payed_balance > 0){
+        doc.hot_index += (1*Math.round(doc.total_payed_balance/pay_balance_unit_min));
+      }else{
+        doc.hot_index += (1*doc.news_weights);
+      }
       doc.updatedAt = Date();
       await doc.save();
       
@@ -616,7 +633,12 @@ async function NewsflashItemAddComment(fields){
     /*update doc*/
     //doc.minner_state = 'idle';
     doc.comment_counter += 1;
-    doc.hot_index += (3*doc.news_weights);
+    //doc.hot_index += (1*doc.news_weights);
+    if(doc.total_payed_balance > 0){
+      doc.hot_index += (1*Math.round(doc.total_payed_balance/pay_balance_unit_min));
+    }else{
+      doc.hot_index += (1*doc.news_weights);
+    }
     //doc.comment_list.push(comment_list_item); /*Add to tail*/
     doc.comment_list.unshift(comment_list_item); /*Add to head*/
     doc.markModified('comment_list');

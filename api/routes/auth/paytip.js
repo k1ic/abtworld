@@ -20,6 +20,8 @@ const { utcToLocalTime } = require('../../libs/time');
 const appWallet = fromSecretKey(process.env.APP_SK, type);
 const newsflashAppWallet = fromSecretKey(process.env.APP_NEWSFLASH_SK, type);
 
+const pay_balance_unit_min = 0.0001;
+
 async function paytipHook(hash, forgeState, userDid) {
   try {
     console.log('paytipHook');
@@ -40,14 +42,15 @@ async function paytipHook(hash, forgeState, userDid) {
       console.log('Hook tx_memo.module=', tx_memo.module);
       //console.log('Hook tx_local_time=', tx_local_time);
       
-      if(tx_memo.module == 'newsflash'){
+      if(tx_memo.module == 'newsflash' || tx_memo.module == 'article'){
         if(typeof(tx_memo.para.asset_did) != "undefined" && tx_memo.para.asset_did.length > 0){
           var newsflash_doc = await getNewsByAssetDid(tx_memo.para.asset_did);
           if(newsflash_doc){
             /*Update newsflash doc*/
             console.log('newsflash update paytip doc');
             newsflash_doc.paytip_counter += 1;
-            newsflash_doc.hot_index += (5*newsflash_doc.news_weights);
+            //newsflash_doc.hot_index += (10*newsflash_doc.news_weights);
+            newsflash_doc.hot_index += (1*Math.round(tx_value/pay_balance_unit_min));
             newsflash_doc.total_paytip_balance += tx_value;
             var paytip_list_item = {
               uname: tx_memo.para.payer_uname,
@@ -89,6 +92,7 @@ module.exports = {
       /*Init tx_memo*/
       /*tx memo example
        *{module: 'newsflash', para: {action: 'pay_tip', asset_did:'xxx', payer_uname:'', comment: ''}}
+       *{module: 'article', para: {action: 'pay_tip', asset_did:'xxx', payer_uname:'', comment: ''}}
        */
       tx_memo['module'] = dapp;
       tx_memo['para'] = JSON.parse(para);

@@ -107,23 +107,23 @@ NewsflashSchema.query.byNewsType = function(strType){
 }
 
 NewsflashSchema.query.hotByHotIndex = function(){
-  var hot_deadline = getDateByDeltaDay(-10); /* show latest 10 days hot news */
+  var hot_deadline = getDateByDeltaDay(-5); /* show latest 5 days hot news */
   var docs =  this.find({$and: [
     {state: "chained"},
     {hot_index: {$gt: 0}},
-    {createdAt: {$gte: hot_deadline}}
+    {updatedAt: {$gte: hot_deadline}}
   ]}).sort({"hot_index":-1, "updatedAt":-1});
   
   return docs;
 }
 
 NewsflashSchema.query.hotByHotIndexAndAuthorDid = function(strAutherDid){
-  var hot_deadline = getDateByDeltaDay(-10); /* show latest 10 days hot news */
+  var hot_deadline = getDateByDeltaDay(-5); /* show latest 5 days hot news */
   var docs =  this.find({$and: [
     {state: "chained"},
     {hot_index: {$gt: 0}},
     {author_did: strAutherDid},
-    {createdAt: {$gte: hot_deadline}}
+    {updatedAt: {$gte: hot_deadline}}
   ]}).sort({"hot_index":-1, "updatedAt":-1});
   
   return docs;

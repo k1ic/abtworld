@@ -15,6 +15,7 @@ const { forgeTxValueSecureConvert, waitAndGetTxHash } = require('../../libs/tran
 
 //const appWallet = fromJSON(wallet);
 //const newsflashAppWallet = fromJSON(newsflashWallet);
+const pay_balance_unit_min = 0.0001;
 
 const appWallet = fromSecretKey(process.env.APP_SK, type);
 const newsflashAppWallet = fromSecretKey(process.env.APP_NEWSFLASH_SK, type);
@@ -133,8 +134,9 @@ async function paymentHook(hash, forgeState, userDid) {
           asset_doc.article_payed_counter += 1;
           asset_doc.article_payed_balance += tx_value;
           
-          // one pay counter value 10 hot index
-          asset_doc.hot_index += 10;
+          // update hot index
+          //asset_doc.hot_index += 1;
+          asset_doc.hot_index += (1*Math.round(tx_value/pay_balance_unit_min));
           asset_doc.star_level += 0.5;
   
           const new_payer_info = {

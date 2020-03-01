@@ -123,7 +123,7 @@ class App extends Component {
             2. 文章<br/>
             (1) 发布者免费，浏览者付费；<br/>
             (2) 在未付费时，可以预览20%的文章内容；<br/>
-            (3) 浏览者付费的50%给平台，50%给文章发布者。<br/>
+            (3) 浏览者付费的60%给作者，40%给平台。<br/>
           </Typography>
           <Typography component="h2" variant="h5" className="page-header" color="primary" style={{ fontSize: '16px' }}>
             联系方式
