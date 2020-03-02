@@ -135,8 +135,8 @@ async function paymentHook(hash, forgeState, userDid) {
           asset_doc.article_payed_balance += tx_value;
           
           // update hot index
-          //asset_doc.hot_index += 1;
-          asset_doc.hot_index += (1*Math.round(tx_value/pay_balance_unit_min));
+          //asset_doc.hot_index += 50;
+          asset_doc.hot_index += (50*Math.round(tx_value/pay_balance_unit_min));
           asset_doc.star_level += 0.5;
   
           const new_payer_info = {
