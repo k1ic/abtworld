@@ -843,6 +843,7 @@ class App extends Component {
       news_list[0]['share_min_rem_number'] = 0;
     }
     news_list[0]['author_did_abbr'] = getUserDidFragment(news_item.author_did);
+    news_list[0]['author_href'] = env.chainHost.replace('/api', '/node/explorer/accounts/')+news_item.author_did;
     
     var content_preview_length = Math.round(news_item.news_content.length * 0.20);
     
@@ -916,7 +917,7 @@ class App extends Component {
                         <span style={{ fontSize: '10px', color: '#FF0000', marginRight: 0 }}> {item.news_article_worth} {token.symbol}</span>
                         <br/>
                         <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
-                        <span style={{ fontSize: '15px', color: '#000000' }}> {item.author_did_abbr}</span> <br/>
+                        <a href={item.author_href} target="_blank" style={{ fontSize: '15px', color: '#000000' }}> {item.author_did_abbr}</a> <br/>
                         <a href={item.hash_href} target="_blank" style={{ fontSize: '11px', color: '#0000FF' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.news_time}</a> <br/>        
                       </div>
                       <div id={item.asset_did}>

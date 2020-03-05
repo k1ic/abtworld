@@ -49,8 +49,13 @@ async function paytipHook(hash, forgeState, userDid) {
             /*Update newsflash doc*/
             console.log('newsflash update paytip doc');
             newsflash_doc.paytip_counter += 1;
-            //newsflash_doc.hot_index += (10*newsflash_doc.news_weights);
-            newsflash_doc.hot_index += (1*Math.round(tx_value/pay_balance_unit_min));
+            if(tx_memo.module == 'article'){
+              //newsflash_doc.hot_index += (10*newsflash_doc.news_weights);
+              newsflash_doc.hot_index += (10*Math.round(tx_value/pay_balance_unit_min));
+            }else{
+              //newsflash_doc.hot_index += (10*newsflash_doc.news_weights);
+              newsflash_doc.hot_index += (1*Math.round(tx_value/pay_balance_unit_min));
+            }
             newsflash_doc.total_paytip_balance += tx_value;
             var paytip_list_item = {
               uname: tx_memo.para.payer_uname,
