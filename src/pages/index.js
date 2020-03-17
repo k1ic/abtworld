@@ -271,7 +271,7 @@ const renderCommentList = (x, token) => (
     <a href={env.chainHost.replace('/api', '/node/explorer/accounts/')+x.udid} target="_blank" style={{ fontSize: '14px', fontWeight: 500, color: '#676D91' }}>{x.uname}</a>
     <span style={{ fontSize: '12px', fontWeight: 500, color: '#888888' }}> - {x.time}</span>
     <br/>
-    <span style={{ fontSize: '14px', color: '#0', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'normal' }}>{x.comment}</span>
+    <span style={{ fontSize: '14px', color: '#0', whiteSpace: 'pre-wrap', wordWrap: 'break-word', wordBreak: 'normal' }}><AutoLinkText text={x.comment} linkProps={{ target: '_blank' }}/></span>
     {(x.mbalance>0)?<span style={{ fontSize: '10px', color: '#FF6600' }}> +{x.mbalance} {token.symbol}</span>:''}
     <br/>
   </span>
