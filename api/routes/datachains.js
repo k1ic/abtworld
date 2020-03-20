@@ -33,9 +33,13 @@ async function forgeChainConnect(connId){
       chainId: doc.chain_id,
       name: doc.chain_id
     });
-    console.log(`connected to ${doc.name} chain host:${doc.chain_host} id: ${doc.chain_id}`);
+    if(!isProduction){
+      console.log(`connected to ${doc.name} chain host:${doc.chain_host} id: ${doc.chain_id}`);
+    }
   }else{
-    console.log('forgeChainConnect invalid connId', connId);
+    if(!isProduction){
+      console.log('forgeChainConnect invalid connId', connId);
+    }
   }
 }
 
@@ -47,7 +51,7 @@ async function doRawQuery(params){
   }
   const queryCmd = params.queryCmd;
   
-  var chainName = 'titanium';
+  var chainName = env.assetChainName;
   var chainHost = env.assetChainHost;
   var connId = env.assetChainId;
   if(typeof(params.chainName) != "undefined"){
@@ -554,17 +558,21 @@ async function getDatachainList(){
       break;
     }
   }
-  console.log('getDatachainList wait_counter=' + wait_counter);
+  
+  if(!isProduction){
+    console.log('getDatachainList wait_counter=' + wait_counter);
+  }
   
   return found_docs;
 }
 
 async function apiGetChainNodeInfo(params){
-  var chainName = 'titanium';
-  var pagingCursor = '';
-  var pagingSize = 10;
+  var chainName = env.assetChainName;
   var chainHost = env.assetChainHost;
   var connId = env.assetChainId;
+  var pagingCursor = '';
+  var pagingSize = 10;
+
   if(typeof(params.chainName) != "undefined"){
     chainName = params.chainName;
   }
@@ -629,11 +637,11 @@ async function apiGetChainNodeInfo(params){
 }
 
 async function apiListChainAssets(params){
-  var chainName = 'titanium';
-  var pagingCursor = '';
-  var pagingSize = 10;
+  var chainName = env.assetChainName;
   var chainHost = env.assetChainHost;
   var connId = env.assetChainId;
+  var pagingCursor = '';
+  var pagingSize = 10;
   if(typeof(params.chainName) != "undefined"){
     chainName = params.chainName;
   }
@@ -677,11 +685,11 @@ async function apiListChainAssets(params){
 
 
 async function apiListChainTopAccounts(params){
-  var chainName = 'titanium';
-  var pagingCursor = '';
-  var pagingSize = 10;
+  var chainName = env.assetChainName;
   var chainHost = env.assetChainHost;
   var connId = env.assetChainId;
+  var pagingCursor = '';
+  var pagingSize = 10;
   if(typeof(params.chainName) != "undefined"){
     chainName = params.chainName;
   }
@@ -729,7 +737,9 @@ module.exports = {
       try {
         var params = req.query;
         if(params){
-          console.log('api.datachainsget params=', params);
+          if(!isProduction){
+            console.log('api.datachainsget params=', params);
+          }
           const cmd = params.cmd;
           if (typeof(cmd) != "undefined") {
             switch(cmd){
@@ -813,7 +823,10 @@ module.exports = {
             var resValue = 'OK';
             
             const cmd = fields.cmd[0];
-            console.log('api.datachainsset cmd=', cmd);
+            
+            if(!isProduction){
+              console.log('api.datachainsset cmd=', cmd);
+            }
             
             /*cmd list
              *1. add: add chain node
@@ -827,7 +840,9 @@ module.exports = {
             }
             
             if(result){
-              console.log('api.datachainsset ok');
+              if(!isProduction){
+                console.log('api.datachainsset ok');
+              }
               
               res.statusCode = 200;
               res.write(resValue);

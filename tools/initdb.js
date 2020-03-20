@@ -1,13 +1,50 @@
 ﻿require('dotenv').config();
 const mongoose = require('mongoose');
 const env = require('../api/libs/env');
-const { Datachain, Picture, Newsflash } = require('../api/models');
+const { Datachain, Picture, Newsflash, EcoPartner } = require('../api/models');
 const AssetPicList = require('../src/libs/asset_pic');
 const dataChainList = require('../src/libs/datachains');
+const ecoPartnerList = require('../src/libs/ecopartners');
 const { forgeTokenStateGet } = require('../api/routes/session');
 const { getPictureListFromDb } = require('../api/routes/pictures');
 
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
+
+async function ecoPartnerDbInit(){
+  try {
+    /*Import const eco partner list to database*/
+    console.log('[Start]Import const eco partner list to database');
+    for(var i=0;i<ecoPartnerList.length;i++){
+      var doc = await EcoPartner.findOne({ did: ecoPartnerList[i].did });
+      if (doc) {
+        doc.did = ecoPartnerList[i].did;
+        doc.name = ecoPartnerList[i].name;
+        doc.phone = ecoPartnerList[i].phone;
+        doc.email = ecoPartnerList[i].email;
+        doc.cratio = ecoPartnerList[i].cratio;
+        doc.state = ecoPartnerList[i].state;
+        doc.updatedAt = Date();
+        await doc.save();
+        //console.log('update eco partner', doc);
+      }else{
+        var doc_new = new EcoPartner({
+          did: ecoPartnerList[i].did,
+          name: ecoPartnerList[i].name,
+          phone: ecoPartnerList[i].phone,
+          email: ecoPartnerList[i].email,
+          cratio: ecoPartnerList[i].cratio,
+          state: ecoPartnerList[i].state,
+          createdAt: Date(),
+        });
+        await doc_new.save();
+        //console.log('create eco partner', doc_new);
+      }
+    }
+    console.log('[End]Import const eco partner list to database');
+  } catch (err) {
+    console.log('ecoPartnerDbInit err=', err);
+  }
+}
 
 async function datachainDbInit(){
   try {
@@ -128,35 +165,35 @@ async function newsflashDbInit(){
     }
     console.log('newsflashDbInit wait_counter=' + wait_counter);
     
-    if(found_docs && found_docs.length>0){
-      for (var doc of found_docs) {
-        if(doc.hot_index == 0){
-          doc.hot_index = doc.like_counter*(1*doc.news_weights) + doc.forward_counter*(1*doc.news_weights) + doc.comment_counter*(3*doc.news_weights);
-        }
-        doc.updatedAt = Date();
-        await doc.save();
-      }
-    }
+    //if(found_docs && found_docs.length>0){
+    //  for (var doc of found_docs) {
+    //    if(doc.hot_index == 0){
+    //      doc.hot_index = doc.like_counter*(1*doc.news_weights) + doc.forward_counter*(1*doc.news_weights) + doc.comment_counter*(3*doc.news_weights);
+    //    }
+    //    doc.updatedAt = Date();
+    //    await doc.save();
+    //  }
+    //}
     
     /*sync hash_href to data_chain_nodes*/
-    if(found_docs && found_docs.length>0){
-      for (var doc of found_docs) {
-        if(doc.data_chain_nodes.length == 0 && doc.hash_href.length > 0){
-          for (var href of doc.hash_href){
-            if(href && href.length > 0){
-              var chain_host = href.replace(/\/node\/explorer\/txs\/.*/, "/api");
-              //console.log('newsflashDbInit chain_host=', chain_host);
-              var datachain_doc = await Datachain.findOne({ chain_host: chain_host });
-              if(datachain_doc){
-                 doc.data_chain_nodes.push({name: datachain_doc.name, chain_host: datachain_doc.chain_host, chain_id: datachain_doc.chain_id});
-                 doc.markModified('data_chain_nodes');
-                 await doc.save();
-              }
-            }
-          }
-        }
-      }
-    }
+    //if(found_docs && found_docs.length>0){
+    //  for (var doc of found_docs) {
+    //    if(doc.data_chain_nodes.length == 0 && doc.hash_href.length > 0){
+    //      for (var href of doc.hash_href){
+    //        if(href && href.length > 0){
+    //          var chain_host = href.replace(/\/node\/explorer\/txs\/.*/, "/api");
+    //          //console.log('newsflashDbInit chain_host=', chain_host);
+    //          var datachain_doc = await Datachain.findOne({ chain_host: chain_host });
+    //          if(datachain_doc){
+    //             doc.data_chain_nodes.push({name: datachain_doc.name, chain_host: datachain_doc.chain_host, chain_id: datachain_doc.chain_id});
+    //             doc.markModified('data_chain_nodes');
+    //             await doc.save();
+    //          }
+    //        }
+    //      }
+    //    }
+    //  }
+    //}
     
   } catch (err) {
     console.log('newsflashDbInit err=', err);
@@ -199,6 +236,9 @@ async function newsflashDbInit(){
         await sleep(1000);
       }
     }
+    
+    /*eco partner db init*/
+    await ecoPartnerDbInit();
     
     /*chaindata db init*/
     await datachainDbInit();

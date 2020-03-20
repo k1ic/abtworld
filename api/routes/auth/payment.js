@@ -9,9 +9,11 @@ const { wallet, newsflashWallet, type } = require('../../libs/auth');
 const env = require('../../libs/env');
 //const AssetPicList = require('../../../src/libs/asset_pic');
 const sleep = timeout => new Promise(resolve => setTimeout(resolve, timeout));
-const { Picture, Newsflash } = require('../../models');
+const { Picture, Newsflash, EcoPartner } = require('../../models');
 const { cleanUserDeadNews } = require('../newsflash');
 const { forgeTxValueSecureConvert, waitAndGetTxHash } = require('../../libs/transactions');
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 //const appWallet = fromJSON(wallet);
 //const newsflashAppWallet = fromJSON(newsflashWallet);
@@ -22,7 +24,10 @@ const newsflashAppWallet = fromSecretKey(process.env.APP_NEWSFLASH_SK, type);
 
 async function paymentHook(hash, forgeState, userDid) {
   try {
-    console.log('paymentHook');
+    
+    if(!isProduction){
+      console.log('paymentHook');
+    }
     
     const txRes = await waitAndGetTxHash(hash, env.chainId);
     
@@ -33,11 +38,18 @@ async function paymentHook(hash, forgeState, userDid) {
       const tx_to = txRes.getTx.info.tx.itxJson.to;
       var transferHash = null;
       var res = null;
-            
-      console.log('Hook tx from:', tx_from, 'to: ', tx_to);
-      console.log('Hook tx_value=', tx_value, 'tx_memo=', tx_memo);
+      
+      if(!isProduction){
+        console.log('Hook tx from:', tx_from, 'to: ', tx_to);
+        console.log('Hook tx_value=', tx_value, 'tx_memo=', tx_memo);
+      }
+      
       if(tx_memo.module == 'picture'){
-        console.log('picture tx hook');
+        
+        if(!isProduction){
+          console.log('picture tx hook');
+        }
+        
         var asset_doc = null;
         asset_doc = await Picture.findOne({ asset_did: tx_memo.para.asset_did });
         if(asset_doc) {          
@@ -66,7 +78,10 @@ async function paymentHook(hash, forgeState, userDid) {
           asset_doc.markModified('payer_list');
           asset_doc.updatedAt = Date();
           await asset_doc.save();
-          console.log('Hook asset_doc update to', asset_doc);
+          
+          if(!isProduction){
+            console.log('Hook asset_doc update to', asset_doc);
+          }
   
           //verify owner accnout
           res = await ForgeSDK.doRawQuery(`{
@@ -85,7 +100,10 @@ async function paymentHook(hash, forgeState, userDid) {
             var payback_to_app_owner_value = tx_value - payback_to_asset_owner_value;
             payback_to_asset_owner_value = payback_to_asset_owner_value.toFixed(6);
             payback_to_app_owner_value = payback_to_app_owner_value.toFixed(6);
-            console.log('payback to asset owner:', String(payback_to_asset_owner_value), 'app owner:', String(payback_to_app_owner_value));
+            
+            if(!isProduction){
+              console.log('payback to asset owner:', String(payback_to_asset_owner_value), 'app owner:', String(payback_to_app_owner_value));
+            }
 
             //console.log('APP_SK', process.env.APP_SK);
             //console.log('APP wallet type', type);
@@ -104,7 +122,10 @@ async function paymentHook(hash, forgeState, userDid) {
               },
               wallet: appWallet,
             });
-            console.log('payback to asset owner transferred', transferHash);
+            
+            if(!isProduction){
+              console.log('payback to asset owner transferred', transferHash);
+            }
               
             //remains to app owner
             transferHash = await ForgeSDK.sendTransferTx({
@@ -120,13 +141,22 @@ async function paymentHook(hash, forgeState, userDid) {
               },
               wallet: appWallet,
             });
-            console.log('payback to app owner transferred', transferHash);
+            
+            if(!isProduction){
+              console.log('payback to app owner transferred', transferHash);
+            }
           }else{
-            console.log('payback asset owner account not exist', asset_doc.owner_did);
+            if(!isProduction){
+              console.log('payback asset owner account not exist', asset_doc.owner_did);
+            }
           }
         }
       }else if(tx_memo.module == 'article'){
-        console.log('article tx hook');
+        
+        if(!isProduction){
+          console.log('article tx hook');
+        }
+        
         var asset_doc = null;
         asset_doc = await Newsflash.findOne({ asset_did: tx_memo.para.asset_did });
         if(asset_doc) {          
@@ -156,7 +186,10 @@ async function paymentHook(hash, forgeState, userDid) {
           asset_doc.markModified('article_payer_list');
           asset_doc.updatedAt = Date();
           await asset_doc.save();
-          console.log('Hook asset_doc update to', asset_doc);
+          
+          if(!isProduction){
+            //console.log('Hook asset_doc update to', asset_doc);
+          }
   
           //verify owner/author accnout
           res = await ForgeSDK.doRawQuery(`{
@@ -171,13 +204,22 @@ async function paymentHook(hash, forgeState, userDid) {
             }
           }`); 
           if(res && res.getAccountState && res.getAccountState.state){
-            var payback_to_asset_owner_value = (asset_doc.article_payback_rate < 1) ? tx_value*asset_doc.article_payback_rate : tx_value*0.1;
-            var payback_to_app_owner_value = tx_value - payback_to_asset_owner_value;
-            payback_to_asset_owner_value = payback_to_asset_owner_value.toFixed(6);
-            payback_to_app_owner_value = payback_to_app_owner_value.toFixed(6);
-            console.log('payback to asset owner:', String(payback_to_asset_owner_value), 'app owner:', String(payback_to_app_owner_value));
+            /*pay back ratio*/
+            /*1. 60% to asset owner
+             *2. 20% to eco partner owner
+             *3. 20% to app owner 
+             */
+            const payback_to_asset_owner_value = forgeTxValueSecureConvert(tx_value*0.6);
+            const payback_to_eco_partner_value = forgeTxValueSecureConvert(tx_value*0.2);
+            const payback_to_app_owner_value = forgeTxValueSecureConvert(tx_value - payback_to_asset_owner_value - payback_to_eco_partner_value);
+            
+            if(!isProduction){
+              console.log('payback to asset owner=', payback_to_asset_owner_value, 'eco partner=', payback_to_eco_partner_value, 'app owner=', payback_to_app_owner_value);
+            }
 
-            //payback to asset owner
+            /*****************************************************************************
+             ****************************[start]pay to asset owner************************
+             *****************************************************************************/
             transferHash = await ForgeSDK.sendTransferTx({
               tx: {
                 itx: {
@@ -191,9 +233,17 @@ async function paymentHook(hash, forgeState, userDid) {
               },
               wallet: newsflashAppWallet,
             });
-            console.log('payback to asset owner transferred', transferHash);
-              
-            //remains to app owner
+            
+            if(!isProduction){
+              console.log('payback to asset owner transferred', transferHash);
+            }
+            /*****************************************************************************
+             ****************************[end]pay to asset owner**************************
+             *****************************************************************************/
+           
+            /*****************************************************************************
+             ****************************[start]pay to app owner************************
+             *****************************************************************************/
             transferHash = await ForgeSDK.sendTransferTx({
               tx: {
                 itx: {
@@ -207,18 +257,100 @@ async function paymentHook(hash, forgeState, userDid) {
               },
               wallet: newsflashAppWallet,
             });
-            console.log('payback to app owner transferred', transferHash);
+            
+            if(!isProduction){
+              console.log('payback to app owner transferred', transferHash);
+            }
+            /*****************************************************************************
+             ****************************[end]pay to app owner****************************
+             *****************************************************************************/
+             
+            /*****************************************************************************
+             ****************************[start]pay to eco partner************************
+             *****************************************************************************/
+            var new_docs = [];
+            var found = 0;
+            EcoPartner.find().byActivePartner().exec(function(err, docs){
+              if(docs && docs.length>0){
+                new_docs = docs;
+              }else{
+              }
+              found = 1;
+            });
+  
+            /*wait found result*/
+            var wait_counter = 0;
+            while(!found){
+              await sleep(1);
+              wait_counter++;
+              if(wait_counter > 15000){
+                break;
+              }
+            }
+            
+            var eco_partner_ctatio = 0;
+            if(new_docs && new_docs.length>0){
+              new_docs.map(function( e ) {
+                eco_partner_ctatio += e.cratio;
+              });
+            }
+            if(eco_partner_ctatio > 0 && eco_partner_ctatio <= 1){
+              for(var i=0;i<new_docs.length;i++){
+                if(new_docs[i].cratio > 0){
+                  try {
+                    var tmp_pay_value = forgeTxValueSecureConvert(payback_to_eco_partner_value*new_docs[i].cratio);
+                    if(tmp_pay_value > 0){
+                      transferHash = await ForgeSDK.sendTransferTx({
+                        tx: {
+                          itx: {
+                            to: new_docs[i].did,
+                            value: fromTokenToUnit(tmp_pay_value, forgeState.token.decimal),
+                          },
+                        },
+                        wallet: newsflashAppWallet,
+                      });
+                    
+                      if(!isProduction){
+                        console.log('pay to eco partner did=', new_docs[i].did, 'value=', tmp_pay_value);
+                      }
+                    }else{
+                      if(!isProduction){
+                        console.log('Invalid pay value for eco partner did=', new_docs[i].did);
+                      }
+                    }
+                  } catch (err) {
+                    transferHash = null;
+                    if(!isProduction){
+                      console.error('pay to eco partner did=', new_docs[i].did, 'err', err);
+                    }
+                  }
+                }
+              }
+            }else{
+              if(!isProduction){
+                console.error('Eco partner invalid cratio=', eco_partner_ctatio);
+              }
+            }
+            /*****************************************************************************
+             ****************************[end]pay to eco partner**************************
+             *****************************************************************************/
           }else{
-            console.log('payback asset owner account not exist', asset_doc.author_did);
+            if(!isProduction){
+              console.log('payback asset owner account not exist', asset_doc.author_did);
+            }
           }
         }
       }else{
         /*unknown dapp module*/
-        console.log('unknown tx hook, module=', tx_memo.module);
+        if(!isProduction){
+          console.log('unknown tx hook, module=', tx_memo.module);
+        }
       }
     }
   } catch (err) {
-    console.error('paymentHook error', err);
+    if(!isProduction){
+      console.error('paymentHook error', err);
+    }
   } 
 }
 
@@ -233,9 +365,11 @@ module.exports = {
       var tx_memo = {};
       var pay_to_addr = null;
       
-      console.log('toPay=', toPay);
-      console.log('dapp=', dapp);
-      console.log('para=', para);
+      if(!isProduction){
+        console.log('toPay=', toPay);
+        console.log('dapp=', dapp);
+        console.log('para=', para);
+      }
       
       if (typeof(dapp) != "undefined" && dapp && dapp.length > 0){
         switch(dapp){
@@ -257,8 +391,11 @@ module.exports = {
        */
       tx_memo['module'] = dapp;
       tx_memo['para'] = JSON.parse(para);
-      //console.log('tx_memo=', JSON.stringify(tx_memo));
-      console.log('tx_memo=', tx_memo);
+      
+      if(!isProduction){
+        //console.log('tx_memo=', JSON.stringify(tx_memo));
+        console.log('tx_memo=', tx_memo);
+      }
       
       const description = {
         en: `Please pay ${toPay} ${state.token.symbol}`,
@@ -282,7 +419,9 @@ module.exports = {
     },
   },
   onAuth: async ({ claims, userDid, extraParams: { locale } }) => {
-    console.log('pay.onAuth', { claims, userDid });
+    if(!isProduction){
+      console.log('pay.onAuth', { claims, userDid });
+    }
     try {
       const claim = claims.find(x => x.type === 'signature');
       const tx = ForgeSDK.decodeTx(multibase.decode(claim.origin));
@@ -298,7 +437,9 @@ module.exports = {
         signature: claim.sig,
       });
 
-      console.log('pay.onAuth', hash);
+      if(!isProduction){
+        console.log('pay.onAuth', hash);
+      }
       
       /*payment hook for payback*/
       paymentHook(hash, state, userDid);

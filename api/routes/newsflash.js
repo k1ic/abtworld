@@ -64,7 +64,9 @@ async function NewsflashAdd(fields){
   var data_chain_id = env.assetChainId;
   if(typeof(fields.data_chain_name) != "undefined"){
     var doc = null;
-    console.log('NewsflashAdd data_chain_name=', fields.data_chain_name[0]);
+    if(!isProduction){
+      console.log('NewsflashAdd data_chain_name=', fields.data_chain_name[0]);
+    }
     
     if(fields.data_chain_name[0] === 'default'){
       doc = await Datachain.findOne({ name: data_chain_name_default });
@@ -97,12 +99,16 @@ async function NewsflashAdd(fields){
   var doc = await Newsflash.findOne({ content_did: fields.asset_did[0] });
   if(doc){
     if(doc.state != 'commit'){
-      console.log('NewsflashAdd asset_did=', fields.asset_did[0], 'already on chain');
+      if(!isProduction){
+        console.log('NewsflashAdd asset_did=', fields.asset_did[0], 'already on chain');
+      }
       
       /*ignore dup news*/
       return false;
     }else{
-      console.log('NewsflashAdd asset_did=', fields.asset_did[0], 'already in db');
+      if(!isProduction){
+        console.log('NewsflashAdd asset_did=', fields.asset_did[0], 'already in db');
+      }
       
       /*asset already in db, update it*/
       doc.data_chain_nodes[0] = {name: data_chain_name, chain_host: data_chain_host, chain_id: data_chain_id};
@@ -143,7 +149,9 @@ async function NewsflashAdd(fields){
       createdAt: Date(),
     });
     await new_doc.save();
-    console.log('NewsflashAdd saved to db');
+    if(!isProduction){
+      console.log('NewsflashAdd saved to db');
+    }
   }
   
   return true;;
@@ -172,7 +180,9 @@ async function NewsflashCreateAssetOnChain(fields){
   var data_chain_id = env.assetChainId;
   if(typeof(fields.data_chain_name) != "undefined"){
     var doc = null;
-    console.log('NewsflashCreateAssetOnChain data_chain_name=', fields.data_chain_name[0]);
+    if(!isProduction){
+      console.log('NewsflashCreateAssetOnChain data_chain_name=', fields.data_chain_name[0]);
+    }
     if(fields.data_chain_name[0] === 'default'){
       doc = await Datachain.findOne({ name: data_chain_name_default });
     }else{
@@ -199,12 +209,16 @@ async function NewsflashCreateAssetOnChain(fields){
   var news_doc = await Newsflash.findOne({ content_did: fields.asset_did[0] });
   if(news_doc){
     if(news_doc.state != 'commit'){
-      console.log('NewsflashCreateAssetOnChain asset_did=', fields.asset_did[0], 'already on chain');
+      if(!isProduction){
+        console.log('NewsflashCreateAssetOnChain asset_did=', fields.asset_did[0], 'already on chain');
+      }
       
       /*ignore dup news*/
       return false;
     }else{
-      console.log('NewsflashCreateAssetOnChain asset_did=', fields.asset_did[0], 'already in db');
+      if(!isProduction){
+        console.log('NewsflashCreateAssetOnChain asset_did=', fields.asset_did[0], 'already in db');
+      }
       
       /*asset already in db, update it*/
       news_doc.data_chain_nodes[0] = {name: data_chain_name, chain_host: data_chain_host, chain_id: data_chain_id};
@@ -240,7 +254,9 @@ async function NewsflashCreateAssetOnChain(fields){
       createdAt: Date(),
     });
     await news_doc.save();
-    console.log('NewsflashCreateAssetOnChain saved to db');
+    if(!isProduction){
+      console.log('NewsflashCreateAssetOnChain saved to db');
+    }
   }
   
   /*create asset on chain*/
@@ -249,15 +265,20 @@ async function NewsflashCreateAssetOnChain(fields){
   if(transferHash && transferHash.length > 0
     && txRes && txRes.getTx && txRes.getTx.code === 'OK' && txRes.getTx.info){
     const tx_local_time = utcToLocalTime(txRes.getTx.info.time);
-       
-    console.log('NewsflashCreateAssetOnChain create asset success, update doc');
+    
+    if(!isProduction){ 
+      console.log('NewsflashCreateAssetOnChain create asset success, update doc');
+    }
+    
     news_doc.news_hash = transferHash;
     news_doc.news_time = tx_local_time;
     news_doc.hash_href.push(news_doc.data_chain_nodes[0].chain_host.replace('/api', '/node/explorer/txs/')+transferHash);
     news_doc.state = 'chained';
     await news_doc.save();
   }else{
-    console.log('NewsflashCreateAssetOnChain create asset on chain failed, remove doc');
+    if(!isProduction){
+      console.log('NewsflashCreateAssetOnChain create asset on chain failed, remove doc');
+    }
     await news_doc.remove();
   }
   
@@ -359,14 +380,20 @@ const newsflashDocCommentMinableValueGet = (doc, udid, comment) => {
   
   /*min pool is empty*/
   if(doc.remain_comment_minner_balance == 0){
-     console.log('newsflashDocCommentMinableValueGet empty minner pool');
+     if(!isProduction){
+       console.log('newsflashDocCommentMinableValueGet empty minner pool');
+     }
      return 0;
   }
   
   /*The comment is too short*/
-  console.log('newsflashDocCommentMinableValueGet comment.length', comment.length);
+  if(!isProduction){
+    console.log('newsflashDocCommentMinableValueGet comment.length', comment.length);
+  }
   if(comment.length < 5){
-    console.log('newsflashDocCommentMinableValueGet comment is too short');
+    if(!isProduction){
+      console.log('newsflashDocCommentMinableValueGet comment is too short');
+    }
     return 0;
   }
   
@@ -376,7 +403,9 @@ const newsflashDocCommentMinableValueGet = (doc, udid, comment) => {
       return (x.udid === udid && x.mbalance > 0);
     });
     if(comment_list_item){
-      console.log('newsflashDocCommentMinableValueGet udid=', udid, 'already minned');
+      if(!isProduction){
+        console.log('newsflashDocCommentMinableValueGet udid=', udid, 'already minned');
+      }
       return 0;
     }
   }
@@ -388,7 +417,9 @@ const newsflashDocCommentMinableValueGet = (doc, udid, comment) => {
     minValue = forgeTxValueSecureConvert(doc.remain_comment_minner_balance);
   }
   
-  console.log('newsflashDocCommentMinableValueGet minValue=', minValue);
+  if(!isProduction){
+    console.log('newsflashDocCommentMinableValueGet minValue=', minValue);
+  }
   
   return minValue;
 }
@@ -411,7 +442,10 @@ async function payToMiner(udid, mbalance){
       },
       wallet: newsflashAppWallet,
     });
-    console.log('pay', mbalance, 'to minner', udid, transferHash);
+    
+    if(!isProduction){
+      console.log('pay', mbalance, 'to minner', udid, transferHash);
+    }
   } catch (err) {
     transferHash = null;
     console.error('pay to miner err', err);
@@ -468,7 +502,9 @@ async function NewsflashItemGiveLike(fields){
           miner_value = 0;
         }
       }else{
-        console.log('NewsflashItemGiveLike empty minner pool');
+        if(!isProduction){
+          console.log('NewsflashItemGiveLike empty minner pool');
+        }
       }
       
       /*Add new like item to like list*/
@@ -537,7 +573,9 @@ async function NewsflashItemForward(fields){
           miner_value = 0;
         }
       }else{
-        console.log('NewsflashItemForward empty minner pool');
+        if(!isProduction){
+          console.log('NewsflashItemForward empty minner pool');
+        }
       }
       
       /*Add new forward item to forward list*/
@@ -645,7 +683,9 @@ async function NewsflashItemAddComment(fields){
     doc.updatedAt = Date();
     await doc.save();
     
-    console.log('NewsflashItemAddComment comment add success');
+    if(!isProduction){
+      console.log('NewsflashItemAddComment comment add success');
+    }
   }
   
   return comment_list_item;
@@ -657,10 +697,14 @@ async function cleanUserDeadNews(strAuthorDid){
   
   Newsflash.find().byAuthorDidAndState(strAuthorDid, 'commit').exec(function(err, docs){
     if(docs && docs.length>0){
-      console.log('cleanUserDeadNews Found', docs.length, 'docs');
+      if(!isProduction){
+        console.log('cleanUserDeadNews Found', docs.length, 'docs');
+      }
       new_docs = docs;
     }else{
-      console.log('cleanUserDeadNews doc not found!');
+      if(!isProduction){
+        console.log('cleanUserDeadNews doc not found!');
+      }
     }
     found = 1;
   })
@@ -675,11 +719,15 @@ async function cleanUserDeadNews(strAuthorDid){
     }
   }
   
-  console.log('cleanUserDeadNews wait counter', wait_counter);
+  if(!isProduction){
+    console.log('cleanUserDeadNews wait counter', wait_counter);
+  }
   
   if(new_docs.length > 0){
     for(var i=0;i<new_docs.length;i++){
-      console.log('cleanUserDeadNews clean doc asset_did', new_docs[i].asset_did);
+      if(!isProduction){
+        console.log('cleanUserDeadNews clean doc asset_did', new_docs[i].asset_did);
+      }
       await new_docs[i].remove();
     }
   }
@@ -705,20 +753,28 @@ async function getNewsForShow(module_para){
     if(module_para.udid_to_show.length > 0){
       Newsflash.find().hotByHotIndexAndAuthorDid(module_para.udid_to_show).exec(function(err, docs){
         if(docs && docs.length>0){
-          console.log('Found', docs.length, module_para.news_type, module_para.udid_to_show, 'docs');
+          if(!isProduction){
+            console.log('Found', docs.length, module_para.news_type, module_para.udid_to_show, 'docs');
+          }
           new_docs = docs;
         }else{
-          console.log('getNewsForShow document not found!');
+          if(!isProduction){
+            console.log('getNewsForShow document not found!');
+          }
         }
         found = 1;
       })
     }else{
       Newsflash.find().hotByHotIndex().exec(function(err, docs){
         if(docs && docs.length>0){
-          console.log('Found', docs.length, module_para.news_type, 'docs');
+          if(!isProduction){
+            console.log('Found', docs.length, module_para.news_type, 'docs');
+          }
           new_docs = docs;
         }else{
-          console.log('getNewsForShow document not found!');
+          if(!isProduction){
+            console.log('getNewsForShow document not found!');
+          }
         }
         found = 1;
       })
@@ -727,20 +783,28 @@ async function getNewsForShow(module_para){
     if(module_para.udid_to_show.length > 0){
       Newsflash.find().byNewsTypeAuthorDidAndState(module_para.news_type, module_para.udid_to_show, 'chained').exec(function(err, docs){
         if(docs && docs.length>0){
-          console.log('Found', docs.length, module_para.news_type, module_para.udid_to_show, 'docs');
+          if(!isProduction){
+            console.log('Found', docs.length, module_para.news_type, module_para.udid_to_show, 'docs');
+          }
           new_docs = docs;
         }else{
-          console.log('getNewsForShow document not found!');
+          if(!isProduction){
+            console.log('getNewsForShow document not found!');
+          }
         }
         found = 1;
       })
     }else{
       Newsflash.find().byNewsTypeAndState(module_para.news_type, 'chained').exec(function(err, docs){
         if(docs && docs.length>0){
-          console.log('Found', docs.length, module_para.news_type, 'docs');
+          if(!isProduction){
+            console.log('Found', docs.length, module_para.news_type, 'docs');
+          }
           new_docs = docs;
         }else{
-          console.log('getNewsForShow document not found!');
+          if(!isProduction){
+            console.log('getNewsForShow document not found!');
+          }
         }
         found = 1;
       })
@@ -776,8 +840,10 @@ async function getNewsForShow(module_para){
     }
   }
   
-  console.log('getNewsForShow wait counter', wait_counter);
-  //console.log(new_docs);
+  if(!isProduction){
+    console.log('getNewsForShow wait counter', wait_counter);
+    //console.log(new_docs);
+  }
   
   if(typeof(module_para.get_mode) != "undefined" && module_para.get_mode === 'get_total_num'){
     if(new_docs && new_docs.length > 0){
@@ -789,7 +855,9 @@ async function getNewsForShow(module_para){
     /*slice the new doc*/
     if(new_docs && new_docs.length > 0){
       if(module_para.slice_end > module_para.slice_start){
-        console.log('getNewsForShow slice start=', module_para.slice_start, 'end=', module_para.slice_end, 'new_docs.length=', new_docs.length);
+        if(!isProduction){
+          console.log('getNewsForShow slice start=', module_para.slice_start, 'end=', module_para.slice_end, 'new_docs.length=', new_docs.length);
+        }
         if(module_para.slice_start < new_docs.length){
           new_docs = new_docs.slice(module_para.slice_start, module_para.slice_end);
         }else{
@@ -858,7 +926,9 @@ async function getNewsForShow(module_para){
       }));
     }
   
-    //console.log('getNewsForShow final new_docs.length=', new_docs.length);
+    if(!isProduction){
+      //console.log('getNewsForShow final new_docs.length=', new_docs.length);
+    }
   
     return new_docs;
   }
@@ -899,7 +969,9 @@ module.exports = {
       try {
         var params = req.query;
         if(params){
-          console.log('api.newsflashget params=', params);
+          if(!isProduction){
+            console.log('api.newsflashget params=', params);
+          }
           const cmd = req.query.cmd;
           switch(cmd){
             case 'getNewsList':
@@ -921,7 +993,9 @@ module.exports = {
               }
               const news = await getNewsForShow(module_para);
               if(news && news.length > 0){
-                console.log('api.newsflashget.ok - news.length', news.length);
+                if(!isProduction){
+                  console.log('api.newsflashget.ok - news.length', news.length);
+                }
                 res.json(news);
                 return;
               }
@@ -936,7 +1010,9 @@ module.exports = {
                };
               const num = await getNewsForShow(module_para);
               if(num){
-                console.log('api.newsflashget.ok - news number', num);
+                if(!isProduction){
+                  console.log('api.newsflashget.ok - news number', num);
+                }
                 res.json(num);
                 return;
               }
@@ -992,7 +1068,10 @@ module.exports = {
             var resValue = 'OK';
             
             const cmd = fields.cmd[0];
-            console.log('api.newsflashset cmd=', cmd);
+            
+            if(!isProduction){
+              console.log('api.newsflashset cmd=', cmd);
+            }
             
             /*cmd list
              *1. add:  add news to db
@@ -1031,7 +1110,9 @@ module.exports = {
             }
             
             if(result){
-              console.log('api.newsflashset ok');
+              if(!isProduction){
+                console.log('api.newsflashset ok');
+              }
               
               res.statusCode = 200;
               res.write(resValue);
