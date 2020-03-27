@@ -76,7 +76,7 @@ class App extends Component {
   /*Fetch App data*/
   async fetchAppData(){
     try {
-      const { status, data} = await api.get('/api/session');
+      const { status, data} = await api.get('/api/did/session');
       this.setState({session: data});
       if(data && data.user){
         this.fetchMyPayedPics();

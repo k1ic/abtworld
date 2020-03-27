@@ -37,18 +37,18 @@ async function forgeTokenStateGet(){
 
 module.exports = {
   init(app) {
-    app.get('/api/session', async (req, res) => {
+    app.get('/api/did/session', async (req, res) => {
       console.log('api.get.session')
       const token = await forgeTokenStateGet();
       res.json({ user: req.user, token: token });
     });
     
-    app.get('/api/session_user_only', async (req, res) => {
+    app.get('/api/did/session_user_only', async (req, res) => {
       console.log('api.get.session_user_only')
       res.json({ user: req.user, token: '' });
     });
 
-    app.post('/api/logout', (req, res) => {
+    app.post('/api/did/logout', (req, res) => {
       req.user = null;
       res.json({ user: null });
     });

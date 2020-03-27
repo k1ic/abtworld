@@ -1,6 +1,6 @@
 import store from 'store/dist/store.modern';
 
-const storageKey = 'abtworld_login_token';
+const storageKey = 'hashnews_login_token';
 
 export function setToken(token) {
   if (typeof window === 'undefined') {

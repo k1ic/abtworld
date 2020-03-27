@@ -8,14 +8,11 @@ module.exports = {
   action: 'checkin',
   claims: {
     signature: async ({ extraParams: { locale } }) => {
-      const { state } = await ForgeSDK.getForgeState(
-        {},
-        { ignoreFields: ['state.protocols', /\.txConfig$/, /\.gas$/] }
-      );
+      const { state } = await ForgeSDK.getForgeState();
 
       const description = {
-        en: `Sign this transaction to receive 25 ${state.token.symbol} for test purpose`,
-        zh: `签名该交易，你将获得官方 ${state.token.symbol} 代币`,
+        en: `Sign this transaction to receive ${state.txConfig.poke.amount} ${state.token.symbol} for test purpose`,
+        zh: `签名该交易，你将获得 ${state.txConfig.poke.amount} 个测试用的 ${state.token.symbol}`,
       };
 
       return {

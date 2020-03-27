@@ -4,7 +4,7 @@ import { removeToken } from '../libs/auth';
 
 async function fetchSession() {
   try {
-    const { status, data } = await api.get('/api/session');
+    const { status, data } = await api.get('/api/did/session');
 
     if (status === 400) {
       //removeToken();
@@ -20,7 +20,7 @@ async function fetchSession() {
 
 export async function fetchSessionUserOnly() {
   try {
-    const { status, data } = await api.get('/api/session_user_only');
+    const { status, data } = await api.get('/api/did/session_user_only');
 
     if (status === 400) {
       //removeToken();

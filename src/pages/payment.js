@@ -42,7 +42,7 @@ var asset_did = "";
 async function fetchStatus() {
   console.log('fetchStatus asset_did=', asset_did);
   const [{ data: payment }, { data: session }, {data: picture}] = await Promise.all([api.get(`/api/payments?module=picture&asset_did=${asset_did}`), 
-    api.get('/api/session'), 
+    api.get('/api/did/session'), 
     api.get(`/api/getpics?cmd=GetPicsForPayShow0x012bbc9ebd79c1898c6fc19cefef6d2ad7a82f44&asset_did=${asset_did}`)]);
   return { payment, session, picture};
 }

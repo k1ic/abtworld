@@ -47,7 +47,7 @@ class App extends Component {
   /*Fetch session*/
   async fetchSession(){
     try {
-      const { status, data} = await api.get('/api/session');
+      const { status, data} = await api.get('/api/did/session');
       this.setState({session: data});
     } catch (err) {
     }
