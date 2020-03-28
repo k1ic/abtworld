@@ -34,8 +34,8 @@ sudo vim /usr/local/nginx/conf/nginx.conf
       server_name  abtworld.cn;
   
       charset utf-8;
-      ssl_certificate /home/forge/abtworld/ssl/3232353_abtworld.cn.pem;
-      ssl_certificate_key /home/forge/abtworld/ssl/3232353_abtworld.cn.key;
+      ssl_certificate /home/ubuntu/abtworld/ssl/3232353_abtworld.cn.pem;
+      ssl_certificate_key /home/ubuntu/abtworld/ssl/3232353_abtworld.cn.key;
       fastcgi_param   HTTPS               on;
       fastcgi_param   HTTP_SCHEME         https;
  
