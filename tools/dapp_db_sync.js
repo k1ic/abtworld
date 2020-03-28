@@ -554,7 +554,8 @@ async function newsflashDappDbSync(asset_addr){
     }
     
     // Sync hash news from chain to local DB
-    await newsflashDappDbSync(newsflashAppWallet.toAddress());
+    await newsflashDappDbSync('zNKgEWmLfWvPkmiwyqp3jgnc6L9DSCtxnd9t');
+    //await newsflashDappDbSync(newsflashAppWallet.toAddress());
     //await newsflashDappDbSync('z1Wgxxx');
     
     mongoose.disconnect();
