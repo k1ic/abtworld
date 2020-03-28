@@ -71,7 +71,7 @@ export default function Header() {
     <Nav>
       <div className="nav-left">
         <Typography href="/" component="a" variant="h6" color="inherit" noWrap className="brand">
-          {<img className="logo" src="/static/images/logo.png" alt="hashnews" />}
+          {<img className="logo" src="/static/images/logo.ico" alt="hashnews" />}
           首页
         </Typography>
         {/*<Typography href="/picture" component="a" variant="h6" color="inherit" className="text">

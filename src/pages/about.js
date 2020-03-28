@@ -129,8 +129,7 @@ class App extends Component {
             联系方式
           </Typography>
           <Typography component="p" variant="h6" className="page-description" color="textSecondary" style={{ fontSize: '15px' }}>
-            QQ：2439897034 <br/>
-            邮箱：2439897034@qq.com <br/>
+            邮箱：23145392@qq.com <br/>
             <QrCode value={"https://abtworld.cn"} size={200} level={'L'} includeMargin={true} id="AbworldQrCode" style={{ marginRight: 30 }} />
           </Typography>
         </Main>
