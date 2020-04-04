@@ -80,6 +80,9 @@ export default function Header() {
         <Typography href="/network" component="a" variant="h6" color="inherit" className="text">
           链网
         </Typography>
+        <Typography href="/nfts" component="a" variant="h6" color="inherit" className="text">
+          NFT
+        </Typography>
         <Typography href="/about" component="a" variant="h6" color="inherit" className="text">
           关于
         </Typography>
