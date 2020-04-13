@@ -37,10 +37,14 @@ const { TextArea } = Input;
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-const asset_items_one_page = 5;
+const asset_items_one_page = 20;
 
 /*https://opensea.io/rankings*/
 const nft_category_info = [
+  {
+    category: 'All',
+    contract_address: '',
+  },
   {
     category: 'HyperDragons',
     contract_address: '0x7fdcd2a1e52f10c28cb7732f46393e297ecadda1',
@@ -113,7 +117,7 @@ class App extends Component {
     /*initial state*/
     this.state = {
       session: null,
-      asset_category: nft_category_info[0].category,
+      asset_category: 'HyperDragons',
       asset_offset: 0,
       assets: [],
       pagination: {},
@@ -170,7 +174,9 @@ class App extends Component {
         
         pagination.pageSize = asset_items_one_page;
         pagination.total = data.assets.length;
-        more_to_load = true;
+        if(data.assets.length >= asset_items_one_page){
+          more_to_load = true;
+        }
         if(load_more_state){
           nft_assets = nft_assets.concat(data.assets);
         }else{

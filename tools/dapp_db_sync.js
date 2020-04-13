@@ -107,7 +107,7 @@ function newsflashAssetDidGen(cdid, tx_memo){
   return asset.address;
 }
 
-async function fetchForgeAssetTransactions(module, module_para, connId, asset_addr){
+async function fetchForgeAssetTransactions(module, module_para, connId, asset_addr, asset_size){
   var tx = [];
   var transactions = [];
   
@@ -131,7 +131,7 @@ async function fetchForgeAssetTransactions(module, module_para, connId, asset_ad
       }
       console.log('fetchForgeAssetTransactions newsflash type=', news_type);
       
-      tx = await listAssets(asset_addr, 1000, connId);
+      tx = await listAssets(asset_addr, asset_size, connId);
       //console.log('tx value', tx);
       //console.log('tx array number', tx.length);
          
@@ -175,7 +175,7 @@ async function pictureDappDbSync(){
   console.log('pictureDappDbSync');
 }
 
-async function newsflashDappDbSync(asset_addr){
+async function newsflashDappDbSync(asset_addr, asset_size){
   console.log('newsflashDappDbSync');
   
   const dapp_module = 'newsflash';
@@ -434,14 +434,15 @@ async function newsflashDappDbSync(asset_addr){
     });
     console.log(`connected to app ${dataChainList[i].name} data chain host:${dataChainList[i].chain_host} id: ${dataChainList[i].chain_id}`);
     
-    tx = await fetchForgeAssetTransactions(dapp_module, module_para, dataChainList[i].chain_id, asset_addr);
+    tx = await fetchForgeAssetTransactions(dapp_module, module_para, dataChainList[i].chain_id, asset_addr, asset_size);
     if(tx && tx.length > 0){
       await Promise.all(tx.map( async (e) => {
         try {
           var memo = JSON.parse(e.data.value);
           if(memo){
             const cdid = HashString('sha1', memo.para.content);
-            const asset_did = newsflashAssetDidGen(cdid, memo);
+            //const asset_did = newsflashAssetDidGen(cdid, memo);
+            const asset_did = e.address;
             const asset_local_time = utcToLocalTime(e.genesisTime);
             const asset_hash = await getAssetGenesisHash(e.address, dataChainList[i].chain_id);
         
@@ -475,30 +476,33 @@ async function newsflashDappDbSync(asset_addr){
             }
         
             //console.log('newsflashDappDbSync V3 assetChain asset_did=', asset_did);
-            var doc = await Newsflash.findOne({ news_content: memo.para.content });
+            let doc = await Newsflash.findOne({ news_content: memo.para.content });
             if(!doc){
-              /*create new doc if not exist*/
-              var new_doc = new Newsflash({
-                data_chain_nodes: [{name: dataChainList[i].name, chain_host: dataChainList[i].chain_host, chain_id: dataChainList[i].chain_id}],
-                asset_did: e.address,
-                content_did: cdid,
-                author_did: memo.para.udid,
-                author_name: author_name,
-                author_avatar: memo.para.uavatar,
-                news_hash: asset_hash,
-                news_time: asset_local_time,
-                news_type: memo.para.type,
-                news_title: news_title,
-                news_content: news_content,
-                news_origin: news_origin,
-                news_images: memo.para.images,
-                hash_href: [dataChainList[i].chain_host.replace('/api', '/node/explorer/txs/')+asset_hash],
-                state: 'chained',
-                minner_state: 'idle',
-                createdAt: e.genesisTime,
-              });
-              await new_doc.save();
-              console.log('newsflashDappDbSync V3 assetChain create new_doc.asset_did=', new_doc.asset_did);
+              let doc = await Newsflash.findOne({ asset_did: e.address });
+              if(!doc){
+                /*create new doc if not exist*/
+                var new_doc = new Newsflash({
+                  data_chain_nodes: [{name: dataChainList[i].name, chain_host: dataChainList[i].chain_host, chain_id: dataChainList[i].chain_id}],
+                  asset_did: e.address,
+                  content_did: cdid,
+                  author_did: memo.para.udid,
+                  author_name: author_name,
+                  author_avatar: memo.para.uavatar,
+                  news_hash: asset_hash,
+                  news_time: asset_local_time,
+                  news_type: memo.para.type,
+                  news_title: news_title,
+                  news_content: news_content,
+                  news_origin: news_origin,
+                  news_images: memo.para.images,
+                  hash_href: [dataChainList[i].chain_host.replace('/api', '/node/explorer/txs/')+asset_hash],
+                  state: 'chained',
+                  minner_state: 'idle',
+                  createdAt: e.genesisTime,
+                });
+                await new_doc.save();
+                console.log('newsflashDappDbSync V3 assetChain create new_doc.asset_did=', new_doc.asset_did);
+              }
             }
           }else{
             console.log('newsflashDappDbSync V3 assetChain empty memo');
@@ -554,9 +558,9 @@ async function newsflashDappDbSync(asset_addr){
     }
     
     // Sync hash news from chain to local DB
-    await newsflashDappDbSync('zNKgEWmLfWvPkmiwyqp3jgnc6L9DSCtxnd9t');
-    //await newsflashDappDbSync(newsflashAppWallet.toAddress());
-    //await newsflashDappDbSync('z1Wgxxx');
+    //await newsflashDappDbSync('zNKgEWmLfWvPkmiwyqp3jgnc6L9DSCtxnd9t', 100); //大米蜂
+    await newsflashDappDbSync('zNKe3wMokWJ1YYUcHUut1H9TUTAyfE6kuzJg', 100); //梦阳
+    //await newsflashDappDbSync('z1Wgxxx', 1000);
     
     mongoose.disconnect();
     process.exit(0);

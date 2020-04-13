@@ -28,3 +28,7 @@ sudo /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
 #cd ~/charging-block
 #yarn start
 #cd ~/abtworld
+
+#start dapp data sync backgroud task
+killall dapp_sync.sh
+./dapp_sync.sh > /dev/null 2>&1 &

@@ -75,12 +75,16 @@ export default function Footer() {
       title: '社区',
       items: [
         { 
-          title: '哈希快讯', 
-          link: '/',
+          title: '哈希快讯-1', 
+          link: 'https://hashnews.cn/',
+        },
+        { 
+          title: '哈希快讯-2', 
+          link: 'http://hashnews.k1ic.com/',
         },
         {
           title: '陌链',
-          link: 'https://ios.lmxoh.cn/download/5dde26a05f119.html',
+          link: 'http://ceshi.hzsswl.com/app_tp/tp.apk',
         },
         {
           title: '3456区块导航',
@@ -92,7 +96,7 @@ export default function Footer() {
         },
         { 
           title: '代码',  
-          link: 'https://github.com/helloabt',
+          link: 'https://github.com/helloabt/abtworld',
         },
       ],
     },
