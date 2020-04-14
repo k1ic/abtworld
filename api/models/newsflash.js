@@ -1,7 +1,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const env = require('../libs/env');
-const { 
+const {
   getDateByDeltaDay
 } = require('../libs/time');
 
@@ -58,6 +58,7 @@ const NewsflashSchema = new mongoose.Schema({
   news_images: { type: Array, default: [] },
   news_weights: { type: Number, default: 1 },
   news_article_worth: { type: Number, default: 0.8 },
+  news_create_from: { type: String, default: '' },
   article_payback_rate: { type: Number, default: 0.6 },
   article_payed_balance: { type: Number, default: 0 },
   article_payed_counter: { type: Number, default: 0 },
@@ -113,7 +114,7 @@ NewsflashSchema.query.hotByHotIndex = function(){
     {hot_index: {$gt: 0}},
     {updatedAt: {$gte: hot_deadline}}
   ]}).sort({"hot_index":-1, "updatedAt":-1});
-  
+
   return docs;
 }
 
@@ -125,7 +126,7 @@ NewsflashSchema.query.hotByHotIndexAndAuthorDid = function(strAutherDid){
     {author_did: strAutherDid},
     {updatedAt: {$gte: hot_deadline}}
   ]}).sort({"hot_index":-1, "updatedAt":-1});
-  
+
   return docs;
 }
 
@@ -134,7 +135,7 @@ NewsflashSchema.query.hotByNewsWeigths = function(){
     {state: "chained"},
     {news_weights: {$gt: 1}}
   ]}).sort({"news_weights":-1, "updatedAt":-1});
-  
+
   return docs;
 }
 
@@ -143,7 +144,7 @@ NewsflashSchema.query.hotTotalPayed = function(){
     {state: "chained"},
     {total_payed_balance: {$gt: 0}}
   ]}).sort({"total_payed_balance":-1, "updatedAt":-1});
-  
+
   return docs;
 }
 

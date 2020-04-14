@@ -8,16 +8,16 @@ import { fromUnitToToken } from '@arcblock/forge-util';
 import Avatar from '@arcblock/did-react/lib/Avatar';
 //import DidLogo from '@arcblock/did-react/lib/Logo';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { 
-  LocaleProvider, 
-  Upload, 
+import {
+  LocaleProvider,
+  Upload,
   Icon,
-  Pagination, 
-  Modal, 
-  Button, 
-  message, 
-  Typography, 
-  Input, 
+  Pagination,
+  Modal,
+  Button,
+  message,
+  Typography,
+  Input,
   Tooltip,
   List,
   Select,
@@ -155,15 +155,15 @@ function dataURLtoFile(dataUrl, fileName) {
   var arr = dataUrl.split(',');
   var mime = arr[0].match(/:(.*?);/)[1];
   var bstr = atob(arr[1]);
-  var n = bstr.length; 
+  var n = bstr.length;
   var u8arr = new Uint8Array(n);
   while(n--){
     u8arr[n] = bstr.charCodeAt(n);
   }
-  
+
   //转换成file对象
   return new File([u8arr], fileName, {type:mime});
-  
+
   //转换成成blob对象
   //return new Blob([u8arr],{type:mime});
 }
@@ -291,7 +291,7 @@ const renderPaytipList = (x, token) => (
   </span>
 );
 
-class App extends Component {  
+class App extends Component {
   static async getInitialProps({pathname, query, asPath, req}) {
     //console.log('getInitialProps pathname=', pathname);
     console.log('getInitialProps query=', query);
@@ -299,11 +299,11 @@ class App extends Component {
     //console.log('getInitialProps req=', req);
     return {};
   }
-  
+
   constructor(props) {
     super(props);
     //console.log('newsflash props=', props);
-    
+
     /*initial state*/
     this.state = {
       session: null,
@@ -353,7 +353,7 @@ class App extends Component {
       paytip_comment: '',
       paytip_target_did: '',
     };
-    
+
     this.datachainsToViewSlecterChildren = [];
     this.datachainsToSendSlecterChildren = [];
     this.comment_asset_did = '';
@@ -370,7 +370,7 @@ class App extends Component {
     this.onListItemActionClick = this.onListItemActionClick.bind(this);
     this.onNewsPaginationChange = this.onNewsPaginationChange.bind(this);
   }
-  
+
   /*Fetch App data*/
   async fetchAppData(){
     try {
@@ -388,7 +388,7 @@ class App extends Component {
     }
     return {};
   }
-  
+
   /*Fetch data chains list*/
   fetchDatachainsList = () => {
     reqwest({
@@ -405,14 +405,14 @@ class App extends Component {
       this.datachainsToSendSlecterChildren.push(<Select.Option key="default" value="default">默认</Select.Option>);
       this.datachainsToViewSlecterChildren.push(<Select.Option key="all" value="all">所有</Select.Option>);
       if(data && data.length > 0){
-        
+
         /*1.ABT AssetChain xenon filter data chain
           2.TBP chain version is too low, Temp filter out data chain
          */
         data = data.filter(function (e) {
           return (e.name != 'xenon' && e.name != 'tpb');
         });
-        
+
         for(var i=0;i<data.length;i++){
           var chainNameToShow = data[i].name.substring(0,1).toUpperCase()+data[i].name.substring(1);
           this.datachainsToSendSlecterChildren.push(<Select.Option key={data[i].name} value={data[i].name}>{chainNameToShow}</Select.Option>);
@@ -426,25 +426,25 @@ class App extends Component {
       }
     });
   }
-  
+
   /*Fetch news flash */
   fetchNewsFlash = (params = {}, get_mode = 'list') => {
-    const { 
+    const {
       news_type
     } = this.state;
-    
+
     var udid = '';
     if(this.state.loading === true){
       console.log('fetchNewsFlash is loading');
       return;
     }
-    
+
     console.log('Start fetchNewsFlash');
-    
+
     this.setState({
       loading: true
     });
-      
+
     var udid_to_show = '';
     if(this.state.session && this.state.session.user){
       udid = this.state.session.user.did;
@@ -452,13 +452,13 @@ class App extends Component {
         udid_to_show = this.state.session.user.did;
       }
     }
-    
+
     if(get_mode === 'list'){
       var api_url = '/api/payments';
       if(news_fetch_mode === 'localdb'){
         api_url = '/api/newsflashget';
       }
-    
+
       reqwest({
         url: api_url,
         method: 'get',
@@ -475,12 +475,12 @@ class App extends Component {
         },
         type: 'json',
       }).then(data => {
-      
+
         console.log('End fetchNewsFlash');
         //if(data && data.length > 0){
         //  console.log(data.slice(0, 9));
         //}
-      
+
         if(news_list_show_mode === 'more'){
           let newsflash_list = this.state.newsflash_list;
           if(data && data.length > 0){
@@ -494,7 +494,7 @@ class App extends Component {
           if(data && data.length >= list_items_per_page){
             more_to_load = true;
           }
-      
+
           this.setState({
             newsflash_list: newsflash_list,
             more_to_load: more_to_load,
@@ -506,7 +506,7 @@ class App extends Component {
           if(data && data.length > 0){
             newsflash_list = data;
           }
-      
+
           this.setState({
             newsflash_list: newsflash_list,
             loading: false
@@ -514,7 +514,7 @@ class App extends Component {
         }
       });
     }else{
-      /*get total num*/    
+      /*get total num*/
       reqwest({
         url: '/api/newsflashget',
         method: 'get',
@@ -537,7 +537,7 @@ class App extends Component {
       });
     }
   };
-  
+
   /*News pagination change*/
   onNewsPaginationChange(pageNumber) {
     console.log('onNewsPaginationChange Page: ', pageNumber);
@@ -553,7 +553,7 @@ class App extends Component {
       this.fetchNewsFlash();
     });
   }
-  
+
   /*Load more news flash */
   onLoadMore = () => {
     this.setState({
@@ -562,7 +562,7 @@ class App extends Component {
       this.fetchNewsFlash();
     });
   };
-  
+
   onLoadMoreBack = () => {
     this.setState({
       newsflash_list: [],
@@ -573,7 +573,7 @@ class App extends Component {
       this.fetchNewsFlash();
     });
   };
-   
+
   scrollHandler = (event) => {
     let scrollTop = event.srcElement.body.scrollTop;
     //console.log('handleScroll', scrollTop); //滚动条距离页面的高度
@@ -589,7 +589,7 @@ class App extends Component {
     },()=>{
     });
   }
-  
+
   resizeHandler = (event) => {
     this.winW = window.innerWidth;  //浏览器窗口的内部宽度
     this.winH = window.innerHeight; //浏览器窗口的内部高度
@@ -603,10 +603,10 @@ class App extends Component {
     },()=>{
     });
   }
-  
+
   /*component mount process*/
   componentDidMount() {
-    
+
     this.winW = window.innerWidth;  //浏览器窗口的内部宽度
     this.winH = window.innerHeight; //浏览器窗口的内部高度
     this.sendNewsDialogWinWidth = this.winW>20?this.winW - 10:this.winW;
@@ -620,7 +620,7 @@ class App extends Component {
       sendAffixOffsetTop: this.winH>100?this.winH - 100:10,
     },()=>{
     });
-    
+
     //console.log('componentDidMount hash=', window.location.hash.slice(1));
     const location_hash = window.location.hash.slice(1);
     if(typeof(location_hash) != "undefined" && location_hash && location_hash.length > 0) {
@@ -634,13 +634,13 @@ class App extends Component {
       if(params.page){
         page_number = parseInt(params.page, 10);
       }
-      
+
       this.setState({
         news_type: news_type,
         page_number: page_number,
       },()=>{
         console.log('componentDidMount news_type=', this.state.news_type);
-          
+
         let sub_menu_title = '快讯';
         for(var i=0;i<flash_news_sub_menu.length;i++){
           if(this.state.news_type === flash_news_sub_menu[i].key){
@@ -652,7 +652,7 @@ class App extends Component {
           flash_news_sub_menu_title: sub_menu_title
         },()=>{
         });
-          
+
         /*update state value*/
         if(this.state.news_type == 'test2' || this.state.news_type == 'articles'){
           this.setState({
@@ -660,20 +660,20 @@ class App extends Component {
           },()=>{
           });
         }
-          
+
         /*fetch app data*/
         this.fetchAppData();
       });
     }else{
       this.fetchAppData();
     }
-    
+
     if (! this.state.intervalIsSet) {
       //let interval = setInterval(this.fetchNewsFlash, 30000);
       //this.setState({ intervalIsSet: interval});
     }
   }
-  
+
   /*component unmount process*/
   componentWillUnmount() {
     if (this.state.intervalIsSet) {
@@ -683,16 +683,16 @@ class App extends Component {
     window.removeEventListener('scroll', this.scrollHandler);
     window.removeEventListener('resize', this.resizeHandler);
   }
-  
+
   updateToPayValue = () => {
-    const { 
-      news_type, 
+    const {
+      news_type,
       news_title_enabled,
-      news_title_to_send, 
-      news_content_to_send, 
-      news_to_send_weight 
+      news_title_to_send,
+      news_content_to_send,
+      news_to_send_weight
     } = this.state;
-    
+
     var toPay = 0;
     var newsLength = 0;
     if(news_title_enabled && news_title_to_send){
@@ -701,20 +701,20 @@ class App extends Component {
     if(news_content_to_send){
       newsLength += news_content_to_send.length;
     }
-    
+
     if(news_type != 'test2' && news_type != 'articles' && newsLength > 0){
       toPay = forgeTxValueSecureConvert((toPayEachChar*news_to_send_weight)*newsLength);
     }
-    
+
     this.setState({
       toPay: toPay,
     });
   }
-  
+
   handleNewsTypeMenuChange = e => {
     let menu_key = e.key;
     console.log('handleNewsTypeMenuChange key=', menu_key);
-    
+
     let sub_menu_title = '快讯';
     for(var i=0;i<flash_news_sub_menu.length;i++){
       if(menu_key === flash_news_sub_menu[i].key){
@@ -722,7 +722,7 @@ class App extends Component {
         break;
       }
     }
-    
+
     if(this.state.news_type != menu_key){
       if(menu_key === 'test2' || menu_key === 'articles'){
         this.setState({
@@ -765,10 +765,10 @@ class App extends Component {
       }
     }
   }
-  
-  handleFlashNewsSubMenuTitleClick = () => {      
-    if(this.state.news_type === 'hot' 
-      || this.state.news_type === 'articles' 
+
+  handleFlashNewsSubMenuTitleClick = () => {
+    if(this.state.news_type === 'hot'
+      || this.state.news_type === 'articles'
       || this.state.news_type === 'test'
       || this.state.news_type === 'test2'){
       let news_type = 'chains';
@@ -791,10 +791,10 @@ class App extends Component {
       });
     }
   }
-  
-  handleNewsTypeChange = value => {    
+
+  handleNewsTypeChange = value => {
     console.log('handleNewsTypeChange value=', value);
-    
+
     if(value === 'test2' || value === 'articles'){
       this.setState({
         news_type: value,
@@ -833,10 +833,10 @@ class App extends Component {
       });
     }
   }
-  
+
   onDatachainNodeToViewChange = value => {
     console.log('onDatachainNodeToViewChange value=', value);
-    this.setState({ 
+    this.setState({
       datachain_node_name_to_view: value,
       newsflash_list: [],
       newsflash_total_num: 0,
@@ -850,20 +850,20 @@ class App extends Component {
       this.fetchNewsFlash();
     });
   }
-  
+
   onDatachainNodeToSendChange = value => {
     console.log('onDatachainNodeToSendChange value=', value);
-    this.setState({ 
+    this.setState({
       datachain_node_name_to_send: value,
     }, ()=>{
     });
   }
-  
+
   onNewsOriginTypeChange = value => {
     console.log('onNewsOriginTypeChange value=', value);
     this.setState({ news_content_origin: value });
   }
-  
+
   onShowModeChange = checked => {
     var show_mode = '';
     if(checked){
@@ -886,16 +886,16 @@ class App extends Component {
       this.fetchNewsFlash();
     });
   }
-  
+
   onOpenSendNewsDialogButtonClick = async() => {
     const { session } = this.state;
     const { user, token } = session;
-    
+
     if(isProduction && !user){
       window.location.href = '/?openLogin=true';
       return null;
     }
-    
+
     document.body.scrollIntoView(); /*scroll to top*/
     await sleep(100);
     this.setState({
@@ -905,34 +905,34 @@ class App extends Component {
       inputArea.focus();
     });
   }
-  
+
   handleSendNewsDialogOk = e => {
     console.log('handleSendNewsDialogOk');
-   
+
     this.setState({
       send_news_dialog_visible: false
     },()=>{
     });
   };
-  
+
   handleSendNewsDialogCancel = e => {
     console.log('handleSendNewsDialogCancel');
-    
+
     this.setState({
       send_news_dialog_visible: false
     },()=>{
     });
   };
-  
-  onNewsflashWeightChange = value => {    
+
+  onNewsflashWeightChange = value => {
     if(typeof(value) === 'number' && value <= news_weights_value_max && value >= news_weights_value_min){
       console.log('onNewsflashWeightChange: ', value);
-      
+
       /*update minner number max*/
       news_comment_minner_number_max = Math.floor(news_comment_minner_number_default*value);
       news_like_minner_number_max = Math.floor(news_like_minner_number_default*value);
       news_forward_minner_number_max = Math.floor(news_forward_minner_number_default*value);
-      
+
       this.setState({
         news_to_send_weight: value,
       },()=>{
@@ -940,7 +940,7 @@ class App extends Component {
       });
     }
   }
-  
+
   onNewsTitleCheckBoxChange = (e) => {
     //console.log(`checked = ${e.target.checked}`);
     this.setState({
@@ -950,59 +950,59 @@ class App extends Component {
     });
   }
 
-  onNewsTitleToSendChange = ({ target: { value } }) => {    
+  onNewsTitleToSendChange = ({ target: { value } }) => {
     //console.log('onNewsTitleToSendChange value='+value+' length='+value.length);
-    
+
     this.setState({
       news_title_to_send: value,
     },()=>{
     });
-    
+
     if(this.newsToPayCalcTimeout){
       clearTimeout(this.newsToPayCalcTimeout);
       this.newsToPayCalcTimeout = null;
     }
-    
+
     this.newsToPayCalcTimeout = setTimeout(() => {
        this.updateToPayValue();
        this.newsToPayCalcTimeout = null;
     }, 1000);
-    
+
   };
-  
-  onNewsContentToSendChange = ({ target: { value } }) => {    
+
+  onNewsContentToSendChange = ({ target: { value } }) => {
     //console.log('onNewsContentToSendChange value='+value+' length='+value.length);
-    
+
     this.setState({
       news_content_to_send: value,
     },()=>{
     });
-    
+
     if(this.newsToPayCalcTimeout){
       clearTimeout(this.newsToPayCalcTimeout);
       this.newsToPayCalcTimeout = null;
     }
-    
+
     this.newsToPayCalcTimeout = setTimeout(() => {
        this.updateToPayValue();
        this.newsToPayCalcTimeout = null;
     }, 1000);
   };
-  
+
   onNewsArticleWorthChange = value => {
     this.setState({ news_article_worth: value });
   };
-  
+
   onNewsImageUploadChange = ({ fileList }) => {
     console.log('onNewsImageUploadChange fileList.length=', fileList.length);
-    
+
     /*filter out invalid picture*/
     for(var i=0;i<fileList.length;i++){
       const file = fileList[i];
       const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
       if (!isJpgOrPng) {
         Modal.error({title: '只能添加JPG/PNG图片!', maskClosable: 'true'});
-        
+
         const index = fileList.indexOf(file);
         const newFileList = fileList.slice();
         newFileList.splice(index, 1);
@@ -1011,7 +1011,7 @@ class App extends Component {
         const isLt1M = file.size / 1024 / 1024 < 1;
         if (!isLt1M) {
           Modal.error({title: '图片大小需小于1MB!', maskClosable: 'true'});
-        
+
           const index = fileList.indexOf(file);
           const newFileList = fileList.slice();
           newFileList.splice(index, 1);
@@ -1019,7 +1019,7 @@ class App extends Component {
         }
       }
     }
-    
+
     if(fileList && fileList.length >= 1){
       getBase64(fileList[0].originFileObj, image =>
         this.setState({
@@ -1027,26 +1027,26 @@ class App extends Component {
         })
       );
     }
-    
-    this.setState({ 
+
+    this.setState({
       news_image_file_list: fileList,
     });
   };
-  
+
   onNewsImagePreviewCancel = () => this.setState({ news_image_preview_visible: false });
- 
+
   onNewsImagePreview = file => {
     this.setState({
       news_image_preview_image: file.url || file.thumbUrl,
       news_image_preview_visible: true
     });
   };
-  
+
   onCommentToSendChange = ({ target: { value } }) => {
     //console.log('onCommentToSendChange value='+value+' length='+value.length);
     this.setState({ comment_to_send: value });
   };
-  
+
   /*send news button handler*/
   onSendNews = () => {
     this.handleSendNews();
@@ -1062,7 +1062,7 @@ class App extends Component {
       });
     }
   }
-  
+
   onNewsSendLikeMinnerNumberCfgChange = value => {
     if(typeof(value) === 'number' && value <= news_like_minner_number_max && value >= news_like_minner_number_min){
       console.log('onNewsSendLikeMinnerNumberCfgChange: ', value);
@@ -1073,7 +1073,7 @@ class App extends Component {
       });
     }
   }
-  
+
   onNewsSendForwardMinnerNumberCfgChange = value => {
     if(typeof(value) === 'number' && value <= news_forward_minner_number_max && value >= news_forward_minner_number_min){
       console.log('onNewsSendForwardMinnerNumberCfgChange: ', value);
@@ -1087,51 +1087,51 @@ class App extends Component {
 
   handleNewsSendCfgOk = e => {
     console.log('handleNewsSendCfgOk');
-   
+
     this.setState({
       news_to_send_cfg_visible: false
     },()=>{
       this.handleSendNews();
     });
   };
-  
+
   handleNewsSendCfgCancel = e => {
     console.log('handleNewsSendCfgCancel');
-    
+
     this.setState({
       news_to_send_cfg_visible: false
     },()=>{
     });
   };
-  
+
   /*Send news handler*/
   handleSendNews = () => {
     console.log('handleSendNews');
-    
+
     /*Update to pay value*/
     this.updateToPayValue();
-    
-    const { 
+
+    const {
       session,
       datachain_node_name_to_send,
       news_type,
       news_article_worth,
       news_title_enabled,
-      news_title_to_send, 
+      news_title_to_send,
       news_content_to_send,
       news_content_origin,
       news_image_url,
-      news_to_send_weight, 
-      news_comment_minner_number, 
-      news_like_minner_number, 
-      news_forward_minner_number 
+      news_to_send_weight,
+      news_comment_minner_number,
+      news_like_minner_number,
+      news_forward_minner_number
     } = this.state;
     const { user, token } = session;
-    
+
     if(news_content_to_send.length > 0){
       const asset_did = HashString('sha1', news_content_to_send);
       console.log('asset_did=', asset_did);
-      
+
       if(news_to_chain_mode === 'direct'){
         this.setState({
           asset_did: asset_did,
@@ -1139,7 +1139,7 @@ class App extends Component {
         });
       }else{
         const formData = new FormData();
-        
+
         formData.append('user', JSON.stringify(user));
         if(news_type === 'test2' || news_type === 'articles'){
           formData.append('cmd', 'create_asset_on_chain');
@@ -1169,7 +1169,7 @@ class App extends Component {
         formData.append('comment_minner_number', news_comment_minner_number);
         formData.append('like_minner_number', news_like_minner_number);
         formData.append('forward_minner_number', news_forward_minner_number);
-        
+
         reqwest({
           url: '/api/newsflashset',
           method: 'post',
@@ -1188,7 +1188,7 @@ class App extends Component {
                 toPay: 0,
                 asset_sending: false,
               });
-    
+
               setTimeout(() => {
                 try {
                   this.setState({
@@ -1207,7 +1207,7 @@ class App extends Component {
                   // Do nothing
                 }
               }, 5000);
-              
+
               Modal.success({title: '发布成功', maskClosable: 'true'});
             }else{
               this.setState({
@@ -1223,33 +1223,33 @@ class App extends Component {
                 asset_sending: false,
               });
             }
-            
+
             Modal.error({title: '发布失败', maskClosable: 'true'});
           },
         });
       }
     }
   };
-  
+
   newsflashListItemFind = asset_did => {
     const {newsflash_list} = this.state;
     var newsflashItem = null;
-    
+
     if(!newsflash_list || newsflash_list.length == 0){
       return null;
     }
-    
+
     newsflashItem = newsflash_list.find( function(x){
       return x.asset_did === asset_did;
     });
-    
+
     return newsflashItem;
   }
-  
+
   newsflashListItemLikeStatusGet = (item, userDid) => {
     var likeStatus = false;
     var like_list_item = null;
-    
+
     if(item && item.like_list && item.like_list.length > 0){
       like_list_item = item.like_list.find( function(x){
         return x.udid === userDid;
@@ -1258,14 +1258,14 @@ class App extends Component {
         likeStatus = true;
       }
     }
-    
+
     return likeStatus;
   }
-  
+
   newsflashListItemForwardStatusGet = (item, userDid) => {
     var forwardStatus = false;
     var forward_list_item = null;
-    
+
     if(item && item.forward_list && item.forward_list.length > 0){
       forward_list_item = item.forward_list.find( function(x){
         return x.udid === userDid;
@@ -1274,25 +1274,25 @@ class App extends Component {
         forwardStatus = true;
       }
     }
-    
+
     return forwardStatus;
   }
-  
+
   genShareNewsPoster = async () => {
     this.setState({
       gen_share_news_visible: true
     }, async ()=>{
       share_news_pic_data = '';
-          
+
       await sleep(1000);
-          
+
       //document.getElementById('shareNewsListItemContent').style.whiteSpace = 'pre-wrap';
       //document.getElementById('shareNewsListItemContent').style.wordWrap = 'break-word';
       //document.getElementById('shareNewsListItemContent').style.wordBreak = 'break-all';
-          
+
       var shareContent = document.getElementById('shareNewsContent');
       //shareContent.style.position = 'fixed';
-          
+
       var canvas = document.createElement("canvas"); //创建一个canvas节点
       var scale = 4; //定义任意放大倍数 支持小数
       var width = shareContent.offsetWidth; //获取dom 宽度
@@ -1314,10 +1314,10 @@ class App extends Component {
       };
 
       html2canvas(document.getElementById('shareNewsContent'), opts).then(function(canvas) {
-        share_news_pic_data = canvas.toDataURL("image/jpg");            
+        share_news_pic_data = canvas.toDataURL("image/jpg");
       });
     });
-        
+
     /*wait share news pic ready*/
     var wait_counter = 0;
     while(share_news_pic_data.length == 0){
@@ -1337,7 +1337,7 @@ class App extends Component {
           let shareFilesArray = [
             posterImageFile,
           ];
-          
+
           navigator.share({
             files: shareFilesArray
           })
@@ -1346,7 +1346,7 @@ class App extends Component {
           .catch((error) => {
             console.log('Error sharing:', error);
           });
-      
+
           if(this.shareNewsPicTimeout){
             clearTimeout(this.shareNewsPicTimeout);
             this.shareNewsPicTimeout = null;
@@ -1373,30 +1373,30 @@ class App extends Component {
       consolg.log('share news failure');
     }
   }
-  
+
   onListItemActionClick = async (action_type, asset_did) => {
     const { session, newsflash_list } = this.state;
     const { user, token } = session;
     var newsflashItem = this.newsflashListItemFind(asset_did);
-    
+
     console.log('onListItemActionClick action_type=', action_type, 'asset_did=', asset_did);
-    
+
     if(!newsflashItem){
       console.log('onListItemActionClick invalid newsflash item');
       return null;
     }
-    
+
     if(isProduction && !user && action_type != 'share'){
       window.location.href = '/?openLogin=true';
       return null;
     }
-    
+
     /*Disable auto refresh*/
     if (this.state.intervalIsSet) {
       clearInterval(this.state.intervalIsSet);
       this.setState({ intervalIsSet: null});
     }
-    
+
     switch(action_type){
       case 'like':
         /*verify if already liked*/
@@ -1410,17 +1410,17 @@ class App extends Component {
           };
           newsflashItem.like_list.push(like_list_item);
           newsflashItem.like_status = true;
-          
+
           /*send like minning request*/
           this.setState({
             minning: true
           });
-          
+
           const formData = new FormData();
           formData.append('user', JSON.stringify(user));
           formData.append('cmd', 'give_like');
           formData.append('asset_did', asset_did);
-        
+
           reqwest({
             url: '/api/newsflashset',
             method: 'post',
@@ -1459,14 +1459,14 @@ class App extends Component {
         this.shareNewsPicUserCancel = false;
         this.share_asset_did = asset_did;
         this.share_news_items[0] = newsflashItem;
-        
+
         /*
         this.setState({
           share_news_user_slogan_input_visible: true
         }, async ()=>{
         });
         */
-        
+
         this.setState({
           gen_share_news_visible: true
         }, async ()=>{
@@ -1476,7 +1476,7 @@ class App extends Component {
       case 'paytip':
         this.paytip_asset_did = asset_did;
         if(user && user.did === newsflashItem.sender){
-          Modal.error({title: '不能打赏给自己！', maskClosable: 'true'});          
+          Modal.error({title: '不能打赏给自己！', maskClosable: 'true'});
         }else{
           this.setState({
             paytip_input_visible: true
@@ -1487,16 +1487,16 @@ class App extends Component {
       default:
         break;
     }
-    
+
   };
-  
+
   IconText = ({ type, text, token_symbol, show_extra_info, balance, minner_num, action_type, like_status, asset_did }) => (
     <span>
       {/*<img className="list-item-action-img" src="/static/images/hashnews/ABT.png" alt="ABT" height="25" width="25" />*/}
       <a onClick={e => {
           this.onListItemActionClick(action_type, asset_did);
         }}
-      > 
+      >
         {action_type=='like'&&like_status==true?<Icon type={type} theme="twoTone" twoToneColor="#0000FF" style={{ fontSize: '16px', marginLeft: 0, marginRight: 4 }} />:<Icon type={type} style={{ fontSize: '16px', marginLeft: 0, marginRight: 8 }} />}
         <span>{text}</span>
       </a>
@@ -1506,14 +1506,14 @@ class App extends Component {
       {/*show_extra_info && (<span style={{ fontSize: '9px', color: '#FF6600' }}>({minner_num}个)</span>)*/}
     </span>
   );
-  
+
   IconTextForShare = ({ type, text, token_symbol, total_min_rem, balance, minner_num, action_type, like_status, asset_did }) => (
     <span>
       {/*<img className="list-item-action-img" src="/static/images/hashnews/ABT.png" alt="ABT" height="25" width="25" />*/}
       <a onClick={e => {
           this.onListItemActionClick(action_type, asset_did);
         }}
-      > 
+      >
         {action_type=='like'&&like_status==true?<Icon type={type} theme="twoTone" twoToneColor="#0000FF" style={{ fontSize: '16px', marginLeft: 0, marginRight: 4 }} />:<Icon type={type} style={{ fontSize: '16px', marginLeft: 0, marginRight: 8 }} />}
         <span>{text}</span>
       </a>
@@ -1523,29 +1523,29 @@ class App extends Component {
       {total_min_rem>0 && (<span style={{ fontSize: '9px', color: '#FF6600' }}>({minner_num}个)</span>)}
     </span>
   );
-  
+
   CommentList = ({ asset_did, comment_cnt, comment_list, token }) => (
     <Paragraph className="antd-list-comment-list-text" ellipsis={{ rows: 8, expandable: true }}>
       {comment_list.map(x => renderCommentList(x, token))}
     </Paragraph>
   );
-  
+
   PaytipList = ({ asset_did, paytip_cnt, paytip_list, token }) => (
     <Paragraph className="antd-list-comment-list-text" ellipsis={{ rows: 6, expandable: true }}>
       {paytip_list.map(x => renderPaytipList(x, token))}
     </Paragraph>
   );
-  
+
   handleCommentInputOk = e => {
     const { session, newsflash_list, comment_to_send } = this.state;
     const { user, token } = session;
     var newsflashItem = this.newsflashListItemFind(this.comment_asset_did);
-    
+
     if(!newsflashItem){
       console.log('handleCommentInputOk invalid newsflash item');
       return null;
     }
-  
+
     //verify input parameter
     if(!this.comment_asset_did || this.comment_asset_did.length == 0){
       console.log('handleCommentInputOk invalid comment_asset_did');
@@ -1555,14 +1555,14 @@ class App extends Component {
       console.log('handleCommentInputOk comment_to_send is empy');
       return null;
     }
-  
+
     console.log('handleCommentInputOk, asset_did=', this.comment_asset_did);
     console.log('comment_to_send.length=', comment_to_send.length);
     //console.log('comment_to_send=', comment_to_send);
-    
+
     var current_time = getCurrentTime();
     //console.log('current_time=', current_time);
-    
+
     const uname_with_did = user.name+'('+getUserDidFragment(user.did)+')';
     var comment_list_item = {
       uname: uname_with_did,
@@ -1571,18 +1571,18 @@ class App extends Component {
       comment: comment_to_send,
       mbalance: 0
     };
-    
+
     /*send comment minning request*/
     this.setState({
       minning: true
     });
-          
+
     const formData = new FormData();
     formData.append('user', JSON.stringify(user));
     formData.append('cmd', 'add_comment');
     formData.append('asset_did', this.comment_asset_did);
     formData.append('comment', comment_to_send);
-        
+
     reqwest({
       url: '/api/newsflashset',
       method: 'post',
@@ -1598,12 +1598,12 @@ class App extends Component {
         }else{
           console.log('comment minning poll is empty');
         }
-        
+
         newsflashItem.comment_cnt += 1;
         comment_list_item.mbalance = parseFloat(result.response);
         //newsflashItem.comment_list.push(comment_list_item); /*Add to tail*/
         newsflashItem.comment_list.unshift(comment_list_item); /*Add to head*/
-        
+
         this.setState({
           minning: false
         });
@@ -1616,7 +1616,7 @@ class App extends Component {
         });
       },
     });
-    
+
     this.setState({
       comment_to_send: '',
       comment_input_visible: false
@@ -1624,24 +1624,24 @@ class App extends Component {
       this.comment_asset_did = '';
     });
   };
-  
+
   handleCommentInputCancel = e => {
     console.log('handleCommentInputCancel, asset_did=', this.comment_asset_did);
-    
+
     this.setState({
       comment_input_visible: false
     },()=>{
       this.comment_asset_did = '';
     });
   };
-  
+
   handleShareNewsPicContextMenu = e => {
     //console.log('handleShareNewsPicContextMenu, e=', e);
     if(this.shareNewsPicTimeout){
       clearTimeout(this.shareNewsPicTimeout);
       this.shareNewsPicTimeout = null;
     }
-    
+
     this.shareNewsPicTimeout = setTimeout(() => {
       this.setState({
         shared_btn_disabled: false
@@ -1649,20 +1649,20 @@ class App extends Component {
       });
     }, 8000);
   }
-  
- 
-  onShareNewsUserSloganChange = ({ target: { value } }) => {    
+
+
+  onShareNewsUserSloganChange = ({ target: { value } }) => {
     //console.log('onShareNewsUserSloganChange value='+value+' length='+value.length);
-    
+
     this.setState({
       share_news_user_slogan_content: value,
     },()=>{
     });
   };
-  
+
   handleShareNewsUserSloganInputOk = e => {
     console.log('handleShareNewsUserSloganInputOk, asset_did=', this.share_asset_did);
-   
+
     this.setState({
       share_news_user_slogan_input_visible: false
     },()=>{
@@ -1673,10 +1673,10 @@ class App extends Component {
       });
     });
   };
-  
+
   handleShareNewsUserSloganInputCancel = e => {
     console.log('handleShareNewsUserSloganInputCancel, asset_did=', this.share_asset_did);
-    
+
     this.setState({
       share_news_user_slogan_input_visible: false
     },()=>{
@@ -1687,30 +1687,30 @@ class App extends Component {
       });
     });
   };
-  
+
   handleGenShareNewsOk = e => {
     console.log('handleGenShareNewsOk, asset_did=', this.share_asset_did);
-   
+
     this.setState({
       gen_share_news_visible: false
     },()=>{
     });
   };
-  
+
   handleGenShareNewsCancel = e => {
     console.log('handleGenShareNewsCancel, asset_did=', this.share_asset_did);
-    
+
     this.setState({
       gen_share_news_visible: false
     },()=>{
       this.share_asset_did = '';
     });
   };
-  
+
   shareNewsFulfilledProc = () => {
     const { session } = this.state;
     const { user, token } = session;
-    
+
     if(this.shareNewsPicUserCancel === false){
       var newsflashItem = this.newsflashListItemFind(this.share_asset_did);
       if(newsflashItem && user){
@@ -1720,17 +1720,17 @@ class App extends Component {
           mbalance: 0
         };
         newsflashItem.forward_list.push(forward_list_item);
-          
+
         /*send forward minning request*/
         this.setState({
           minning: true
         });
-          
+
         const formData = new FormData();
         formData.append('user', JSON.stringify(user));
         formData.append('cmd', 'forward');
         formData.append('asset_did', this.share_asset_did);
-        
+
         reqwest({
           url: '/api/newsflashset',
           method: 'post',
@@ -1761,7 +1761,7 @@ class App extends Component {
         console.log('handleShareNewsPicOk unknown news item or not login.');
       }
     }
-   
+
     this.setState({
       share_news_pic_visible: false,
       shared_btn_disabled: true,
@@ -1770,20 +1770,20 @@ class App extends Component {
       this.share_asset_did = '';
     });
   }
-  
+
   handleShareNewsPicOk = async(e) => {
     console.log('handleShareNewsPicOk share_news_pic_data.length=', share_news_pic_data.length);
-    
+
     if(navigator && navigator.share){
       let posterImageFile = dataURLtoFile(share_news_pic_data, 'HNPoster.jpg');
       let shareFilesArray = [
         posterImageFile,
       ];
-      
+
       /*
       try {
         await navigator.share({
-          text: hashnews_slogan, 
+          text: hashnews_slogan,
           files: shareFilesArray
         });
         console.log("Data was shared successfully");
@@ -1792,7 +1792,7 @@ class App extends Component {
         console.error("Share failed!");
       }
       */
-      
+
       /*
       navigator.share({
         text: hashnews_slogan,
@@ -1805,7 +1805,7 @@ class App extends Component {
         console.log('Error sharing:', error);
       });
       */
-      
+
       navigator.share({
         files: shareFilesArray
       })
@@ -1814,12 +1814,12 @@ class App extends Component {
       .catch((error) => {
         console.log('Error sharing:', error);
       });
-      
+
       this.setState({
         share_news_pic_visible: false
       },()=>{
       });
-      
+
       if(this.shareNewsPicTimeout){
         clearTimeout(this.shareNewsPicTimeout);
         this.shareNewsPicTimeout = null;
@@ -1827,17 +1827,17 @@ class App extends Component {
       this.shareNewsPicTimeout = setTimeout(() => {
         this.shareNewsFulfilledProc();
       }, 8000);
-      
+
     }else{
       this.shareNewsFulfilledProc();
     }
   };
-  
+
   handleShareNewsPicCancel = e => {
     console.log('handleShareNewsPicCancel share_news_pic_data.length=', share_news_pic_data.length);
-    
+
     this.shareNewsPicUserCancel = true;
-    
+
     this.setState({
       share_news_pic_visible: false,
       shared_btn_disabled: true,
@@ -1846,17 +1846,17 @@ class App extends Component {
       this.share_asset_did = '';
     });
   };
-  
-  handlePaytipDialogOk = e => {   
+
+  handlePaytipDialogOk = e => {
     const { session, newsflash_list, paytip_input_value } = this.state;
     const { user, token } = session;
     var newsflashItem = this.newsflashListItemFind(this.paytip_asset_did);
-    
+
     if(!newsflashItem){
       console.log('handlePaytipDialogOk invalid newsflash item');
       return null;
     }
-  
+
     //verify input parameter
     if(!this.paytip_asset_did || this.paytip_asset_did.length == 0){
       console.log('handlePaytipDialogOk invalid asset_did');
@@ -1866,10 +1866,10 @@ class App extends Component {
       console.log('handlePaytipDialogOk paytip_input_value is zero');
       return null;
     }
-  
+
     console.log('handlePaytipDialogOk, asset_did=', this.paytip_asset_did);
     console.log('paytip_input_value=', paytip_input_value);
-    
+
     this.setState({
       paytip_input_visible: false,
       paytip_target_did: newsflashItem.sender,
@@ -1877,26 +1877,26 @@ class App extends Component {
     },()=>{
     });
   };
-  
+
   handlePaytipDialogCancel = e => {
     console.log('handlePaytipDialogCancel, asset_did=', this.paytip_asset_did);
-    
+
     this.setState({
       paytip_input_visible: false
     },()=>{
       this.paytip_asset_did = '';
     });
   };
-  
+
   onPaytipValueChange = value => {
     this.setState({ paytip_input_value: value });
   };
-  
+
   onPaytipCommentChange = ({ target: { value } }) => {
     //console.log('onPaytipCommentChange value='+value+' length='+value.length);
     this.setState({ paytip_comment: value });
   };
-  
+
   onPaymentClose = async result => {
     console.log('onPaymentClose');
     this.setState({
@@ -1904,7 +1904,7 @@ class App extends Component {
       paytip_sending: false,
     });
   };
-  
+
   onPaytipPaymentClose = async result => {
     console.log('onPaytipPaymentClose');
     this.setState({
@@ -1935,19 +1935,19 @@ class App extends Component {
       sending: false,
       paytip_sending: false,
     });
-    
+
     setTimeout(() => {
       window.location.reload();
     }, 8000);
   };
 
   render() {
-    const { 
-      session, 
+    const {
+      session,
       news_type,
       news_article_worth,
       news_to_send_weight,
-      news_title_to_send, 
+      news_title_to_send,
       news_content_to_send,
       news_image_file_list,
       news_image_url,
@@ -1955,17 +1955,17 @@ class App extends Component {
       news_image_preview_image,
       sendAffixOffsetTop,
       comment_to_send,
-      toPay, 
-      sending, 
+      toPay,
+      sending,
       asset_sending,
       paytip_sending,
-      datachains_list, 
-      newsflash_list, 
-      more_to_load, 
+      datachains_list,
+      newsflash_list,
+      more_to_load,
       loading } = this.state;
     //console.log('render session=', session);
     //console.log('render props=', this.props);
-    
+
     const loadMore =
       more_to_load && !loading ? (
         <div
@@ -1979,7 +1979,7 @@ class App extends Component {
           <Button onClick={this.onLoadMore} style={{ fontSize: '16px', color: '#0000FF', marginRight: 20 }}><Icon type="caret-down" />更多</Button>
           <Button onClick={this.onLoadMoreBack} style={{ fontSize: '16px', color: '#009933' }}><Icon type="caret-up" />返回</Button>
         </div>
-      ) 
+      )
       : (newsflash_list.length > 0?
         <div
           style={{
@@ -1992,39 +1992,39 @@ class App extends Component {
           <Button onClick={this.onLoadMoreBack} style={{ fontSize: '16px', color: '#009933' }}><Icon type="caret-up" />返回</Button>
         </div>
          :null);
-    
+
     if (!session) {
       return (
-        <Layout title="哈希快讯">
+        <Layout title="梦阳快讯">
           <Main>
             <CircularProgress />
           </Main>
         </Layout>
       );
     }
-    
+
     //if ( isProduction && !session.user) {
     //  console.log('render user not exist');
     //  window.location.href = '/?openLogin=true';
     //  return null;
     //}
-    
+
     if(news_type === 'test2' || news_type === 'articles'){
       news_content_max_length = 5000;
     }else{
       news_content_max_length = 1000;
     }
-    
+
     const { user, token } = session;
     //console.log('render session.user=', user);
     //console.log('render session.token=', token);
-    
+
     const dapp = 'newsflash';
     let para_obj = {};
     let para = '';
     let tipValue = 0;
     let tipAddr = '';
-    
+
     if(sending){
       para_obj = {asset_did: this.state.asset_did};
       para = JSON.stringify(para_obj);
@@ -2038,12 +2038,12 @@ class App extends Component {
       tipValue = parseFloat(this.state.paytip_input_value);
       tipAddr = this.state.paytip_target_did;
     }
-    
+
     //if(this.state.newsflash_list && this.state.newsflash_list.length > 0){
       //console.log('render newsflash_list=', this.state.newsflash_list);
       //console.log('render newsflash_list.length=', this.state.newsflash_list.length);
     //}
-    
+
     /*send permission*/
     var send_permission = false;
     if(user && user.perm_publish === true){
@@ -2056,7 +2056,7 @@ class App extends Component {
           break;
       }
     }
-    
+
     const newsImageUploadprops = {
       onRemove: (file) => {
         this.setState(({ news_image_file_list }) => {
@@ -2079,16 +2079,16 @@ class App extends Component {
       onPreview: this.onNewsImagePreview,
       onChange: this.onNewsImageUploadChange,
     }
-    
+
     const newsImageUploadButton = (
       <div>
         <Icon type="plus" />
         <div className="ant-upload-text">添加配图</div>
       </div>
     );
-    
+
     return (
-      <Layout title="哈希快讯">
+      <Layout title="梦阳快讯">
         <Main>
           <link
             rel="stylesheet"
@@ -2114,9 +2114,9 @@ class App extends Component {
             <Option value="ads">广告</Option>
             <Option value="soups">鸡汤</Option>
           </Select>*/}
-          <Menu 
-            onClick={this.handleNewsTypeMenuChange} 
-            selectedKeys={news_type} 
+          <Menu
+            onClick={this.handleNewsTypeMenuChange}
+            selectedKeys={news_type}
             mode="horizontal"
           >
             <Menu.Item key="hot">
@@ -2152,7 +2152,7 @@ class App extends Component {
               </Menu.Item>
             }
           </Menu>
-          {/*<Tabs defaultActiveKey={news_type} 
+          {/*<Tabs defaultActiveKey={news_type}
             onChange={this.handleNewsTypeChange}
             tabBarStyle={{background:'#fff'}}
             tabPosition="top"
@@ -2236,12 +2236,12 @@ class App extends Component {
                         {/*<img src="/static/images/abtwallet/drawable-xhdpi-v4/public_card_did_icon2.png" width="25" style={{ backgroundColor: '#466BF7', marginRight: 0 }}/>*/}
                         <i class="icon-did-abt-logo" style={{fontSize: '15px', color: '#000000'}}></i>
                         <a href={item.sender_href} target="_blank" style={{ fontSize: '15px', color: '#000000' }}> {getUserDidFragment(item.sender)}</a> <br/>
-                        <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#000000' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.time}</a> <br/>        
+                        <a href={item.href} target="_blank" style={{ fontSize: '11px', color: '#000000' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 哈希@{item.time} 来自 {item.news_create_from.length > 0 ? item.news_create_from : '哈希快讯'}</a> <br/>
                       </div>
-                  
+
                       {(item.news_type != 'test2') && (item.news_type != 'articles') && (
                         <div id={item.asset_did}>
-                          {(item.news_title.length > 0) && 
+                          {(item.news_title.length > 0) &&
                             <span style={{ fontSize: '17px', fontWeight: 600, color: '#000000' }}>{item.news_title}</span>
                           }
                           {(item.news_title.length > 0) && <br/>}
@@ -2252,7 +2252,7 @@ class App extends Component {
                               ?
                               <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#FF0000' }}>
                                 {item.news_content}
-                              </Paragraph> 
+                              </Paragraph>
                               :
                               <Paragraph ellipsis={{ rows: 6, expandable: true }} style={{ fontSize: '16px', color: '#000000' }}>
                                 {item.news_content}
@@ -2268,17 +2268,17 @@ class App extends Component {
                           }
                         </div>
                       )}
-                  
+
                       {((item.news_type === 'test2') || (item.news_type === 'articles')) && (
                         <div id={item.asset_did} style={{ display: 'flex' , alignItems: 'center', justifyContent: 'flex-start'}}>
                           <a href={`/article?asset_did=${item.asset_did}`} style={{ width: '100%' }}>
                             <img src={item.news_images[0]} alt="HashNews" width='156' height="100" style={{ float: 'left', marginRight: 10, borderRadius: '10px' }}/>
                             <span style={{ fontSize: '17px', fontWeight: 500, color: '#000000' }}>{item.news_title}</span> <br/>
                             <span style={{ fontSize: '13px', color: '#888888' }}>{item.news_content.slice(0, 50)}...</span> <br/>
-                          </a>            
+                          </a>
                         </div>
                       )}
-                  
+
                       {(item.news_origin.length > 0) &&
                         <div>
                           <br/>
@@ -2294,7 +2294,7 @@ class App extends Component {
                           {(item.paytip_list.length > 0) && (
                             <this.PaytipList asset_did={item.asset_did} paytip_cnt={item.paytip_cnt} paytip_list={item.paytip_list} token={token} />
                           )}
-                        </div> 
+                        </div>
                       }
                     </List.Item>
                   )}
@@ -2347,7 +2347,7 @@ class App extends Component {
               )}
               {((news_type === 'test2') || (news_type === 'articles')) && (
                 <div style={{ margin: '10px 0' }}>
-                  <Upload{...newsImageUploadprops}           
+                  <Upload{...newsImageUploadprops}
                   >
                     {news_image_file_list.length >= 1 ? null : newsImageUploadButton}
                   </Upload>
@@ -2387,8 +2387,8 @@ class App extends Component {
               </Select>
               {(news_type != 'test2') && (news_type != 'articles') && (
                 <div style={{ margin: '10px 0' }}>
-                  {/*<Slider 
-                    defaultValue={this.state.news_to_send_weight} 
+                  {/*<Slider
+                    defaultValue={this.state.news_to_send_weight}
                     value={typeof this.state.news_to_send_weight === 'number' ? this.state.news_to_send_weight : 1}
                     min={news_weights_value_min}
                     max={news_weights_value_max}
@@ -2647,7 +2647,7 @@ class App extends Component {
                       <a href={item.href} target="_blank" style={{ fontSize: '11px', fontVariant: 'normal', color: '#000000' }}>{item.data_chain_nodes[0].name.substring(0,1).toUpperCase()+item.data_chain_nodes[0].name.substring(1)} - 20{item.time}</a>
                       <div>
                         <br/>
-                        {(item.news_title.length > 0) && 
+                        {(item.news_title.length > 0) &&
                           <span style={{ fontSize: '13px', fontWeight: 600, color: '#000000' }}>{item.news_title}</span>
                         }
                         {(item.news_title.length > 0) && <br/>}
@@ -2765,11 +2765,11 @@ class App extends Component {
 
 const Main = styled.main`
   margin: 20px 0 0;
-  
+
   .section-header {
     margin-bottom: 20px;
   }
-  
+
   .section-description {
     font-size: 1.0rem;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
@@ -2781,22 +2781,22 @@ const Main = styled.main`
       margin-right: 5px;
     }
   }
-  
+
   .antd-select{
     font-size: 0.8rem;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-weight: 200;
     color: #000000;
   }
-  
+
   .antd-button-send{
     height: 20px;
   }
-  
+
   .antd-button-cancel{
     height: 20px;
   }
-  
+
   .antd-list-item{
     font-size: 1.0rem;
     font-family: Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial, sans-serif;
@@ -2806,21 +2806,21 @@ const Main = styled.main`
     word-wrap: break-word;
     word-break: break-all;
   }
-  
+
   .antd-list-item-meta-title{
     font-size: 0.8rem;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-weight: 500;
     color: #3CB371;
   }
-  
+
   .antd-list-item-meta-description{
     font-size: 0.8rem;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-weight: 200;
     color: #0000FF;
   }
-  
+
   .antd-list-comment-list-text{
       font-size: 0.8rem;
       font-family: Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial, sans-serif;
@@ -2831,7 +2831,7 @@ const Main = styled.main`
       word-break: break-all;
       background-color: #F5F5F5;
    }
-  
+
   .web {
     .ant-modal-content {
       position: relative;
@@ -2848,7 +2848,7 @@ const Main = styled.main`
       line-height: 1 !important;
     }
   }
-  
+
   .pagination {
     display: flex;
     justify-content: center;

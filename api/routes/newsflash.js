@@ -17,7 +17,7 @@ const {
   ImageFileRemove
 }  = require('../libs/image');
 const { createNewsflahAsset } = require('../libs/assets');
-const { 
+const {
   utcToLocalTime
 } = require('../libs/time');
 
@@ -58,7 +58,7 @@ async function NewsflashAdd(fields){
     console.log('NewsflashAdd invalid fields');
     return false;
   }
-  
+
   var data_chain_name = env.assetChainName;
   var data_chain_host = env.assetChainHost;
   var data_chain_id = env.assetChainId;
@@ -67,7 +67,7 @@ async function NewsflashAdd(fields){
     if(!isProduction){
       console.log('NewsflashAdd data_chain_name=', fields.data_chain_name[0]);
     }
-    
+
     if(fields.data_chain_name[0] === 'default'){
       doc = await Datachain.findOne({ name: data_chain_name_default });
     }else{
@@ -82,7 +82,7 @@ async function NewsflashAdd(fields){
   //data_chain_name = 'argon';
   //data_chain_host = 'https://argon.abtnetwork.io/api';
   //data_chain_id = 'argon-2019-11-07';
-  
+
   var total_comment_minner_number = 10;
   var total_like_minner_number = 10;
   var total_forward_minner_number = 10;
@@ -95,21 +95,21 @@ async function NewsflashAdd(fields){
   if(fields.forward_minner_number[0] > 0){
     total_forward_minner_number = fields.forward_minner_number[0];
   }
-  
+
   var doc = await Newsflash.findOne({ content_did: fields.asset_did[0] });
   if(doc){
     if(doc.state != 'commit'){
       if(!isProduction){
         console.log('NewsflashAdd asset_did=', fields.asset_did[0], 'already on chain');
       }
-      
+
       /*ignore dup news*/
       return false;
     }else{
       if(!isProduction){
         console.log('NewsflashAdd asset_did=', fields.asset_did[0], 'already in db');
       }
-      
+
       /*asset already in db, update it*/
       doc.data_chain_nodes[0] = {name: data_chain_name, chain_host: data_chain_host, chain_id: data_chain_id};
       doc.markModified('data_chain_nodes');
@@ -141,6 +141,7 @@ async function NewsflashAdd(fields){
       news_content: fields.news_content[0],
       news_origin: fields.news_origin[0],
       news_weights: fields.news_weights[0],
+      news_create_from: '梦阳快讯',
       total_comment_minner_number: total_comment_minner_number,
       total_like_minner_number: total_like_minner_number,
       total_forward_minner_number: total_forward_minner_number,
@@ -153,7 +154,7 @@ async function NewsflashAdd(fields){
       console.log('NewsflashAdd saved to db');
     }
   }
-  
+
   return true;;
 }
 
@@ -171,10 +172,10 @@ async function NewsflashCreateAssetOnChain(fields){
     console.log('NewsflashCreateAssetOnChain invalid fields');
     return false;
   }
-  
+
   const user = JSON.parse(fields.user[0]);
   const imageUrl = JSON.parse(fields.news_image_url[0]);
-  
+
   var data_chain_name = env.assetChainName;
   var data_chain_host = env.assetChainHost;
   var data_chain_id = env.assetChainId;
@@ -197,29 +198,29 @@ async function NewsflashCreateAssetOnChain(fields){
   //data_chain_name = 'argon';
   //data_chain_host = 'https://argon.abtnetwork.io/api';
   //data_chain_id = 'argon-2019-11-07';
-  
+
   //image to user dir
   Base64ImageDataToFile(imageUrl, UserPaymentBaseDirGet(user.did)+'/article_image.jpg');
   //article image resize for chain asset size requirements (<64KB)
-  //const base64CropImageData = await ImageCrop(UserPaymentBaseDirGet(user.did)+'/article_image.jpg', 
+  //const base64CropImageData = await ImageCrop(UserPaymentBaseDirGet(user.did)+'/article_image.jpg',
   //  UserPaymentBaseDirGet(user.did)+'/article_image_crop.jpg', 290, 186, 0, 0);
-  const base64SmallImageData = await ThumbImageGen(UserPaymentBaseDirGet(user.did)+'/article_image.jpg', 
+  const base64SmallImageData = await ThumbImageGen(UserPaymentBaseDirGet(user.did)+'/article_image.jpg',
     UserPaymentBaseDirGet(user.did)+'/article_image_small.jpg', 290, 186, 70);
-  
+
   var news_doc = await Newsflash.findOne({ content_did: fields.asset_did[0] });
   if(news_doc){
     if(news_doc.state != 'commit'){
       if(!isProduction){
         console.log('NewsflashCreateAssetOnChain asset_did=', fields.asset_did[0], 'already on chain');
       }
-      
+
       /*ignore dup news*/
       return false;
     }else{
       if(!isProduction){
         console.log('NewsflashCreateAssetOnChain asset_did=', fields.asset_did[0], 'already in db');
       }
-      
+
       /*asset already in db, update it*/
       news_doc.data_chain_nodes[0] = {name: data_chain_name, chain_host: data_chain_host, chain_id: data_chain_id};
       news_doc.markModified('data_chain_nodes');
@@ -233,7 +234,7 @@ async function NewsflashCreateAssetOnChain(fields){
       news_doc.news_images[0] = base64SmallImageData;
       await doc.save();
     }
-  }else{    
+  }else{
     /*save newsflash to db when not exist*/
     news_doc = new Newsflash({
       data_chain_nodes: [{name: data_chain_name, chain_host: data_chain_host, chain_id: data_chain_id}],
@@ -248,6 +249,7 @@ async function NewsflashCreateAssetOnChain(fields){
       news_content: fields.news_content[0],
       news_origin: fields.news_origin[0],
       news_article_worth: forgeTxValueSecureConvert(parseFloat(fields.news_article_worth[0])),
+      news_create_from: '梦阳快讯',
       news_images: [base64SmallImageData],
       state: 'commit',
       minner_state: 'idle',
@@ -258,18 +260,18 @@ async function NewsflashCreateAssetOnChain(fields){
       console.log('NewsflashCreateAssetOnChain saved to db');
     }
   }
-  
+
   /*create asset on chain*/
   var transferHash = await createNewsflahAsset(fields.asset_did[0], data_chain_id);
   const txRes = await waitAndGetTxHash(transferHash, data_chain_id);
   if(transferHash && transferHash.length > 0
     && txRes && txRes.getTx && txRes.getTx.code === 'OK' && txRes.getTx.info){
     const tx_local_time = utcToLocalTime(txRes.getTx.info.time);
-    
-    if(!isProduction){ 
+
+    if(!isProduction){
       console.log('NewsflashCreateAssetOnChain create asset success, update doc');
     }
-    
+
     news_doc.news_hash = transferHash;
     news_doc.news_time = tx_local_time;
     news_doc.hash_href.push(news_doc.data_chain_nodes[0].chain_host.replace('/api', '/node/explorer/txs/')+transferHash);
@@ -281,17 +283,17 @@ async function NewsflashCreateAssetOnChain(fields){
     }
     await news_doc.remove();
   }
-  
+
   /*clean dead news*/
   await cleanUserDeadNews(user.did);
-  
+
   return true;;
 }
 
 const newsflashDocLikeStatusGet = (doc, udid) => {
   var likeStatus = false;
   var like_list_item = null;
-  
+
   if(doc && doc.like_list && doc.like_list.length > 0){
     like_list_item = doc.like_list.find( function(x){
       return x.udid === udid;
@@ -300,14 +302,14 @@ const newsflashDocLikeStatusGet = (doc, udid) => {
       likeStatus = true;
     }
   }
-  
+
   return likeStatus;
 };
 
 const newsflashDocForwardStatusGet = (doc, udid) => {
   var forwardStatus = false;
   var forward_list_item = null;
-  
+
   if(doc && doc.forward_list && doc.forward_list.length > 0){
     forward_list_item = doc.forward_list.find( function(x){
       return x.udid === udid;
@@ -316,19 +318,19 @@ const newsflashDocForwardStatusGet = (doc, udid) => {
       forwardStatus = true;
     }
   }
-  
+
   return forwardStatus;
 };
 
 const newsflashDocCommentFind = (doc, comment) => {
   var comment_list_item = null;
-  
+
   if(doc && doc.comment_list && doc.comment_list.length > 0){
     comment_list_item = doc.comment_list.find( function(x){
       return x.comment === comment;
     });
   }
-  
+
   return comment_list_item;
 }
 
@@ -337,13 +339,13 @@ const newsflashCommentContentVerify = (doc, comment) => {
   if(newsflashDocCommentFind(doc, comment)){
     return false;
   }
-  
-  /*Verify comment content*/  
+
+  /*Verify comment content*/
   /*1. Verify full number*/
   if(/^[0-9]+$/.test(comment)){
     return false;
   }
-    
+
   /*2.duplicate char checking*/
   let commentLen = comment.length;
   let fullDuplicateFlag = true;
@@ -366,18 +368,18 @@ const newsflashCommentContentVerify = (doc, comment) => {
   if(fullDuplicateFlag || partDuplicateFlag){
     return false;
   }
-  
+
   return true;
 }
 
 const newsflashDocCommentMinableValueGet = (doc, udid, comment) => {
   var minValue = 0;
   var comment_list_item = null;
-  
+
   if(!doc || !udid || !comment){
     return 0;
   }
-  
+
   /*min pool is empty*/
   if(doc.remain_comment_minner_balance == 0){
      if(!isProduction){
@@ -385,7 +387,7 @@ const newsflashDocCommentMinableValueGet = (doc, udid, comment) => {
      }
      return 0;
   }
-  
+
   /*The comment is too short*/
   if(!isProduction){
     console.log('newsflashDocCommentMinableValueGet comment.length', comment.length);
@@ -396,7 +398,7 @@ const newsflashDocCommentMinableValueGet = (doc, udid, comment) => {
     }
     return 0;
   }
-  
+
   /*Only min once each user*/
   if(doc.comment_list && doc.comment_list.length > 0){
     comment_list_item = doc.comment_list.find( function(x){
@@ -409,18 +411,18 @@ const newsflashDocCommentMinableValueGet = (doc, udid, comment) => {
       return 0;
     }
   }
-  
+
   /*Get the minable value*/
   if(doc.remain_comment_minner_balance > doc.each_comment_minner_balance){
     minValue = doc.each_comment_minner_balance;
   }else{
     minValue = forgeTxValueSecureConvert(doc.remain_comment_minner_balance);
   }
-  
+
   if(!isProduction){
     console.log('newsflashDocCommentMinableValueGet minValue=', minValue);
   }
-  
+
   return minValue;
 }
 
@@ -431,7 +433,7 @@ async function payToMiner(udid, mbalance){
     { ignoreFields: ['state.protocols', /\.txConfig$/, /\.gas$/] }
   );
   var transferHash = null;
-  
+
   try {
     transferHash = await ForgeSDK.sendTransferTx({
       tx: {
@@ -442,7 +444,7 @@ async function payToMiner(udid, mbalance){
       },
       wallet: newsflashAppWallet,
     });
-    
+
     if(!isProduction){
       console.log('pay', mbalance, 'to minner', udid, transferHash);
     }
@@ -450,13 +452,13 @@ async function payToMiner(udid, mbalance){
     transferHash = null;
     console.error('pay to miner err', err);
   }
-  
+
   return transferHash;
 }
 
 async function NewsflashItemGiveLike(fields){
   var like_list_item = null;
-  
+
   /*fields verify*/
   if(!fields
     || typeof(fields.user) == "undefined"
@@ -464,7 +466,7 @@ async function NewsflashItemGiveLike(fields){
     console.log('NewsflashItemGiveLike invalid fields');
     return null;
   }
-  
+
   const user = JSON.parse(fields.user[0]);
   var doc = await Newsflash.findOne({ asset_did: fields.asset_did[0] });
   if(doc){
@@ -472,7 +474,7 @@ async function NewsflashItemGiveLike(fields){
     if(likeStatus == false){
       //doc.minner_state = 'mining';
       //await doc.save();
-      
+
       /*increate like counter*/
       doc.like_counter += 1;
       //doc.hot_index += (1*doc.news_weights);
@@ -481,7 +483,7 @@ async function NewsflashItemGiveLike(fields){
       }else{
         doc.hot_index += (1*doc.news_weights);
       }
-      
+
       /*like miner*/
       var miner_value = 0;
       if(doc.remain_like_minner_balance > 0){
@@ -494,7 +496,7 @@ async function NewsflashItemGiveLike(fields){
           doc.remain_like_minner_balance = 0;
         }
       }
-      
+
       if(miner_value > 0){
         /* pay to miner */
         var transferHash = await payToMiner(user.did, miner_value);
@@ -506,7 +508,7 @@ async function NewsflashItemGiveLike(fields){
           console.log('NewsflashItemGiveLike empty minner pool');
         }
       }
-      
+
       /*Add new like item to like list*/
       like_list_item = {
         udid: user.did,
@@ -514,20 +516,20 @@ async function NewsflashItemGiveLike(fields){
       };
       doc.like_list.push(like_list_item);
       doc.markModified('like_list');
-      
+
       /*update doc*/
       //doc.minner_state = 'idle';
       doc.updatedAt = Date();
       await doc.save();
     }
   }
-  
+
   return like_list_item;
 }
 
 async function NewsflashItemForward(fields){
   var forward_list_item = null;
-  
+
   /*fields verify*/
   if(!fields
     || typeof(fields.user) == "undefined"
@@ -535,7 +537,7 @@ async function NewsflashItemForward(fields){
     console.log('NewsflashItemForward invalid fields');
     return null;
   }
-  
+
   const user = JSON.parse(fields.user[0]);
   var doc = await Newsflash.findOne({ asset_did: fields.asset_did[0] });
   if(doc){
@@ -543,7 +545,7 @@ async function NewsflashItemForward(fields){
     if(forwardStatus == false){
       //doc.minner_state = 'mining';
       //await doc.save();
-      
+
       /*increate forward counter*/
       doc.forward_counter += 1;
       //doc.hot_index += (1*doc.news_weights);
@@ -552,7 +554,7 @@ async function NewsflashItemForward(fields){
       }else{
         doc.hot_index += (1*doc.news_weights);
       }
-      
+
       /*forward miner*/
       var miner_value = 0;
       if(doc.remain_forward_minner_balance > 0){
@@ -565,7 +567,7 @@ async function NewsflashItemForward(fields){
           doc.remain_forward_minner_balance = 0;
         }
       }
-      
+
       if(miner_value > 0){
         /* pay to miner */
         var transferHash = await payToMiner(user.did, miner_value);
@@ -577,7 +579,7 @@ async function NewsflashItemForward(fields){
           console.log('NewsflashItemForward empty minner pool');
         }
       }
-      
+
       /*Add new forward item to forward list*/
       forward_list_item = {
         udid: user.did,
@@ -585,7 +587,7 @@ async function NewsflashItemForward(fields){
       };
       doc.forward_list.push(forward_list_item);
       doc.markModified('forward_list');
-      
+
       /*update doc*/
       //doc.minner_state = 'idle';
       doc.updatedAt = Date();
@@ -601,21 +603,21 @@ async function NewsflashItemForward(fields){
       }
       doc.updatedAt = Date();
       await doc.save();
-      
+
       forward_list_item = {
         udid: user.did,
         mbalance: 0
       };
     }
   }
-  
+
   return forward_list_item;
 }
 
 
 async function NewsflashItemAddComment(fields){
   var comment_list_item = null;
-  
+
   /*fields verify*/
   if(!fields
     || typeof(fields.user) == "undefined"
@@ -624,17 +626,17 @@ async function NewsflashItemAddComment(fields){
     console.log('NewsflashItemAddComment invalid fields');
     return null;
   }
-  
+
   const user = JSON.parse(fields.user[0]);
   const comment = fields.comment[0];
   var doc = await Newsflash.findOne({ asset_did: fields.asset_did[0] });
-  
+
   if(doc){
     if(!newsflashCommentContentVerify(doc, comment)){
       console.log('NewsflashItemAddComment invalid comment content');
       return null;
     }
-    
+
     const uname_with_did = user.name+'('+getUserDidFragment(user.did)+')';
     comment_list_item = {
       uname: uname_with_did,
@@ -643,10 +645,10 @@ async function NewsflashItemAddComment(fields){
       comment: comment,
       mbalance: 0
     };
-    
+
     const minValue = newsflashDocCommentMinableValueGet(doc, user.did, comment);
     comment_list_item.mbalance = minValue;
-    
+
     //doc.minner_state = 'mining';
     //await doc.save();
     if(minValue > 0){
@@ -656,7 +658,7 @@ async function NewsflashItemAddComment(fields){
         minValue = 0;
         comment_list_item.mbalance = 0;
       }
-      
+
       /*update min remains*/
       if(minValue > 0){
         if(doc.remain_comment_minner_balance > minValue){
@@ -667,7 +669,7 @@ async function NewsflashItemAddComment(fields){
         }
       }
     }
-    
+
     /*update doc*/
     //doc.minner_state = 'idle';
     doc.comment_counter += 1;
@@ -682,19 +684,19 @@ async function NewsflashItemAddComment(fields){
     doc.markModified('comment_list');
     doc.updatedAt = Date();
     await doc.save();
-    
+
     if(!isProduction){
       console.log('NewsflashItemAddComment comment add success');
     }
   }
-  
+
   return comment_list_item;
 }
 
 async function cleanUserDeadNews(strAuthorDid){
   var new_docs = [];
   var found = 0;
-  
+
   Newsflash.find().byAuthorDidAndState(strAuthorDid, 'commit').exec(function(err, docs){
     if(docs && docs.length>0){
       if(!isProduction){
@@ -708,7 +710,7 @@ async function cleanUserDeadNews(strAuthorDid){
     }
     found = 1;
   })
-  
+
   /*wait found result*/
   var wait_counter = 0;
   while(!found){
@@ -718,11 +720,11 @@ async function cleanUserDeadNews(strAuthorDid){
       break;
     }
   }
-  
+
   if(!isProduction){
     console.log('cleanUserDeadNews wait counter', wait_counter);
   }
-  
+
   if(new_docs.length > 0){
     for(var i=0;i<new_docs.length;i++){
       if(!isProduction){
@@ -731,7 +733,7 @@ async function cleanUserDeadNews(strAuthorDid){
       await new_docs[i].remove();
     }
   }
-  
+
   return;
 }
 
@@ -744,11 +746,11 @@ async function getNewsForShow(module_para){
   var new_docs = [];
   var found = 0;
   var data_chain_name = module_para.data_chain_name;
-  
+
   if(data_chain_name == 'default'){
     data_chain_name = data_chain_name_default;
   }
-  
+
   if(module_para.news_type === 'hot'){
     if(module_para.udid_to_show.length > 0){
       Newsflash.find().hotByHotIndexAndAuthorDid(module_para.udid_to_show).exec(function(err, docs){
@@ -810,7 +812,7 @@ async function getNewsForShow(module_para){
       })
     }
   }
-  
+
   /*wait found result*/
   var wait_counter = 0;
   while(!found){
@@ -820,7 +822,7 @@ async function getNewsForShow(module_para){
       break;
     }
   }
-  
+
   /*filter the doc by chain name*/
   if(data_chain_name != 'all'){
     if(new_docs && new_docs.length > 0){
@@ -839,12 +841,12 @@ async function getNewsForShow(module_para){
       });
     }
   }
-  
+
   if(!isProduction){
     console.log('getNewsForShow wait counter', wait_counter);
     //console.log(new_docs);
   }
-  
+
   if(typeof(module_para.get_mode) != "undefined" && module_para.get_mode === 'get_total_num'){
     if(new_docs && new_docs.length > 0){
       return new_docs.length;
@@ -865,7 +867,7 @@ async function getNewsForShow(module_para){
         }
       }
     }
-  
+
     /*remap news for frontEnd UI show */
     if(new_docs && new_docs.length > 0){
       new_docs = await Promise.all(new_docs.map( async (e) => {
@@ -884,6 +886,7 @@ async function getNewsForShow(module_para){
         temp_doc['news_origin'] = e.news_origin;
         temp_doc['news_images'] = e.news_images;
         temp_doc['news_article_worth'] = e.news_article_worth;
+        temp_doc['news_create_from'] = e.news_create_from;
         temp_doc['weights'] = e.news_weights;
         temp_doc['asset_did'] = e.asset_did;
         temp_doc['uname'] = e.author_name;
@@ -917,6 +920,7 @@ async function getNewsForShow(module_para){
         temp_doc['like_list'] = e.like_list;
         temp_doc['forward_list'] = e.forward_list;
         temp_doc['paytip_list'] = e.paytip_list;
+        temp_doc['paytip_list'] = e.paytip_list;
         if(module_para.udid && module_para.udid.length > 0){
           temp_doc['like_status'] = newsflashDocLikeStatusGet(e, module_para.udid);
         }else{
@@ -925,19 +929,19 @@ async function getNewsForShow(module_para){
         return temp_doc;
       }));
     }
-  
+
     if(!isProduction){
       //console.log('getNewsForShow final new_docs.length=', new_docs.length);
     }
-  
+
     return new_docs;
   }
 }
 
 async function NewsflashStateManager(action, asset_did){
-  var result = false;  
+  var result = false;
   var doc = await Newsflash.findOne({ asset_did: asset_did });
-  
+
   if(doc){
     switch(action){
       case 'chain':
@@ -958,7 +962,7 @@ async function NewsflashStateManager(action, asset_did){
   }else{
     result = false;
   }
-  
+
   return result;
 }
 
@@ -982,10 +986,10 @@ module.exports = {
               if(typeof(page) != "undefined" &&  typeof(count) != "undefined"){
                 module_para = {
                   data_chain_name: req.query.data_chain_name,
-                  news_type: req.query.news_type, 
-                  udid: req.query.udid, 
+                  news_type: req.query.news_type,
+                  udid: req.query.udid,
                   udid_to_show: req.query.udid_to_show,
-                  slice_start: (parseInt(page)-1)*parseInt(count), 
+                  slice_start: (parseInt(page)-1)*parseInt(count),
                   slice_end: (parseInt(page)-1)*parseInt(count)+parseInt(count),
                };
               }else{
@@ -1003,8 +1007,8 @@ module.exports = {
             case 'getNewsTotalNum':
               var module_para = {
                   data_chain_name: req.query.data_chain_name,
-                  news_type: req.query.news_type, 
-                  udid: req.query.udid, 
+                  news_type: req.query.news_type,
+                  udid: req.query.udid,
                   udid_to_show: req.query.udid_to_show,
                   get_mode: 'get_total_num',
                };
@@ -1034,12 +1038,12 @@ module.exports = {
       }
     });
     /*end of /api/newsflashget get*/
-    
+
     app.post('/api/newsflashset', async (req, res) => {
       try {
         var form = new multiparty.Form();
         form.maxFieldsSize = 10485760;
-      
+
         //console.log('api.newsflashset req', req);
         //console.log('api.newsflashset req.body=', req.body);
 
@@ -1051,9 +1055,9 @@ module.exports = {
             res.end();
             return ;
           }
-          
+
           if( isProduction && (
-            typeof(fields.user) == "undefined" 
+            typeof(fields.user) == "undefined"
             || typeof(fields.cmd) == "undefined"
             || fields.user[0] == "undefined")){
             console.log('api.newsflashset invalid filed');
@@ -1062,17 +1066,17 @@ module.exports = {
             res.end();
             return ;
           }
-          
+
           if(typeof(fields.cmd) != "undefined" && fields.cmd[0] != "undefined"){
             var result = false;
             var resValue = 'OK';
-            
+
             const cmd = fields.cmd[0];
-            
+
             if(!isProduction){
               console.log('api.newsflashset cmd=', cmd);
             }
-            
+
             /*cmd list
              *1. add:  add news to db
              *2. create_asset_on_chain: create news asset on chain
@@ -1108,19 +1112,19 @@ module.exports = {
               default:
                 break;
             }
-            
+
             if(result){
               if(!isProduction){
                 console.log('api.newsflashset ok');
               }
-              
+
               res.statusCode = 200;
               res.write(resValue);
               res.end();
               return;
             }
           }
-          
+
           console.log('api.newsflashset error');
           res.statusCode = 404;
           res.write('newsflash set error');
@@ -1136,7 +1140,7 @@ module.exports = {
     });
     /*end of /api/newsflashset post*/
   },
-  
+
   newsflashDocLikeStatusGet,
   getNewsByAssetDid,
   cleanUserDeadNews,
